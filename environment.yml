@@ -1,4 +1,4 @@
-name: 
+name:
   nre_pipeline
 channels:
   - conda-forge
@@ -27,19 +27,73 @@ dependencies:
   - vcomp14=14.44.35208
   - wheel=0.45.1
   - pip:
+      - annotated-types==0.7.0
       - attrs==25.3.0
+      - blis==0.7.11
+      - catalogue==2.0.10
+      - certifi==2025.8.3
+      - charset-normalizer==3.4.3
+      - click==8.3.0
+      - cloudpathlib==0.22.0
+      - colorama==0.4.6
+      - confection==0.1.5
+      - cymem==2.0.11
+      - cython==3.1.4
+      - idna==3.10
       - iniconfig==2.1.0
+      - jinja2==3.1.6
+      - joblib==1.5.2
       - jsonschema==4.25.1
       - jsonschema-specifications==2025.9.1
+      - langcodes==3.5.0
+      - language-data==1.3.0
       - lockfile==0.12.2
+      - loguru==0.7.3
+      - marisa-trie==1.3.1
+      - markdown-it-py==4.0.0
+      - markupsafe==3.0.3
+      - mdurl==0.1.2
+      - medspacy==1.3.1
+      - medspacy-quickumls==3.2
+      - medspacy-unqlite==0.9.8
+      - murmurhash==1.0.13
+      - nltk==3.9.2
+      - numpy==1.26.4
+      - packaging==25.0
       - pluggy==1.6.0
+      - preshed==3.0.10
       - ptyprocess==0.7.0
+      - pydantic==2.11.9
+      - pydantic-core==2.33.2
+      - pyfastner==1.0.10
       - pygments==2.19.2
+      - pyrush==1.0.12
+      - pysbd==0.3.4
+      - pysimstring==1.3.0
       - pytest==8.4.2
+      - quicksectx==0.4.1
       - referencing==0.36.2
+      - regex==2025.9.18
+      - requests==2.32.5
+      - rich==14.1.0
       - rpds-py==0.27.1
       - six==1.17.0
+      - smart-open==7.3.1
+      - spacy==3.7.5
+      - spacy-legacy==3.0.12
+      - spacy-loggers==1.0.5
+      - srsly==2.5.1
+      - thinc==8.2.5
+      - tqdm==4.67.1
+      - typer==0.19.2
+      - typing-extensions==4.15.0
+      - typing-inspection==0.4.2
+      - unidecode==1.4.0
       - urllib3==1.26.20
+      - wasabi==1.1.3
+      - weasel==0.4.1
       - webencodings==0.5.1
-prefix: 
+      - win32-setctime==1.2.0
+      - wrapt==1.17.3
+prefix:
   .\envs\nre_pipeline
