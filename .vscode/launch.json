@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug NRE Pipeline (Verbose)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nre_pipeline",
+            "args": [
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+            "justMyCode": true,
+            "stopOnEntry": false,
+            "redirectOutput": true
+        },
+        {
+            "name": "Debug NRE Pipeline (Default)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nre_pipeline",
+            "args": [],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+            "justMyCode": true,
+            "stopOnEntry": false,
+            "redirectOutput": true
+        },
+        {
+            "name": "Debug NRE Pipeline (__main__.py)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/__main__.py",
+            "args": [
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+            "justMyCode": true,
+            "stopOnEntry": false,
+            "redirectOutput": true
+        }
+    ]
+}

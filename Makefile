@@ -10,7 +10,9 @@ ACTIVATE=for %%A in ("%CONDA_EXE%") do call "%%~dpAactivate.bat"
 .PHONY: install test clean env-backup env-export env-build git-add-commit quickumls-install
 
 install:
+	$(MAKE) env-build
 	@$(ACTIVATE) && $(PYTHON) -m pip install -e .
+	$(MAKE) quickumls-install
 
 test:
 	@$(ACTIVATE) && $(PYTHON) -m pytest tests
