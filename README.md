@@ -63,3 +63,8 @@ black src/ tests/
 ## License
 
 MIT License
+
+
+## Notes
+
+- GitHub repo created from local using `gh repo create NLPSSC/ward_nre_pipeline --public --source=. --remote=origin --push`
