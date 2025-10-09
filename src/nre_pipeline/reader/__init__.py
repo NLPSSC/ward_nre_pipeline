@@ -2,6 +2,6 @@
 Reader module for NRE Pipeline.
 """
 
-from .filesystem_reader import FileSystemReader
+from ._filesystem import FileSystemReader, CorpusReader
 
-__all__ = ["FileSystemReader"]
+__all__ = ["FileSystemReader", "CorpusReader"]

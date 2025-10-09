@@ -22,11 +22,7 @@ def main():
             print("  ... (truncated)")
             break
 
-    # Example 3: Pattern matching
-    print("\nExample 3: Finding files matching 'test_*' pattern")
-    test_files = list(reader.iter_notes("test_*"))
-    for test_file in test_files:
-        print(f"  {test_file}")
+  
 
     # Example 4: Count files by extension
     print("\nExample 4: File count by extension")

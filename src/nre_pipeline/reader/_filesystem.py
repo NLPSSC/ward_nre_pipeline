@@ -6,21 +6,31 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List
+from typing import Any, List
+
+from loguru import logger
+
+from nre_pipeline.models import Document
+from nre_pipeline.models._batch import DocumentBatch
+from nre_pipeline.reader._base import CorpusReader
 
 
-class FileSystemReader:
+class FileSystemReader(CorpusReader):
     """
     A class that provides recursive iteration over files in a filesystem directory.
 
+    Inherits from CorpusReader to provide concrete implementation of file iteration.
+
     Attributes:
-        path (Path): The root path to iterate from
-        exclude (list[Path]): List of paths/patterns to exclude from iteration
+        path (List[Path]): The root paths to iterate from
+        extensions (List[str] | None): List of file extensions to filter by
+        exclude (List[Path]): List of paths/patterns to exclude from iteration
     """
 
     def __init__(
         self,
         path: List[str | Path] | Path | str,
+        batch_size: int,
         extensions: List[str] | None = None,
         exclude: list[str | Path] | None = None,
     ):
@@ -38,6 +48,10 @@ class FileSystemReader:
             self._path: List[Path] = [Path(path)]
         else:
             self._path: List[Path] = [Path(p) for p in path]
+
+        if batch_size < 1:
+            raise ValueError("Batch size must be at least 1")
+        self._batch_size: int = batch_size
         self._extensions: List[str] | None = extensions
         self._exclude: List[Path] = [Path(p) for p in (exclude or [])]
 
@@ -55,27 +69,31 @@ class FileSystemReader:
         Yields:
             Path: Each file found in the directory tree
         """
-        for p in self._path:
-            for root, dirs, files in os.walk(p):
-                root_path = Path(root)
-                for file in files:
-                    file_path: Path = root_path / file
-                    if not self._is_excluded(file_path):
-                        yield file_path
 
-    def iter_notes(self, pattern: str = "*"):
-        """
-        Iterate over files matching a specific pattern.
-
-        Args:
-            pattern: Glob pattern to match files (default: "*")
-
-        Yields:
-            Path: Each file matching the pattern
-        """
-        for file_path in self:
-            if file_path.match(pattern):
-                yield file_path
+        # All files in all paths
+        files = (
+            (Path(root) / f)
+            for p in self._path
+            for root, dirs, files in os.walk(p)
+            for f in files
+        )
+        # Filter files by extension and exclusion patterns
+        filtered_files = (self.make_doc(f) for f in files if not self._is_excluded(f))
+        iteration_number = 0
+        while True:
+            iteration_number += 1
+            batch: List[Document] = [
+                doc for _, doc in zip(range(self._batch_size), filtered_files)
+            ]
+            if not batch:
+                break
+            document_batch = DocumentBatch(batch)
+            logger.debug(
+                "Loading batch # {}, iteration {}",
+                document_batch.batch_id,
+                iteration_number,
+            )
+            yield document_batch
 
     def _is_excluded(self, file_path: Path) -> bool:
         """
@@ -117,3 +135,12 @@ class FileSystemReader:
                 return True
 
         return False
+
+    def make_doc(self, source: Any) -> Document:
+        if isinstance(source, (Path, str)) is False:
+            raise ValueError("Source must be a Path or string representing a file path")
+        source_path = Path(source)
+        note_id = source_path.stem
+        with open(source_path, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
+        return Document(note_id=note_id, text=text, metadata={"path": str(source_path)})

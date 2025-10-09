@@ -44,15 +44,6 @@ def test_filesystem_reader_iteration():
     assert all(f.is_file() for f in files)
 
 
-def test_filesystem_reader_glob_pattern():
-    """Test glob pattern functionality."""
-    tests_dir = Path(__file__).parent
-    reader = FileSystemReader(tests_dir)
-
-    # Test with test_* pattern
-    test_files = list(reader.iter_notes("test_*"))
-    assert len(test_files) > 0
-    assert all(f.name.startswith("test_") for f in test_files)
 
 
 def test_filesystem_reader_with_exclude():
@@ -70,7 +61,9 @@ def test_filesystem_reader_with_exclude():
         sub_dir.mkdir()
         (sub_dir / "sub_file.txt").touch()
         # Test excluding specific file
-        reader = FileSystemReader(tmp_path, exclude=["exclude_me.txt"])
+        reader = FileSystemReader(
+            [tmp_path], extensions=[".txt", ".py"], exclude=["exclude_me.txt"]
+        )
         files = [f.name for f in reader]
         assert "exclude_me.txt" not in files
         assert "file1.txt" in files
@@ -108,3 +101,34 @@ def test_filesystem_reader_exclude_pattern():
         assert "test_file1.py" not in files
         assert "test_file2.py" not in files
         assert "keep_file.txt" in files
+
+
+def test_filesystem_reader_with_exclude_and_extensions():
+    """Test FileSystemReader with exclude parameter and extensions filtering."""
+    import os
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        # Create test files
+        (tmp_path / "file1.txt").touch()
+        (tmp_path / "file2.py").touch()
+        (tmp_path / "exclude_me.txt").touch()
+        (tmp_path / "keep_me.md").touch()
+        # Create subdirectory with files
+        sub_dir = tmp_path / "subdir"
+        sub_dir.mkdir()
+        (sub_dir / "sub_file.txt").touch()
+        (sub_dir / "sub_file.py").touch()
+        # Test excluding specific file and filtering by extensions
+        reader = FileSystemReader(
+            [tmp_path],
+            extensions=[".txt", ".md"],
+            exclude=["exclude_me.txt", sub_dir / "sub_file.txt"],
+        )
+        files = [f.name for f in reader]
+        assert "exclude_me.txt" not in files
+        assert "file1.txt" in files
+        assert "file2.py" not in files  # .py not in extensions
+        assert "keep_me.md" in files
+        assert "sub_file.txt" not in files  # excluded
+        assert "sub_file.py" not in files  # .py not in extensions

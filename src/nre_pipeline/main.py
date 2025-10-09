@@ -8,20 +8,11 @@ from typing import Any, Dict
 
 from loguru import logger
 
-
-def setup_logging(verbose: bool = False) -> None:
-    """Set up logging configuration."""
-    # Remove default handler
-    logger.remove()
-
-    # Add console handler with appropriate level
-    level = "DEBUG" if verbose else "INFO"
-    logger.add(
-        sink=lambda message: print(message, end=""),
-        level=level,
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} - {message}",
-        colorize=True,
-    )
+from nre_pipeline import setup_logging
+from nre_pipeline.pipeline._manager import PipelineManager
+from nre_pipeline.processor._noop import NoOpProcessor
+from nre_pipeline.reader import FileSystemReader
+from nre_pipeline.writer.database._sqlite import SQLiteWriter
 
 
 def run(args: Any) -> int:
@@ -39,7 +30,17 @@ def run(args: Any) -> int:
     logger.info("Starting NRE Pipeline...")
 
     try:
-        # Main pipeline logic goes here
+        with PipelineManager(
+            num_processor_workers=4,
+            processor=NoOpProcessor,
+            reader=lambda: FileSystemReader(
+                path=r"Z:\_\data\corpora\ocred_docs_from_pubmed",
+                batch_size=1000,
+                extensions=[".txt"],
+            ),
+            writer=SQLiteWriter,
+        ) as manager:
+            manager.run()
         logger.info("Pipeline completed successfully.")
         return 0
 
