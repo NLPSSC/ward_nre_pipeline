@@ -1,11 +1,12 @@
 import json
 import os
-from typing import cast
+from typing import Callable, cast
 from functools import lru_cache
 
 from loguru import logger
 
 from nre_pipeline.models import NLPResult
+from nre_pipeline.writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
     DatabaseExecutionContext,
@@ -97,3 +98,10 @@ class SQLiteNLPWriter(DBNLPResultWriter):
 
     def on_transaction_rollback(self, context: DatabaseExecutionContext) -> None:
         logger.debug("Transaction rolled back.")
+
+    @staticmethod
+    def create_writer(**kwargs) -> Callable[[], NLPResultWriter]:
+        db_path = kwargs.get("db_path", None)
+        if db_path is None:
+            raise ValueError("Database path must be provided.")
+        return lambda: SQLiteNLPWriter(db_path=db_path)
