@@ -2,6 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Processor (NoOp, Test)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/nre_pipeline/test_processor.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env",
+        },
+        {
             "name": "Writer (Test)",
             "type": "debugpy",
             "request": "launch",

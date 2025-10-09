@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Callable, List
 
 from loguru import logger
 
@@ -144,3 +144,24 @@ class FileSystemReader(CorpusReader):
         with open(source_path, "r", encoding="utf-8", errors="ignore") as f:
             text = f.read()
         return Document(note_id=note_id, text=text, metadata={"path": str(source_path)})
+
+    @staticmethod
+    def create_reader(**kwargs) -> Callable[[], CorpusReader]:
+        path = kwargs.get("path", None)
+        batch_size = kwargs.get("batch_size", 1000)
+        extensions = kwargs.get("extensions", None)
+        exclude = kwargs.get("exclude", None)
+        if path is None:
+            raise ValueError("Path must be provided.")
+        if batch_size is None:
+            raise ValueError("Batch size must be provided.")
+        # if extensions is None:
+        #     raise ValueError("Extensions must be provided.")
+        # if exclude is None:
+        #     raise ValueError("Exclude must be provided.")
+        return lambda: FileSystemReader(
+            path=path,
+            batch_size=batch_size,
+            extensions=extensions,
+            exclude=exclude,
+        )
