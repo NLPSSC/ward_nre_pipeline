@@ -12,7 +12,7 @@ from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
 from nre_pipeline.processor._noop import NoOpProcessor
 from nre_pipeline.reader import FileSystemReader
-from nre_pipeline.writer.database._sqlite import SQLiteWriter
+from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
 
 
 def run(args: Any) -> int:
@@ -38,7 +38,7 @@ def run(args: Any) -> int:
                 batch_size=1000,
                 extensions=[".txt"],
             ),
-            writer=SQLiteWriter,
+            writer=SQLiteNLPWriter,
         ) as manager:
             manager.run()
         logger.info("Pipeline completed successfully.")

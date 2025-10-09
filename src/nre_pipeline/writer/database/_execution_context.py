@@ -2,11 +2,11 @@ from abc import abstractmethod
 from contextlib import contextmanager
 from typing import List, Self
 
-from nre_pipeline.models import NLPResult
-from nre_pipeline.writer.database._transaction_callback_mixin import TransactionCallbackMixin
-
 
 class DatabaseExecutionContext:
+    from nre_pipeline.models import NLPResult
+    from nre_pipeline.writer import database
+
     def __enter__(self) -> Self:
         # Start the database session
         self.start_session()
@@ -25,9 +25,9 @@ class DatabaseExecutionContext:
     def end_session(self):
         # Logic to end a database session
         pass
-    
+
     @contextmanager
-    def start_transaction(self, transaction_callback: TransactionCallbackMixin):
+    def start_transaction(self, transaction_callback):
         try:
             self._start_transaction()
             transaction_callback.on_transaction_begin(self)
@@ -53,7 +53,7 @@ class DatabaseExecutionContext:
     def rollback_transaction(self):
         # Logic to rollback a database transaction
         raise NotImplementedError()
-    
+
     @abstractmethod
     def create_table(self, query: str) -> None:
         raise NotImplementedError()

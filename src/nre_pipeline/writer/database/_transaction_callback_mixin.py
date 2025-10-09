@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 from nre_pipeline.writer.database import DatabaseExecutionContext
 
 
