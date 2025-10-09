@@ -1,16 +1,19 @@
 import sqlite3
+from pathlib import Path
 from typing import List
 
 from nre_pipeline.models import NLPResult
-from nre_pipeline.writer import DatabaseExecutionContext
+from nre_pipeline.writer.database import DatabaseExecutionContext
 
 
 class SQLiteExecutionContext(DatabaseExecutionContext):
     def __init__(self, db_path: str):
-        self._db_path = db_path
+        self._db_path = Path(db_path)
 
     def __enter__(self):
-        self._conn: sqlite3.Connection = sqlite3.connect(self._db_path)
+        # Ensure the parent directory exists
+        self._db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._conn: sqlite3.Connection = sqlite3.connect(str(self._db_path))
         self._cursor: sqlite3.Cursor = self._conn.cursor()
         return self
 
@@ -46,4 +49,3 @@ class SQLiteExecutionContext(DatabaseExecutionContext):
         self._cursor.execute(query, params)
         rows = self._cursor.fetchall()
         return [NLPResult(**row) for row in rows]
-        

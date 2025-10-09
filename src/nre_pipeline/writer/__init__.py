@@ -19,6 +19,4 @@ class NLPResultWriter(ABC):
         pass
 
 
-__all__ = [
-    "NLPResultWriter",
-]
+__all__ = ["NLPResultWriter"]
