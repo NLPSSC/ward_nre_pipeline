@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from multiprocessing import Lock
+from typing import List
 
 from nre_pipeline.models import NLPResult
 from nre_pipeline.writer import NLPResultWriter, database
@@ -10,9 +11,9 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
 
     _table_create_lock = Lock()
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         self._table_created = False
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     @property
     def table_name(self) -> str:
@@ -22,13 +23,22 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
     def get_create_table_query(self, nlp_result: NLPResult) -> str:
         raise NotImplementedError()
 
-    def record(self, nlp_result: NLPResult) -> None:
+    def record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+        if isinstance(nlp_result, list):
+            return self.record_batch(nlp_result)
         self._ensure_table(nlp_result)
         # Get database execution context
         with self._get_database_context() as context:
             with context.start_transaction(self):
                 # Perform the actual record operation
-                self._record(nlp_result, context)
+                self._record(nlp_result)
+
+    def record_batch(self, nlp_results: List[NLPResult]) -> None:
+        """Batch record multiple NLP results for better performance."""
+        if not nlp_results:
+            return
+        self._ensure_table(nlp_results[0])
+        self._record_batch(nlp_results)
 
     def _ensure_table(self, nlp_result: NLPResult):
         with self._table_create_lock:
@@ -43,10 +53,9 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
         """Get the database execution context."""
         raise NotImplementedError()
 
+    
     @abstractmethod
-    def _record(
-        self, nlp_result: NLPResult, context: database.DatabaseExecutionContext
-    ) -> None:
+    def _record_batch(self, nlp_results: List[NLPResult]) -> None:
         raise NotImplementedError()
 
     @abstractmethod

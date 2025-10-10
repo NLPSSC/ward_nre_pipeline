@@ -1,9 +1,7 @@
 import json
 import os
-from typing import Any, Callable, Dict, cast
-from functools import lru_cache
+from typing import Any, Callable, Dict, List, cast
 
-from html5lib import serialize
 from loguru import logger
 
 from nre_pipeline.models import NLPResult
@@ -35,6 +33,7 @@ def convert_python_type_to_sqlite_type(item) -> str:
     else:
         raise ValueError(f"Unsupported Python type: {python_type}")
 
+
 def serialize_item(item: NLPResultItem) -> Any:
     if item.value_type is set:
         return json.dumps(list(item.value))
@@ -53,10 +52,10 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         DBNLPResultWriter (_type_): _description_
     """
 
-    def __init__(self, db_path: str | None = None):
+    def __init__(self, db_path: str | None = None, *args, **kwargs):
         self._db_path = self._get_db_path(db_path)
         self._cached_insert_query: str | None = None
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def get_create_table_query(self, nlp_result: NLPResult) -> str:
         note_id: str | int = nlp_result.note_id
@@ -88,13 +87,38 @@ class SQLiteNLPWriter(DBNLPResultWriter):
             )
         return cast(str, _path)
 
-    def _record(self, nlp_result: NLPResult, context: DatabaseExecutionContext) -> None:
-        query = self.get_insert_query(nlp_result)
-        insert_params = (
-            nlp_result.note_id,
-            *[serialize_item(item) for item in nlp_result.results],
-        )
-        context.insert(query, insert_params)
+    def _record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+        # Branching logic in case more than one result is passed
+        if isinstance(nlp_result, List):
+            return self._record_batch(nlp_result)
+
+        self._ensure_table(nlp_result)
+        with self._get_database_context() as context:
+            with context.start_transaction(self):
+                query = self.get_insert_query(nlp_result)
+                insert_params = (
+                    nlp_result.note_id,
+                    *[serialize_item(item) for item in nlp_result.results],
+                )
+                context.insert(query, insert_params)
+
+    def _record_batch(self, nlp_results: List[NLPResult]) -> None:
+        """Batch record multiple NLP results for better performance."""
+        if not nlp_results:
+            return
+
+        self._ensure_table(nlp_results[0])
+        with self._get_database_context() as context:
+            with context.start_transaction(self):
+                query = self.get_insert_query(nlp_results[0])
+                batch_params = []
+                for nlp_result in nlp_results:
+                    insert_params = (
+                        nlp_result.note_id,
+                        *[serialize_item(item) for item in nlp_result.results],
+                    )
+                    batch_params.append(insert_params)
+                context.insert_batch(query, batch_params)
 
     def get_insert_query(self, nlp_result) -> str:
         if self._cached_insert_query is not None:

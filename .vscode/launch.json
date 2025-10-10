@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "MedspaCy/QuickUMLS (Test)",
+            "name": "QuickUMLS (Test)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/nre_pipeline/test_medspacy.py",
+            "program": "${workspaceFolder}/src/nre_pipeline/test_quickumls_processor.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
         },

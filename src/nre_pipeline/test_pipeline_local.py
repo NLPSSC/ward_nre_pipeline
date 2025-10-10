@@ -15,7 +15,7 @@ from loguru import logger
 
 from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
-from nre_pipeline.processor._medspacy_umls import MedspacyUmlsProcessor
+from nre_pipeline.processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem import FileSystemReader
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
 
@@ -49,7 +49,7 @@ def run_test() -> int:
 
         with PipelineManager(
             num_processor_workers=2,
-            processor=MedspacyUmlsProcessor,
+            processor=QuickUMLSProcessor,
             reader=FileSystemReader.create_reader(
                 path=str(test_data_path),
                 batch_size=10,

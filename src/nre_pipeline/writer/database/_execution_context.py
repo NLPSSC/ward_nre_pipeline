@@ -42,30 +42,34 @@ class DatabaseExecutionContext:
     @abstractmethod
     def _start_transaction(self):
         # Logic to start a database transaction
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement _start_transaction method.")
 
     @abstractmethod
     def commit_transaction(self):
         # Logic to commit a database transaction
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement commit_transaction method.")
 
     @abstractmethod
     def rollback_transaction(self):
         # Logic to rollback a database transaction
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement rollback_transaction method.")
 
     @abstractmethod
     def create_table(self, query: str) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement create_table method.")
 
     @abstractmethod
     def insert(self, query: str, params: tuple = ()) -> int | None:
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement insert method.")
+    
+    @abstractmethod
+    def insert_batch(self, query: str, params_list: List[tuple]) -> None:
+        raise NotImplementedError("Must implement insert_batch method.")
 
     @abstractmethod
     def update(self, query: str, params: tuple = ()) -> int | None:
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement update method.")
 
     @abstractmethod
     def select(self, query: str, params: tuple = ()) -> List[NLPResult]:
-        raise NotImplementedError()
+        raise NotImplementedError("Must implement select method.")

@@ -6,7 +6,7 @@ from loguru import logger
 
 from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
-from nre_pipeline.processor._medspacy_umls import MedspacyUmlsProcessor
+from nre_pipeline.processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem import FileSystemReader
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
 
@@ -43,14 +43,17 @@ def run() -> int:
 
     try:
         with PipelineManager(
-            num_processor_workers=4,
-            processor=MedspacyUmlsProcessor,
-            reader=FileSystemReader.create_reader(
+            num_processor_workers=8,  # Increase workers for better CPU utilization
+            processor=QuickUMLSProcessor,
+            reader=lambda config: FileSystemReader(
                 path=test_case_path,
-                batch_size=1000,
+                batch_size=2000,
                 extensions=[".txt"],
+                exclude=None,
+                **config,
             ),
-            writer=SQLiteNLPWriter.create_writer(db_path=str(temp_db_path.resolve())),
+            writer=lambda config: SQLiteNLPWriter(db_path=str(temp_db_path), **config),
+            queue_size_multiplier=4,  # Larger queue buffer
         ) as manager:
             manager.run()
             database_path = manager.writer_details()["database_path"]

@@ -2,9 +2,10 @@
 
 # Makefile for Windows (requires GNU Make or nmake)
 
-ENV_NAME=envs/nre_pipeline
-PYTHON=$(ENV_NAME)/Scripts/python.exe
-PIP=$(ENV_NAME)/Scripts/pip.exe
+PRIMARY_ENV_PREFIX=envs\nre_pipeline
+GENALOG_ENV_PREFIX=envs\genalog_env
+PYTHON=$(PRIMARY_ENV_PREFIX)/Scripts/python.exe
+PIP=$(PRIMARY_ENV_PREFIX)/Scripts/pip.exe
 ACTIVATE=for %%A in ("%CONDA_EXE%") do call "%%~dpAactivate.bat"
 
 .PHONY: install test clean env-backup env-export env-build git-add-commit quickumls-install
@@ -28,7 +29,7 @@ env-backup:
 
 env-export:
 	$(MAKE) env-backup >nul 2>&1
-	@mamba env export --no-builds --prefix $(ENV_NAME) > temp_env.yml
+	@mamba env export --no-builds --prefix $(PRIMARY_ENV_PREFIX) > temp_env.yml
 	@powershell -Command \
 	"$$lines = Get-Content temp_env.yml; $$output = @(); $$i = 0; \
 	while ($$i -lt $$lines.Length) { $$line = $$lines[$$i]; \
@@ -43,10 +44,10 @@ env-export:
 	@del temp_env.yml
 
 env-build:
-	@if exist $(ENV_NAME) (\
-		mamba env update -f environment.yml --prefix $(ENV_NAME) \
+	@if exist $(PRIMARY_ENV_PREFIX) (\
+		mamba env update -f environment.yml --prefix $(PRIMARY_ENV_PREFIX) \
 	) else (\
-		mamba env create -f environment.yml --prefix $(ENV_NAME) \
+		mamba env create -f environment.yml --prefix $(PRIMARY_ENV_PREFIX) \
 	)
 
 git-add-commit:
@@ -65,3 +66,36 @@ quickumls-install:
 	@echo call scripts\quickumls_subset_install.bat "%%UMLS_SUBSET_SOURCE%%" "%%QUICKUMLS_DATA%%" >> temp_install.bat
 	@call temp_install.bat
 	@del temp_install.bat
+
+
+create-genalog-env:
+	@if defined TMP (
+		set "TEMP_BASE=%TMP%"
+	) else if defined TEMP (
+		set "TEMP_BASE=%TEMP%"
+	) else (
+		set "TEMP_BASE=.\temp_base"
+	)
+	set "INSTALL_DIR=%TEMP_BASE%\%RANDOM%"
+	set "PROJECT_ROOT=%CD%"
+
+	# pushd into the temp directory
+	mkdir %INSTALL_DIR%
+	pushd %INSTALL_DIR%
+
+	# clone the git report, git@github.com:NLPSSC/genalog.git, into a temp directory
+	git clone git@github.com:NLPSSC/genalog.git .
+
+	# call `scripts\create-genalog-env.bat`
+	echo scripts\create-genalog-env.bat "%PROJECT_ROOT%"
+
+	# activate the environment with `conda activate $(GENALOG_ENV_PREFIX)`
+	@call "%CONDA_EXE%" activate $(GENALOG_ENV_PREFIX)
+
+	# call `make upgrade-tools wheel` using the Makefile in the the current folder
+	@make upgrade-tools wheel
+
+	# install genalog into the current environment
+	@pip install -e .
+	
+
