@@ -20,7 +20,7 @@ test:
 
 clean:
 	@del /s /q *.pyc *.pyo
-	@del /s /q __pycache__
+	@rmdir /s /q __pycache__
 	@del /s /q build dist *.egg-info
 
 env-backup:
@@ -51,9 +51,8 @@ env-build:
 	)
 
 git-add-commit:
-	@set ITEM_NAME=$(notdir $(item_path)) && \
-	git add "$(item_path)" && \
-	git commit -m "$(description) [$$ITEM_NAME]"
+	@git add "$(item_path)"
+	@git commit -m "$(description) [$(item_path)]"
 
 quickumls-install:
 	@echo @echo off > temp_install.bat
@@ -67,35 +66,7 @@ quickumls-install:
 	@call temp_install.bat
 	@del temp_install.bat
 
-
 create-genalog-env:
-	@if defined TMP (
-		set "TEMP_BASE=%TMP%"
-	) else if defined TEMP (
-		set "TEMP_BASE=%TEMP%"
-	) else (
-		set "TEMP_BASE=.\temp_base"
-	)
-	set "INSTALL_DIR=%TEMP_BASE%\%RANDOM%"
-	set "PROJECT_ROOT=%CD%"
-
-	# pushd into the temp directory
-	mkdir %INSTALL_DIR%
-	pushd %INSTALL_DIR%
-
-	# clone the git report, git@github.com:NLPSSC/genalog.git, into a temp directory
-	git clone git@github.com:NLPSSC/genalog.git .
-
-	# call `scripts\create-genalog-env.bat`
-	echo scripts\create-genalog-env.bat "%PROJECT_ROOT%"
-
-	# activate the environment with `conda activate $(GENALOG_ENV_PREFIX)`
-	@call "%CONDA_EXE%" activate $(GENALOG_ENV_PREFIX)
-
-	# call `make upgrade-tools wheel` using the Makefile in the the current folder
-	@make upgrade-tools wheel
-
-	# install genalog into the current environment
-	@pip install -e .
+	@powershell -ExecutionPolicy Bypass -File "scripts\genalog\install-genalog-env.ps1"
 	
 
