@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator
 
+
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch
 
@@ -15,8 +16,11 @@ class CorpusReader(ABC):
     def create_reader(**kwargs) -> Callable[[], "CorpusReader"]:
         raise NotImplementedError("Subclasses must implement this method.")
 
-    @abstractmethod
     def __iter__(self) -> Iterator[DocumentBatch]:
+        return self._iter()
+
+    @abstractmethod
+    def _iter(self) -> Iterator[DocumentBatch]:
         """
         Return an iterator that yields files.
 

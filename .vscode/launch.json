@@ -2,6 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "MedspaCy/QuickUMLS (Test)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/nre_pipeline/test_medspacy.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env",
+        },
+        {
+            "name": "Pipeline (NoOp, real data, Test)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/nre_pipeline/test_pipeline.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env",
+        },
+        {
             "name": "Processor (NoOp, Test)",
             "type": "debugpy",
             "request": "launch",

@@ -12,7 +12,7 @@ class NoOpProcessor(Processor):
 
     index = 1
 
-    def __call__(
+    def _call(
         self, document_batch: DocumentBatch
     ) -> Generator[NLPResult, Any, None]:
         """Return the input document unchanged."""

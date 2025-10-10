@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Any, Generator
 
 from nre_pipeline.models import NLPResult
@@ -13,5 +13,10 @@ class Processor(ABC):
     def __call__(
         self, document_batch: DocumentBatch
     ) -> Generator[NLPResult, Any, None]:
+        """Process a document and return the result."""
+        return self._call(document_batch)
+
+    @abstractmethod
+    def _call(self, document_batch: DocumentBatch) -> Generator[NLPResult, Any, None]:
         """Process a document and return the result."""
         raise NotImplementedError("Subclasses must implement this method.")
