@@ -1,0 +1,11 @@
+Patient John Smith, age 65, presents to the emergency department with complaints of chest pain and shortness of breath that started 2 hours ago. The pain is described as crushing, substernal, and radiates to the left arm. The patient has a history of diabetes mellitus, hypertension, and smoking.
+
+On physical examination, the patient appears diaphoretic and anxious. Vital signs reveal a blood pressure of 160/90 mmHg, heart rate of 110 bpm, respiratory rate of 22/min, and oxygen saturation of 94% on room air.
+
+Laboratory results show elevated cardiac enzymes with troponin I of 8.5 ng/mL (normal <0.04). ECG demonstrates ST-elevation in leads II, III, and aVF consistent with an inferior wall myocardial infarction.
+
+The patient was immediately started on dual antiplatelet therapy, heparin, and beta-blockers. Urgent cardiac catheterization revealed 90% occlusion of the right coronary artery, which was successfully treated with percutaneous coronary intervention and drug-eluting stent placement.
+
+Post-procedure, the patient was stable and transferred to the coronary care unit for monitoring. He was discharged home on day 3 with prescriptions for aspirin, clopidogrel, metoprolol, and atorvastatin.
+
+Follow-up echocardiogram showed an ejection fraction of 45% with mild regional wall motion abnormalities in the inferior wall.

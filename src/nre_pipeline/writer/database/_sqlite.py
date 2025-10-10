@@ -3,9 +3,11 @@ import os
 from typing import Any, Callable, Dict, cast
 from functools import lru_cache
 
+from html5lib import serialize
 from loguru import logger
 
 from nre_pipeline.models import NLPResult
+from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
@@ -22,8 +24,26 @@ def convert_python_type_to_sqlite_type(item) -> str:
         return "REAL"
     elif python_type is str:
         return "TEXT"
+    elif python_type is bool:
+        return "BOOLEAN"
+    elif python_type is set:
+        return "TEXT"
+    elif python_type is list:
+        return "TEXT"
+    elif python_type is dict:
+        return "TEXT"
     else:
         raise ValueError(f"Unsupported Python type: {python_type}")
+
+def serialize_item(item: NLPResultItem) -> Any:
+    if item.value_type is set:
+        return json.dumps(list(item.value))
+    elif item.value_type is list:
+        return json.dumps(item.value)
+    elif item.value_type is dict:
+        return json.dumps(item.value)
+    else:
+        return item.value
 
 
 class SQLiteNLPWriter(DBNLPResultWriter):
@@ -72,7 +92,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         query = self.get_insert_query(nlp_result)
         insert_params = (
             nlp_result.note_id,
-            *[item.value for item in nlp_result.results],
+            *[serialize_item(item) for item in nlp_result.results],
         )
         context.insert(query, insert_params)
 

@@ -220,6 +220,6 @@ __marimo__/
 
 envs/ 
 resources/umls/ 
-quickumls/
+quickumls*/
 .data/temp
 

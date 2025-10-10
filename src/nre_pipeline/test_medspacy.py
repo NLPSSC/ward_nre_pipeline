@@ -1,16 +1,14 @@
 import os
+import sqlite3
 from pathlib import Path
-import tempfile
-from typing import Any
 
 from loguru import logger
+
 from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
 from nre_pipeline.processor._medspacy_umls import MedspacyUmlsProcessor
-from nre_pipeline.processor._noop import NoOpProcessor
 from nre_pipeline.reader._filesystem import FileSystemReader
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
-import sqlite3
 
 
 def run() -> int:
@@ -23,6 +21,11 @@ def run() -> int:
     Returns:
         int: Exit code (0 for success, non-zero for error)
     """
+    # Set the QuickUMLS path environment variable
+    quickumls_path = str(Path(__file__).parent.parent.parent / "quickumls")
+    os.environ["QUICKUMLS_PATH"] = quickumls_path
+    logger.info(f"Set QUICKUMLS_PATH to: {quickumls_path}")
+
     setup_logging(True)
 
     logger.info("Starting NRE Pipeline...")
