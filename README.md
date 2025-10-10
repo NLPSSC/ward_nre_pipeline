@@ -68,3 +68,13 @@ MIT License
 ## Notes
 
 - GitHub repo created from local using `gh repo create NLPSSC/ward_nre_pipeline --public --source=. --remote=origin --push`
+
+### mamba
+
+```shell
+mamba create -p envs\nre_pipeline python=3.11
+mamba install anaconda::medspacy_quickumls conda-forge::loguru
+python -m spacy download en_core_web_sm
+python -m quickumls.install "Z:\_\active\nlpssc\project_ward_non-routine_events\nre_pipeline\resources\umls\snomed_ct\2025AA\META" "Z:\_\active\nlpssc\project_ward_non-routine_events\nre_pipeline\quickumls"
+```
+
