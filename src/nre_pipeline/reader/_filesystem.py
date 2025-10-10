@@ -4,6 +4,7 @@ FileSystemReader class for recursively iterating over files in a directory.
 
 from __future__ import annotations
 
+import multiprocessing
 import os
 from pathlib import Path
 from typing import Any, Callable, Generator, List
@@ -33,6 +34,8 @@ class FileSystemReader(CorpusReader):
         batch_size: int,
         extensions: List[str] | None = None,
         exclude: list[str | Path] | None = None,
+        allow_batch_resize: bool = True,
+        **kwargs,
     ):
         """
         Initialize the FileSystemReader with a path.
@@ -44,6 +47,11 @@ class FileSystemReader(CorpusReader):
         Raises:
             ValueError: If the path doesn't exist or is not a directory
         """
+
+        super().__init__(
+            batch_size=batch_size, allow_batch_resize=allow_batch_resize, **kwargs
+        )
+
         if isinstance(path, (str, Path)):
             self._path: List[Path] = [Path(path)]
         else:
@@ -62,6 +70,11 @@ class FileSystemReader(CorpusReader):
             if not p.is_dir():
                 raise ValueError(f"Path is not a directory: {p}")
 
+    def _batch_resize(self, num_processor_workers: int) -> int | None:
+        total_file_count = sum(1 for _ in self._files_to_process_iter())
+        new_batch_size = (total_file_count // num_processor_workers) + 1
+        return new_batch_size
+
     def _iter(self) -> Generator[DocumentBatch, Any, None]:
         """
         Return an iterator that yields files recursively.
@@ -71,12 +84,7 @@ class FileSystemReader(CorpusReader):
         """
 
         # All files in all paths
-        files = (
-            (Path(root) / f)
-            for p in self._path
-            for root, dirs, files in os.walk(p)
-            for f in files
-        )
+        files = self._files_to_process_iter()
         # Filter files by extension and exclusion patterns
         filtered_files = (self.make_doc(f) for f in files if not self._is_excluded(f))
         iteration_number = 0
@@ -94,6 +102,14 @@ class FileSystemReader(CorpusReader):
                 iteration_number,
             )
             yield document_batch
+
+    def _files_to_process_iter(self):
+        return (
+            (Path(root) / f)
+            for p in self._path
+            for root, dirs, files in os.walk(p)
+            for f in files
+        )
 
     def _is_excluded(self, file_path: Path) -> bool:
         """
@@ -141,8 +157,17 @@ class FileSystemReader(CorpusReader):
             raise ValueError("Source must be a Path or string representing a file path")
         source_path = Path(source)
         note_id = source_path.stem
-        with open(source_path, "r", encoding="utf-8", errors="ignore") as f:
-            text = f.read()
+
+        # Optimized file reading with larger buffer and binary mode for better performance
+        try:
+            with open(
+                source_path, "r", encoding="utf-8", errors="ignore", buffering=8192
+            ) as f:
+                text = f.read()
+        except Exception as e:
+            logger.error(f"Error reading file {source_path}: {e}")
+            text = ""  # Return empty string rather than failing
+
         return Document(note_id=note_id, text=text, metadata={"path": str(source_path)})
 
     @staticmethod

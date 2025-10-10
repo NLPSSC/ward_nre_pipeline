@@ -1,10 +1,14 @@
 import logging
+import sys
 import threading
 from itertools import cycle
 from queue import Empty, Queue
-from typing import Any, Callable, Dict, List
+from time import sleep
+from typing import Any, Callable, Dict, List, Optional, TypeAlias
 
+from nre_pipeline.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.processor import Processor
+from nre_pipeline.processor._not_available_ex import ProcessorNotAvailable
 from nre_pipeline.reader import CorpusReader
 from nre_pipeline.writer import NLPResultWriter
 
@@ -20,25 +24,38 @@ def processor_round_robin(processors: List[Processor]) -> Callable[[int], Proces
     return get_processor
 
 
-class PipelineManager:
+PipelineManagerConfig: TypeAlias = Dict[str, Any]
+
+
+class PipelineManager(InterruptibleMixin):
+
+    
+
     def __init__(
         self,
         *,
         num_processor_workers: int,
-        processor: Callable[[int], Processor],
-        reader: Callable[[], CorpusReader],
-        writer: Callable[[], NLPResultWriter],
+        processor: Callable[[int, Optional[threading.Event]], Processor],
+        reader: Callable[[PipelineManagerConfig], CorpusReader],
+        writer: Callable[[PipelineManagerConfig], NLPResultWriter],
+        queue_size_multiplier: int = 3,
+        user_interrupt: Optional[threading.Event] = threading.Event(),
     ) -> None:
-        self._queue: Queue = Queue(maxsize=num_processor_workers)
+        super().__init__(user_interrupt=user_interrupt)
+        queue_maxsize = num_processor_workers * queue_size_multiplier
+        self._queue: Queue = Queue(maxsize=queue_maxsize)
         self._processors: List[Processor] = [
-            processor(i) for i in range(num_processor_workers)
+            processor(i, self._user_interrupt) for i in range(num_processor_workers)
         ]
-        # Set the queue for each processor after creation
         for proc in self._processors:
-            proc._queue = self._queue
+            proc._queue = self._queue  # type: ignore
+        config = {"user_interrupt": self._user_interrupt, 'num_processor_workers': num_processor_workers}
         self._processor_iter: cycle = cycle(self._processors)
-        self._reader: CorpusReader = reader()
-        self._writer: NLPResultWriter = writer()
+        self._reader: CorpusReader = reader(config)
+        self._writer: NLPResultWriter = writer(config)
+
+        self._processed_batches = 0
+        self._start_time = None
 
     def __enter__(self):
         """Enter the context manager."""
@@ -77,8 +94,10 @@ class PipelineManager:
 
         queue_halt_event = threading.Event()
 
+        # Define Queue Monitor
         def queue_monitor():
             """Monitor the queue and write results."""
+            threading.current_thread().name = "Processing Queue Monitor"
             try:
                 while not queue_halt_event.is_set():
                     try:
@@ -94,17 +113,44 @@ class PipelineManager:
             finally:
                 logger.info("Queue monitor shutting down")
 
+        # this thread will be gc'ed when the worker completes
         monitor_thread = threading.Thread(target=queue_monitor, daemon=True)
         monitor_thread.start()
 
         try:
             for document_batch in self._reader:
-                processor: Processor = next(self._processor_iter)
-                processor(document_batch)
+                # Wait for an available processor
+                while True:
+                    try:
+                        processor: Processor = next(
+                            (x for x in self._processors if x.available_for_processing)
+                        )
+                        if processor:
+                            break
+                    except StopIteration:
+                        sleep(0.1)
 
-            # Wait for all queued items to be processed
+                try:
+                    processor(document_batch)
+                except ProcessorNotAvailable as e:
+                    logger.fatal(
+                        f"Processor not available: {e}; logic to wait for availability failed.  Exiting system."
+                    )
+                    sys.exit(1)
+
+            # Wait for processors to finish
+            while any(
+                not processor.available_for_processing for processor in self._processors
+            ):
+                sleep(0.1)
+            logger.info("All processors have finished processing")
+
+            # All the processed items should be in queue or written to disk
             self._queue.join()
-            logger.info("All processing completed")
+            logger.info("All results written to disk")
+
+        except Exception as e:
+            logger.error(f"Pipeline encountered error: {e}")
         finally:
             # Signal monitor to stop and wait for it
             queue_halt_event.set()
