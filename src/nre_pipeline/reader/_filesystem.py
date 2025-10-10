@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, Callable, Generator, List
 
 from loguru import logger
 
@@ -62,7 +62,7 @@ class FileSystemReader(CorpusReader):
             if not p.is_dir():
                 raise ValueError(f"Path is not a directory: {p}")
 
-    def __iter__(self):
+    def _iter(self) -> Generator[DocumentBatch, Any, None]:
         """
         Return an iterator that yields files recursively.
 

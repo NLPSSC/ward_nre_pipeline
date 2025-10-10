@@ -221,4 +221,5 @@ __marimo__/
 envs/ 
 resources/umls/ 
 quickumls/
+.data/temp
 

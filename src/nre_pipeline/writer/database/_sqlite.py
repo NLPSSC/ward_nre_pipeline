@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Callable, cast
+from typing import Any, Callable, Dict, cast
 from functools import lru_cache
 
 from loguru import logger
@@ -14,7 +14,8 @@ from nre_pipeline.writer.database import (
 )
 
 
-def convert_python_type_to_sqlite_type(python_type: type) -> str:
+def convert_python_type_to_sqlite_type(item) -> str:
+    python_type = item.value_type
     if python_type is int:
         return "INTEGER"
     elif python_type is float:
@@ -33,7 +34,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
     """
 
     def __init__(self, db_path: str | None = None):
-        self.db_path = self._db_path(db_path)
+        self._db_path = self._get_db_path(db_path)
         self._cached_insert_query: str | None = None
         super().__init__()
 
@@ -41,7 +42,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         note_id: str | int = nlp_result.note_id
         additional_columns = ", ".join(
             [
-                f"{item.key} {convert_python_type_to_sqlite_type(item.value_type)}"
+                f"{item.key} {convert_python_type_to_sqlite_type(item)}"
                 for item in nlp_result.results
             ]
         )
@@ -59,7 +60,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
             )
         """
 
-    def _db_path(self, db_path: str | None) -> str:
+    def _get_db_path(self, db_path: str | None) -> str:
         _path = db_path or os.getenv("RESULTS_PATH", None)
         if _path is None:
             raise ValueError(
@@ -86,7 +87,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         return query
 
     def _get_database_context(self) -> DatabaseExecutionContext:
-        return SQLiteExecutionContext(self.db_path)
+        return SQLiteExecutionContext(self._db_path)
 
     def on_transaction_begin(self, context: DatabaseExecutionContext) -> None:
         # logger.debug("Transaction started.")
@@ -105,3 +106,6 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         if db_path is None:
             raise ValueError("Database path must be provided.")
         return lambda: SQLiteNLPWriter(db_path=db_path)
+
+    def writer_details(self) -> Dict[str, Any]:
+        return {"database_path": self._db_path}

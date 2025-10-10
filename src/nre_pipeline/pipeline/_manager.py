@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 from nre_pipeline.models import Document, NLPResult
 from nre_pipeline.processor import Processor
 from nre_pipeline.reader import CorpusReader
@@ -40,6 +40,10 @@ class PipelineManager:
 
     def run(self) -> None:
         """Run the pipeline."""
-        for document in self._reader:
-            result: NLPResult = next(self._processor_iter)(document)
-            self._writer.record(result)
+        for document_batch in self._reader:
+            processor: Processor = next(self._processor_iter)
+            for nlp_result in processor(document_batch):
+                self._writer.record(nlp_result)
+
+    def writer_details(self) -> Dict[str, Any]:
+        return self._writer.writer_details()

@@ -57,3 +57,10 @@ class NLPResult:
             return False
 
         return note_id_eq and results_eq
+    
+    def __repr__(self):
+        [r for r in self.results]
+        return f"""
+Note ID: {self.note_id}
+Results: {self.results}
+"""

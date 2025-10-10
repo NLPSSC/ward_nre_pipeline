@@ -2,5 +2,14 @@
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
     "python-envs.pythonProjects": [],
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "test_db",
+            "group": "nre_pipeline",
+            "database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
+        }
+    ]
 }
