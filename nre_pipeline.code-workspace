@@ -1,0 +1,48 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python-envs.defaultEnvManager": "ms-python.python:conda",
+		"python-envs.defaultPackageManager": "ms-python.python:conda",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "test_db",
+				"group": "nre_pipeline",
+				"database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
+			}
+		],
+		"makefile.configureOnOpen": false,
+		"files.exclude": {
+			".devcontainer/": true,
+			"src/genalog_api/**": true,
+			"tests/genalog_api/**": true,
+			"genalog_api.PROJECT_SUMMARY.md": true,
+			"Makefile.genalog_api.mk": true
+		}
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Open Genalog API Workspace",
+				"type": "shell",
+				"command": "code",
+				"args": [
+					"${workspaceFolder}/genalog_api.code-workspace"
+				],
+				"group": "build",
+				"problemMatcher": [],
+				"options": {
+					"statusbar": {
+						"color": "#22C1D6"
+					}
+				}
+			}
+		]
+	}
+}
