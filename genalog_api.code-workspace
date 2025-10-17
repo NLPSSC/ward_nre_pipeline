@@ -1,0 +1,57 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python-envs.defaultEnvManager": "ms-python.python:conda",
+		"python-envs.defaultPackageManager": "ms-python.python:conda",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "test_db",
+				"group": "nre_pipeline",
+				"database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
+			}
+		],
+		"makefile.configureOnOpen": false,
+		"files.exclude": {
+			"prompts/": true,
+			"quickumls/": true,
+			"scripts/nre_pipeline": true,
+			"src/nre_pipeline/**": true,
+			"nre_pipeline.PROJECT_SUMMARY.md": true,
+			"nre_pipeline.code-workspace": true,
+			"Makefile.nre_pipeline.mk": true,
+			"nre_pipeline.dev-requirements.txt": true,
+			"nre_pipeline.environment.yml": true
+		}
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Open NRE Pipeline Workspace",
+				"type": "shell",
+				"command": "code",
+				"args": [
+					"${workspaceFolder}/nre_pipeline.code-workspace"
+				],
+				"group": "build",
+				"problemMatcher": [],
+				"options": {
+					"statusbar": {
+						"color": "#aaC1D6"
+					}
+				}
+			}
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"actboy168.tasks"
+		]
+	}
+}

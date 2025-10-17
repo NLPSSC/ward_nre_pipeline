@@ -222,4 +222,5 @@ envs/
 resources/umls/ 
 quickumls*/
 .data/temp
+src/genalog_api/**
 

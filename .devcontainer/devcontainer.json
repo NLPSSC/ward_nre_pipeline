@@ -1,0 +1,17 @@
+{
+    "name": "genalog_api-devcontainer",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "workspaceFolder": "/workspace/src/genalog_api",
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "forwardPorts": [],
+    "postCreateCommand": "pip install -r requirements.txt"
+}
