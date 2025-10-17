@@ -2,10 +2,10 @@
 FROM python:3.8-slim
 
 # Set work directory
-WORKDIR /src/genalog_api
+WORKDIR /workspace
 
 # Copy requirements file
-COPY ../src/genalog_api/requirements.txt ./requirements.txt
+COPY ../requirements.txt ./requirements.txt
 
 # Install dependencies
 RUN pip install --upgrade pip && \
