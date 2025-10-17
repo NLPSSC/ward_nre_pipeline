@@ -79,7 +79,7 @@ echo [SUCCESS] Git bundle created successfully: %file_name%
 
 REM Step 2: Upload bundle to remote server
 echo [INFO] Uploading bundle to remote server...
-scp "%filepath%" %remote_upload_path%
+scp "%filepath%" %remote_upload_dest%
 if !errorlevel! neq 0 (
     echo [ERROR] Failed to upload bundle via SCP
     exit /b 1
