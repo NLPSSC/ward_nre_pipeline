@@ -87,9 +87,12 @@ echo [SUCCESS] Bundle uploaded successfully
 
 REM Step 3: Update remote repository
 echo [INFO] Updating remote repository...
+set "n_to_keep=5"
 set "remote_cmd=cd %remote_repo%"
 set "remote_cmd=%remote_cmd% && git fetch ../upload/%file_name%"
 set "remote_cmd=%remote_cmd% && git rebase FETCH_HEAD"
+set "bash_clean_cmd=ls -1t | tail -n +$((%n_to_keep%+1)) | xargs -d '\n' rm --"
+set "remote_cmd=%remote_cmd% && %bash_clean_cmd%"
 
 ssh %remote_configuration% "%remote_cmd%"
 if !errorlevel! neq 0 (
@@ -99,6 +102,19 @@ if !errorlevel! neq 0 (
 echo [SUCCESS] Remote repository updated successfully
 
 REM Cleanup and completion
+
+pushd "%bundle_path%"
+setlocal enabledelayedexpansion
+set count=0
+for /f "delims=" %%F in ('dir /b /a:-d /o-d') do (
+    set /a count+=1
+    if !count! gtr 5 (
+        del "%%F"
+    )
+)
+endlocal
+popd
+
 echo.
 echo [INFO] ============================================================================
 echo [INFO] Git bundle process completed successfully
