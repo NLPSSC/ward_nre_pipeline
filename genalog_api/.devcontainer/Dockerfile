@@ -3,6 +3,7 @@ FROM python:3.8-slim
 
 # Avoid interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive
+ENV GIT_DISCOVERY_ACROSS_FILESYSTEM=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
