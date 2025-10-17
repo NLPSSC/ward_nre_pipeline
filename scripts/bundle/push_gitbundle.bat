@@ -87,7 +87,11 @@ echo [SUCCESS] Bundle uploaded successfully
 
 REM Step 3: Update remote repository
 echo [INFO] Updating remote repository...
-ssh %remote_configuration% "cd %remote_repo% && git fetch ../upload/%file_name% && git rebase FETCH_HEAD"
+set "remote_cmd=cd %remote_repo%"
+set "remote_cmd=%remote_cmd% && git fetch ../upload/%file_name%"
+set "remote_cmd=%remote_cmd% && git rebase FETCH_HEAD"
+
+ssh %remote_configuration% "%remote_cmd%"
 if !errorlevel! neq 0 (
     echo [WARNING] Remote repository update may have failed - check manually
     exit /b 1
