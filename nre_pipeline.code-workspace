@@ -7,9 +7,6 @@
 		{
 			"path": "nre_pipeline",
 			"name": "nre_pipeline"
-		},
-		{
-			"path": "."
 		}
 	],
 	"settings": {
