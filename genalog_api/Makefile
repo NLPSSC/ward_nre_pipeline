@@ -23,6 +23,9 @@ dev-up: dev-build
 dev-shell: dev-up
 	@devcontainer exec --workspace-folder . /bin/bash
 
+dev-exec: dev-up
+	@devcontainer exec --workspace-folder . bash -c '"$@"'
+
 # Remove (stop and delete) the DevContainer using Docker
 dev-down:
 	@CONTAINERS=$$(docker ps -a --format '{{.ID}} {{.Image}}' | grep ' vsc-genalog_api' | awk '{print $$1}'); \
