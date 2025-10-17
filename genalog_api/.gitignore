@@ -50,3 +50,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# DevContainer generated files
+.devcontainer/git-config.env

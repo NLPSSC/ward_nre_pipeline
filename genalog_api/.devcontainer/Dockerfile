@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	libglib2.0-0 \
 	git \
 	vim \
+	openssh-client \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN echo "alias ll='ls -la'" >> /root/.bashrc

@@ -21,5 +21,6 @@
 		"source=${localWorkspaceFolder},target=/workspace/genalog_api,type=bind",
 		"source=${localWorkspaceFolder}/../.git,target=/workspace/.git,type=bind"
 	],
+	"initializeCommand": ".devcontainer/setup-git.sh",
 	"postCreateCommand": ".devcontainer/postCreateCommand.sh"
 }
