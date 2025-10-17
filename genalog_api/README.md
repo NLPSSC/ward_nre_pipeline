@@ -222,4 +222,4 @@ The API includes comprehensive error handling:
 
 ## License
 
-This project follows the same license as the parent NRE Pipeline project.
+This project follows the same license as the parent NRE Pipeline project.# Updated devcontainer configuration
