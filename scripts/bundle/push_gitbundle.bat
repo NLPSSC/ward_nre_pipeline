@@ -69,7 +69,7 @@ if !errorlevel! neq 0 (
 
 REM Step 1: Create git bundle
 echo [INFO] Creating git bundle with all branches and tags...
-git bundle create "%filepath%" --all
+git push && git bundle create "%filepath%" --all
 if !errorlevel! neq 0 (
     echo [ERROR] Failed to create git bundle
     exit /b 1
