@@ -148,7 +148,6 @@ activemq-data/
 *.sage.py
 
 # Environments
-.env
 .envrc
 .venv
 env/
@@ -219,6 +218,7 @@ __marimo__/
 # custom
 
 envs/ 
-
-
 *.bundle
+.data/nre_pipeline/quickumls
+.data/nre_pipeline/umls
+.data/bundles
