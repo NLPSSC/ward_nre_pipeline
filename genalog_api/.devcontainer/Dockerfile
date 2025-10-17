@@ -17,6 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN echo "alias ll='ls -la'" >> /root/.bashrc
 
+# Copy and set up git configuration script
+COPY ./.devcontainer/setup-git-on-shell.sh /setup-git-on-shell.sh
+RUN chmod +x /setup-git-on-shell.sh
+RUN echo "source /setup-git-on-shell.sh" >> /root/.bashrc
+
 # Set up a working directory
 WORKDIR /workspace/genalog_api
 
