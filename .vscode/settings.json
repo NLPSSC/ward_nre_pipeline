@@ -9,7 +9,7 @@
             "driver": "SQLite",
             "name": "test_db",
             "group": "nre_pipeline",
-            "database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
+            "database": "${workspaceFolder}/.data/nre_pipeline/sqlite/test.db"
         }
     ]
 }

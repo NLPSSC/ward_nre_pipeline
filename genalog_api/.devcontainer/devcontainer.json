@@ -3,7 +3,7 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
-    "workspaceFolder": "/workspace/src/genalog_api",
+    "workspaceFolder": "/workspace",
     "customizations": {
         "vscode": {
             "settings": {},
