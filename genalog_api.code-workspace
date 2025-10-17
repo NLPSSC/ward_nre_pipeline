@@ -26,7 +26,8 @@
 			"nre_pipeline.code-workspace": true,
 			"Makefile.nre_pipeline.mk": true,
 			"nre_pipeline.dev-requirements.txt": true,
-			"nre_pipeline.environment.yml": true
+			"nre_pipeline.environment.yml": true,
+			"tests/nre_pipeline": true
 		}
 	},
 	"tasks": {
