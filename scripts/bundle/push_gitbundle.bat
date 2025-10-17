@@ -54,10 +54,11 @@ echo [INFO] Bundle will be created at: %filepath%
 
 REM Remote server configuration
 set "remote_configuration=lambda-server"
-set "remote_upload_path=%remote_configuration%:/home/westerd/_/research_projects/upload"
+set "remote_update_path=/home/westerd/_/research_projects/upload"
+set "remote_upload_dest=%remote_configuration%:%remote_update_path%"
 set "remote_repo=/home/westerd/_/research_projects/nre_pipeline"
 echo [INFO] Remote server: %remote_configuration%
-echo [INFO] Upload path: %remote_upload_path%
+echo [INFO] Upload path: %remote_upload_dest%
 echo [INFO] Remote repo: %remote_repo%
 
 REM Navigate back to project root for git operations
@@ -91,7 +92,7 @@ set "n_to_keep=5"
 set "remote_cmd=cd %remote_repo%"
 set "remote_cmd=%remote_cmd% && git fetch ../upload/%file_name%"
 set "remote_cmd=%remote_cmd% && git rebase FETCH_HEAD"
-set "bash_clean_cmd=cd %remote_upload_path% && ls -1t | tail -n +$((%n_to_keep%+1)) | xargs -d '\n' rm --"
+set "bash_clean_cmd=cd %remote_update_path% && ls -1t | tail -n +$((%n_to_keep%+1)) | xargs -d '\n' rm --"
 set "remote_cmd=%remote_cmd% && %bash_clean_cmd%"
 
 ssh %remote_configuration% "%remote_cmd%"
