@@ -1,24 +1,25 @@
 {
-    "name": "Genalog API DevContainer",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": ".."
-    },
-    "features": {},
-    "workspaceFolder": "/workspace",
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python"
-            },
-            "extensions": [
-                "ms-python.python",
-                "ms-python.vscode-pylance"
-            ]
-        }
-    },
-    "mounts": [
-        "source=${localWorkspaceFolder},target=/workspace,type=bind"
-    ]
-	// , "postCreateCommand": ".devcontainer/postCreateCommand.sh"
+	"name": "Genalog API DevContainer",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"features": {},
+	"workspaceFolder": "/workspace/genalog_api",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python"
+			},
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance"
+			]
+		}
+	},
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/workspace/genalog_api,type=bind",
+		"source=${localWorkspaceFolder}/../.git,target=/workspace/.git,type=bind"
+	],
+	"postCreateCommand": ".devcontainer/postCreateCommand.sh"
 }
