@@ -11,6 +11,9 @@
 			"options": {
 				"statusbar": {
 					"color": "#34998b"
+				},
+				"windows": {
+					"console": "internalConsole"
 				}
 			}
 		}
