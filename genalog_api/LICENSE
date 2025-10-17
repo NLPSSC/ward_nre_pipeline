@@ -1,0 +1,88 @@
+NLPSSC ACADEMIC RESEARCH LICENSE
+
+Copyright (c) 2025 Natural Language Processing Support Services Core (NLPSSC)
+
+DEFINITIONS
+
+"NLPSSC" refers to the Natural Language Processing Support Services Core, an academic research core facility.
+
+"Software" refers to the computer program(s), source code, documentation, and any associated materials distributed under this license.
+
+"Academic Institution" refers to a university, college, research institute, or other non-profit educational or research organization.
+
+"Non-Commercial Academic Research" refers to research activities conducted by Academic Institutions for educational or scientific purposes that do not involve direct commercial gain or the development of commercial products or services.
+
+PURPOSE
+
+This software is developed to support academic research in the field of natural language processing and is intended for use by researchers affiliated with Academic Institutions for Non-Commercial Academic Research purposes only.
+
+GRANT OF RIGHTS
+
+Subject to the terms and conditions of this license, the NLPSSC hereby grants you a non-exclusive, royalty-free license to:
+
+1. Use the Software for Non-Commercial Academic Research purposes only
+2. Modify the Software for Non-Commercial Academic Research purposes
+3. Distribute the Software and any modifications thereof, provided that:
+   a. All distributions are made under the same license terms
+   b. The distribution is limited to Academic Institutions
+   c. The distribution is for Non-Commercial Academic Research purposes only
+
+CONDITIONS
+
+1. ATTRIBUTION: You must provide appropriate credit to the NLPSSC and its contributors when using or distributing the Software. This includes:
+   a. Retaining all copyright notices and license terms
+   b. Citing any relevant publications or documentation associated with the Software
+   c. Acknowledging the NLPSSC in any publications, presentations, or other works resulting from the use of this Software
+
+2. FUNDING ACKNOWLEDGMENT: You must acknowledge any funding sources, including NIH grants or other federal funding, that supported the development of the Software in any publications or presentations resulting from its use.
+
+3. COPYLEFT: Any modified versions of the Software must be distributed under the same license terms to ensure that all derivative works remain open and accessible to the academic community.
+
+4. COMPLIANCE: You must ensure compliance with any specific requirements set forth by funding agencies, such as the NIH, regarding the dissemination and use of software developed with their support.
+
+5. DATA PRIVACY AND SECURITY: If the Software handles sensitive data, you must comply with all relevant regulations and best practices regarding data privacy and security.
+
+RESTRICTIONS
+
+1. NO COMMERCIAL USE: You may not use the Software for commercial purposes without prior written permission from the NLPSSC. Commercial use includes, but is not limited to:
+   a. Use in a commercial product or service
+   b. Use to generate revenue or profit
+   c. Use by a commercial entity for any purpose
+
+2. NON-COMPETITION: You may not use the Software to create competing products or services that could undermine the mission of the NLPSSC.
+
+3. LICENSE INTEGRATION: If you integrate this Software with other software, you must ensure compliance with all applicable licenses. If the terms of this license conflict with those of another license, you must seek clarification from the NLPSSC. Generally, the terms of this license will take precedence for the NLPSSC-developed components.
+
+TERMINATION
+
+This license will terminate automatically if you fail to comply with any of its terms and conditions. Upon termination, you must cease all use of the Software and destroy all copies in your possession.
+
+DISCLAIMER OF WARRANTIES
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE NLPSSC MAKES NO REPRESENTATIONS OR WARRANTIES REGARDING THE ACCURACY, COMPLETENESS, OR RELIABILITY OF THE SOFTWARE.
+
+LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE NLPSSC, ITS CONTRIBUTORS, OR ANY AFFILIATED ACADEMIC INSTITUTION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THIS INCLUDES, BUT IS NOT LIMITED TO, ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
+
+GOVERNING LAW
+
+This license shall be governed by and construed in accordance with the laws of the jurisdiction where the NLPSSC is located, without regard to its conflict of law principles.
+
+CONTACT INFORMATION
+
+For questions, clarifications, or permission requests regarding this license, please contact:
+
+Natural Language Processing Support Services Core (NLPSSC)
+[Institution Name]
+[Address]
+[Email]
+[Phone]
+
+LICENSE VERSION
+
+This is version 1.0 of the NLPSSC Academic Research License, effective as of the date of distribution.
+
+ENTIRE AGREEMENT
+
+This license constitutes the entire agreement between you and the NLPSSC concerning the Software and supersedes all prior or contemporaneous agreements, whether written or oral, relating to the subject matter hereof.
