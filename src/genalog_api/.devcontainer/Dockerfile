@@ -1,7 +1,8 @@
-FROM python:3.8
+# Use Python 3.8 slim image
+FROM python:3.8-slim
 
 # Set work directory
-WORKDIR /workspace/src/genalog_api
+WORKDIR /src/genalog_api
 
 # Copy requirements file
 COPY ../src/genalog_api/requirements.txt ./requirements.txt
