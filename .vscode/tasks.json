@@ -13,8 +13,9 @@
 					"color": "#34998b"
 				},
 				"windows": {
-					"console": "internalConsole"
-				}
+					"console": "externalTerminal"
+				},
+				"close": "onExit"
 			}
 		}
 	]
