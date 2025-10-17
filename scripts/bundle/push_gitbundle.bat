@@ -91,7 +91,7 @@ set "n_to_keep=5"
 set "remote_cmd=cd %remote_repo%"
 set "remote_cmd=%remote_cmd% && git fetch ../upload/%file_name%"
 set "remote_cmd=%remote_cmd% && git rebase FETCH_HEAD"
-set "bash_clean_cmd=cs %remote_upload_path% && ls -1t | tail -n +$((%n_to_keep%+1)) | xargs -d '\n' rm --"
+set "bash_clean_cmd=cd %remote_upload_path% && ls -1t | tail -n +$((%n_to_keep%+1)) | xargs -d '\n' rm --"
 set "remote_cmd=%remote_cmd% && %bash_clean_cmd%"
 
 ssh %remote_configuration% "%remote_cmd%"
@@ -102,6 +102,8 @@ if !errorlevel! neq 0 (
 echo [SUCCESS] Remote repository updated successfully
 
 REM Cleanup and completion
+
+echo [INFO] Cleaning up local bundle files...
 
 pushd "%bundle_path%"
 setlocal enabledelayedexpansion
