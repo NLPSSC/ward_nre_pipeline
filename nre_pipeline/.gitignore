@@ -215,12 +215,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-
-# custom
 __pycache__/
-envs/ 
-resources/umls/ 
-quickumls*/
-.data/temp
 
-*.bundle
+resources/umls/ 
+quickumls/
+.data/temp

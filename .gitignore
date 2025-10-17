@@ -219,8 +219,6 @@ __marimo__/
 # custom
 
 envs/ 
-**/resources/umls/ 
-quickumls*/
-.data/temp
+
 
 *.bundle

@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "genalog_api",
+			"name": "genalog_api"
+		},
+		{
+			"path": "nre_pipeline",
+			"name": "nre_pipeline"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python-envs.defaultEnvManager": "ms-python.python:conda",
+		"python-envs.defaultPackageManager": "ms-python.python:conda",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "test_db",
+				"group": "nre_pipeline",
+				"database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
+			}
+		]
+	}
+}
