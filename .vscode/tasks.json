@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "git Bundle/Upload",
+			"label": "git Bundle/Upload NRE Pipeline",
 			"type": "shell",
 			"command": "git",
 			"args": [
