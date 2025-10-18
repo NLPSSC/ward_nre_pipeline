@@ -12,6 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
+# Add alias to root's .bashrc
+RUN echo "alias ll='ls -la'" > /etc/profile.d/session_setup.sh && \
+    chmod +x /etc/profile.d/session_setup.sh
+
 # Slim runtime image
 FROM python:3.8-slim AS slim
 
