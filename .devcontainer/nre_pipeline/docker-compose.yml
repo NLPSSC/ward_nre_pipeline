@@ -1,6 +1,7 @@
 services:
   nre_pipeline:
     container_name: nre_pipeline-devcontainer
+    image: nlpssc/nre_pipeline-devcontainer:latest
     build:
       context: ../..
       dockerfile: .devcontainer/nre_pipeline/Dockerfile
