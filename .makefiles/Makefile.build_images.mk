@@ -1,3 +1,5 @@
+include .makefiles/Makefile.common.mk
+
 ifndef BUILD_IMAGES_INCLUDED
 BUILD_IMAGES_INCLUDED := 1
 

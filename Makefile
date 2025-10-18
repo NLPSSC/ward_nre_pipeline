@@ -8,9 +8,10 @@ include .makefiles/Makefile.nre_pipeline.mk
 .DEFAULT_GOAL := help
 
 help:
-	@$(MAKE) help-build_images
-	@$(MAKE) help-genalog_api
-	@$(MAKE) help-nre_pipeline
-
+	@echo "Available Targets:"
+	@echo ""
+	@$(MAKE) --no-print-directory help-build_images
+	@$(MAKE) --no-print-directory help-genalog_api
+	@$(MAKE) --no-print-directory help-nre_pipeline
 
 
