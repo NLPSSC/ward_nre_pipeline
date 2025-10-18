@@ -101,6 +101,8 @@
 			"src/genalog_api": true,
 			"genalog_api-ward_nre_pipeline.code-workspace": true
 		},
-		"explorerExclude.backup": {}
+		"explorerExclude.backup": {},
+		"python.useEnvironmentsExtension": true,
+		"python.venvFolders": ["envs"]
 	}
 }

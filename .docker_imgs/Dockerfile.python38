@@ -1,0 +1,27 @@
+# Builder image for git setup
+FROM python:3.8-slim AS builder
+
+# Avoid interactive prompts during package installs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies for building
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Slim runtime image
+FROM python:3.8-slim AS slim
+
+# Copy only necessary files from builder
+COPY --from=builder /usr/bin/git /usr/bin/git
+COPY --from=builder /usr/bin/ssh /usr/bin/ssh
+COPY --from=builder /usr/lib/ /usr/lib/
+COPY --from=builder /usr/share/ /usr/share/
+
+# Set up minimal environment
+ENV DEBIAN_FRONTEND=noninteractive
+
+CMD ["bash"]

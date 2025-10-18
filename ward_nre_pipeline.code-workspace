@@ -24,6 +24,17 @@
 					},
 					"close": "onExit"
 				}
+			},
+			{
+				"label": "Set WORKSPACE_NAME env var",
+				"type": "shell",
+				"command": "echo Setting WORKSPACE_NAME to ${workspaceFolderBasename}",
+				"options": {
+					"env": {
+						"WORKSPACE_NAME": "${workspaceFolderBasename}"
+					}
+				},
+				"problemMatcher": []
 			}
 		]
 	},
@@ -73,5 +84,20 @@
 			"redhat.vscode-xml",
 			"redhat.vscode-yaml"
 		]
+	},
+	"settings": {
+		"python.useEnvironmentsExtension": true,
+		"python.venvFolders": [
+			"envs"
+		]
+		// ,
+		// "auto-run-command.rules": [
+		// 	{
+		// 		"condition": "always",
+		// 		"command": "export WORKSPACE_NAME=\"NRE_PIPELINE|GENALOG_API\"",
+		// 		"message": "export WORKSPACE_NAME=NRE_PIPELINE|GENALOG_API",
+		// 		"shellCommand": true
+		// 	}
+		// ]
 	}
 }

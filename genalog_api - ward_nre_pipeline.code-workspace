@@ -32,6 +32,7 @@
 			".data/nre_pipeline": true
 		},
 		"explorerExclude.backup": {},
-		"containers.containers.groupBy": "Compose Project Name"
+		"python.useEnvironmentsExtension": true,
+		"python.venvFolders": ["envs"]
 	}
 }

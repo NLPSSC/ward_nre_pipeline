@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Set conda-forge channel",
+            "type": "shell",
+            "command": "conda config --add channels conda-forge && conda config --set channel_priority strict",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
