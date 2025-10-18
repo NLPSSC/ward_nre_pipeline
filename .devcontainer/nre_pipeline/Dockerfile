@@ -1,5 +1,5 @@
 # nre_pipeline
-FROM nlpssc/python38-base:latest AS base
+FROM nlpssc/medspacy-quickumls-processor:latest AS base
 
 # Avoid interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive

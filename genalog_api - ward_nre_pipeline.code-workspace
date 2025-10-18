@@ -29,7 +29,8 @@
 			"**/__pycache__/**": true,
 			"src/nre_pipeline": true,
 			"**/Makefile.nre_pipeline.mk": true,
-			".data/nre_pipeline": true
+			".data/nre_pipeline": true,
+			".makefiles/Makefile.nre_pipeline.mk": true
 		},
 		"explorerExclude.backup": {},
 		"python.useEnvironmentsExtension": true,

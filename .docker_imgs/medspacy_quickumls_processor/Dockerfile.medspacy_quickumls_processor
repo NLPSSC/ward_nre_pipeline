@@ -1,0 +1,26 @@
+# medspacy_quickumls
+FROM nlpssc/python312-base:latest AS base
+
+# Avoid interactive prompts during package installs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+
+# Add alias to root's .bashrc
+RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
+
+COPY .docker_imgs/medspacy_quickumls_processor/requirements.txt /app/requirements.txt
+
+RUN pip install -r /app/requirements.txt
+
+RUN python -m spacy download en_core_web_sm
+
+# Test Image
+COPY .docker_imgs/medspacy_quickumls_processor/test_medspacy_quickumls_processor_base.sh /usr/local/bin/test_medspacy_quickumls_processor_base.sh
+RUN chmod +x /usr/local/bin/test_medspacy_quickumls_processor_base.sh
+RUN bash -x /usr/local/bin/test_medspacy_quickumls_processor_base.sh
+
+CMD ["bash"]
+
+

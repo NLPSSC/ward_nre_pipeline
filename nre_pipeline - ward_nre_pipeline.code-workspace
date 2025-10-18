@@ -100,6 +100,7 @@
 			".devcontainer/genalog_api": true,
 			"src/genalog_api": true,
 			"tests/genalog_api": true,
+			".makefiles/Makefile.genalog_api.mk": true
 			
 		},
 		"explorerExclude.backup": {},
