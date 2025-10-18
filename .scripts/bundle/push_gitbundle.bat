@@ -33,7 +33,6 @@ echo [INFO] Generated timestamp: %formatted_datetime%
 REM Setup paths and directories
 set "script_path=%~dp0"
 set "project_root=%script_path%..\..\"
-echo [DEBUG] Script path: %script_path%
 echo [DEBUG] Project root: %project_root%
 
 REM Navigate to .data directory
