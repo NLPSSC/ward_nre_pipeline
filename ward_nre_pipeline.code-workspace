@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "ward_nre_pipeline"
+		}
+	],
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "git Bundle/Upload NRE Pipeline",
+				"type": "shell",
+				"command": "scripts\\bundle\\push_gitbundle.bat",
+				"isBackground": false,
+				"problemMatcher": [],
+				"group": "build",
+				"options": {
+					"statusbar": {
+						"color": "#34998b"
+					},
+					"windows": {
+						"console": "externalTerminal"
+					},
+					"close": "onExit"
+				}
+			}
+		]
+	},
+	"extensions": {},
+	"settings": {
+		
+	},
+}
