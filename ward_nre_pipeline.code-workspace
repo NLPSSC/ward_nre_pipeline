@@ -27,8 +27,51 @@
 			}
 		]
 	},
-	"extensions": {},
-	"settings": {
-		
-	},
+	"extensions": {
+		"recommendations": [
+			"njpwerner.autodocstring",
+			"ms-python.black-formatter",
+			"ms-azuretools.vscode-containers",
+			"ms-toolsai.datawrangler",
+			"ms-vscode-remote.remote-containers",
+			"ms-azuretools.vscode-docker",
+			"tamasfe.even-better-toml",
+			"mhutchie.git-graph",
+			"github.vscode-github-actions",
+			"github.copilot",
+			"bierner.github-markdown-preview",
+			"codezombiech.gitignore",
+			"ms-toolsai.jupyter",
+			"ms-toolsai.jupyter-keymap",
+			"ms-toolsai.jupyter-renderers",
+			"ms-toolsai.vscode-jupyter-powertoys",
+			"ms-vscode.makefile-tools",
+			"yzhang.markdown-all-in-one",
+			"bierner.markdown-mermaid",
+			"chrisdias.vscode-opennewinstance",
+			"mathematic.vscode-pdf",
+			"alefragnani.project-manager",
+			"ms-python.vscode-pylance",
+			"ms-python.python",
+			"ms-python.debugpy",
+			"ms-python.vscode-python-envs",
+			"ms-vscode-remote.remote-ssh",
+			"ms-vscode-remote.remote-ssh-edit",
+			"ms-vscode.remote-server",
+			"ms-vscode-remote.vscode-remote-extensionpack",
+			"ms-vscode.remote-explorer",
+			"ms-mssql.sql-bindings-vscode",
+			"ms-mssql.sql-database-projects-vscode",
+			"adpyke.vscode-sql-formatter",
+			"alexcvzz.vscode-sqlite",
+			"mtxr.sqltools",
+			"mtxr.sqltools-driver-sqlite",
+			"anweber.statusbar-commands",
+			"spmeesseman.vscode-taskexplorer",
+			"actboy168.tasks",
+			"ms-vscode.test-adapter-converter",
+			"redhat.vscode-xml",
+			"redhat.vscode-yaml"
+		]
+	}
 }
