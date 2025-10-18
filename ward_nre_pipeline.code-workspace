@@ -89,7 +89,8 @@
 		"python.useEnvironmentsExtension": true,
 		"python.venvFolders": [
 			"envs"
-		]
+		],
+		"makefile.configureOnOpen": false
 		// ,
 		// "auto-run-command.rules": [
 		// 	{
