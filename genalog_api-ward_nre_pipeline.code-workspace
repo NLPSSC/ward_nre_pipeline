@@ -31,6 +31,7 @@
 			"**/Makefile.nre_pipeline.mk": true,
 			".data/nre_pipeline": true
 		},
-		"explorerExclude.backup": {}
+		"explorerExclude.backup": {},
+		"containers.containers.groupBy": "Compose Project Name"
 	}
 }
