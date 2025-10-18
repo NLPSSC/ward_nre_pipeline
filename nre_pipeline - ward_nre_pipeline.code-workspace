@@ -1,0 +1,106 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "ward_nre_pipeline"
+		}
+	],
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "git Bundle/Upload NRE Pipeline",
+				"type": "shell",
+				"command": "scripts\\bundle\\push_gitbundle.bat",
+				"isBackground": false,
+				"problemMatcher": [],
+				"group": "build",
+				"options": {
+					"statusbar": {
+						"color": "#34998b"
+					},
+					"windows": {
+						"console": "externalTerminal"
+					},
+					"close": "onExit"
+				}
+			}
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"njpwerner.autodocstring",
+			"ms-python.black-formatter",
+			"ms-azuretools.vscode-containers",
+			"ms-toolsai.datawrangler",
+			"ms-vscode-remote.remote-containers",
+			"ms-azuretools.vscode-docker",
+			"tamasfe.even-better-toml",
+			"mhutchie.git-graph",
+			"github.vscode-github-actions",
+			"github.copilot",
+			"bierner.github-markdown-preview",
+			"codezombiech.gitignore",
+			"ms-toolsai.jupyter",
+			"ms-toolsai.jupyter-keymap",
+			"ms-toolsai.jupyter-renderers",
+			"ms-toolsai.vscode-jupyter-powertoys",
+			"ms-vscode.makefile-tools",
+			"yzhang.markdown-all-in-one",
+			"bierner.markdown-mermaid",
+			"chrisdias.vscode-opennewinstance",
+			"mathematic.vscode-pdf",
+			"alefragnani.project-manager",
+			"ms-python.vscode-pylance",
+			"ms-python.python",
+			"ms-python.debugpy",
+			"ms-python.vscode-python-envs",
+			"ms-vscode-remote.remote-ssh",
+			"ms-vscode-remote.remote-ssh-edit",
+			"ms-vscode.remote-server",
+			"ms-vscode-remote.vscode-remote-extensionpack",
+			"ms-vscode.remote-explorer",
+			"ms-mssql.sql-bindings-vscode",
+			"ms-mssql.sql-database-projects-vscode",
+			"adpyke.vscode-sql-formatter",
+			"alexcvzz.vscode-sqlite",
+			"mtxr.sqltools",
+			"mtxr.sqltools-driver-sqlite",
+			"anweber.statusbar-commands",
+			"spmeesseman.vscode-taskexplorer",
+			"actboy168.tasks",
+			"ms-vscode.test-adapter-converter",
+			"redhat.vscode-xml",
+			"redhat.vscode-yaml"
+		]
+	},
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/__pycache__": true,
+			"**/.cache": true,
+			"**/.conda": true,
+			"**/.coverage": true,
+			"**/.coverage.*": true,
+			"**/.hypothesis": true,
+			"**/.mypy_cache": true,
+			"**/.nox": true,
+			"**/.pytest_cache": true,
+			"**/.ruff_cache": true,
+			"**/.tox": true,
+			"**/.venv": true,
+			"**/tmp/**": true,
+			"**/venv/**": true,
+			"envs/": true,
+			"**/__pycache__/**": true,
+			".devcontainer": true,
+			"src/genalog_api": true,
+			"genalog_api-ward_nre_pipeline.code-workspace": true
+		},
+		"explorerExclude.backup": {}
+	}
+}
