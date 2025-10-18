@@ -1,0 +1,22 @@
+{
+    "python38_base": {
+        "text": "Python 3.8",
+        "image_name": "nlpssc/python38-base:latest",
+        "dockerfile": ".docker_imgs/python38_base/Dockerfile.python38_base"
+    },
+    "python311_base": {
+        "text": "Python 3.11",
+        "image_name": "nlpssc/python311-base:latest",
+        "dockerfile": ".docker_imgs/python311_base/Dockerfile.python311_base"
+    },
+    "python312_base": {
+        "text": "Python 3.12",
+        "image_name": "nlpssc/python312-base:latest",
+        "dockerfile": ".docker_imgs/python312_base/Dockerfile.python312_base"
+    },
+    "medspacy_quickumls_processor": {
+        "text": "Medspacy-QuickUMLS Processor",
+        "image_name": "nlpssc/medspacy-quickumls-processor:latest",
+        "dockerfile": ".docker_imgs/medspacy_quickumls_processor/Dockerfile.medspacy_quickumls_processor"
+    }
+}
