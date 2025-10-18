@@ -1,0 +1,11 @@
+services:
+  genalog_api:
+    container_name: genalog_api-devcontainer
+    build:
+      context: ../..
+      dockerfile: .devcontainer/genalog_api/Dockerfile
+    volumes:
+      - ../..:/workspace:cached
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: ["sleep", "infinity"]

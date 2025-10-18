@@ -1,8 +1,7 @@
 {
     "name": "genalog_api Development Container",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "genalog_api",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -10,6 +9,5 @@
             ]
         }
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
     "workspaceFolder": "/workspace"
 }

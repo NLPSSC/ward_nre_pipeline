@@ -1,6 +1,10 @@
-.PHONY: help dev-build dev-up dev-shell dev-down dev-post-create dev-test
+ifndef GENALOG_API_INCLUDED
+GENALOG_API_INCLUDED := 1
 
-help:
+.PHONY: help-genalog_api dev-build-genalog_api dev-up-genalog_api dev-shell-genalog_api dev-exec-genalog_api
+
+help-genalog_api:
+	@echo "genalog_api Targets"
 	@echo ""
 	@echo "  \033[1;32mdev-build-genalog_api\033[0m   Build the genalog_api DevContainer image"
 	@echo "  \033[1;32mdev-up-genalog_api\033[0m      Start (and attach to) the genalog_api DevContainer"
@@ -10,27 +14,31 @@ help:
 	@echo "  \033[1;32mdev-test-genalog_api\033[0m    Run tests in the genalog_api DevContainer"
 	@echo ""
 	@echo "Usage: make <target>[-genalog_api]"
+	@echo ""
 
-# Build the DevContainer image
+
+# Build the genalog_api service image
 dev-build-genalog_api:
-	@devcontainer build --workspace-folder . --config .devcontainer/genalog_api/devcontainer.json
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml build genalog_api
 
-# Start (and attach to) the DevContainer
-dev-up-genalog_api: dev-build-genalog_api
-	@devcontainer up --workspace-folder . --config .devcontainer/genalog_api/devcontainer.json
+# Start (and attach to) the genalog_api service
+dev-up-genalog_api:
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml up -d genalog_api
 
-# Open a bash shell in the DevContainer
-dev-shell-genalog_api: dev-up-genalog_api
-	@devcontainer exec --workspace-folder . --config .devcontainer/genalog_api/devcontainer.json /bin/bash
-
-dev-exec-genalog_api: dev-up-genalog_api
-	@devcontainer exec --workspace-folder . --config .devcontainer/genalog_api/devcontainer.json bash -c '"$@"'
-
-# Remove (stop and delete) the DevContainer using Docker
+# Remove (stop and delete) the genalog_api container
 dev-down-genalog_api:
-	@CONTAINERS=$$(docker ps -a --format '{{.ID}} {{.Image}}' | grep ' vsc-genalog_api' | awk '{print $$1}'); \
-	if [ -n "$$CONTAINERS" ]; then docker rm -f $$CONTAINERS; fi
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml down
 
-# Run tests in the DevContainer
+# Open a bash shell in the genalog_api container
+dev-shell-genalog_api:
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml exec genalog_api /bin/bash
+
+# Run a command in the genalog_api container
+dev-exec-genalog_api:
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml exec genalog_api bash -c "$(cmd)"
+
+# Run tests in the genalog_api container
 dev-test-genalog_api:
-	@devcontainer exec --workspace-folder . pytest
+	docker compose -f .devcontainer/genalog_api/docker-compose.yml exec genalog_api pytest
+
+endif
