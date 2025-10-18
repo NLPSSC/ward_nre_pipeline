@@ -1,0 +1,37 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/__pycache__": true,
+			"**/.cache": true,
+			"**/.conda": true,
+			"**/.coverage": true,
+			"**/.coverage.*": true,
+			"**/.hypothesis": true,
+			"**/.mypy_cache": true,
+			"**/.nox": true,
+			"**/.pytest_cache": true,
+			"**/.ruff_cache": true,
+			"**/.tox": true,
+			"**/.venv": true,
+			"**/tmp/**": true,
+			"**/venv/**": true,
+			"envs/": true,
+			"**/__pycache__/**": true,
+			"src/nre_pipeline": true,
+			"**/Makefile.nre_pipeline.mk": true,
+			".data/nre_pipeline": true
+		},
+		"explorerExclude.backup": {},
+		"containers.containers.groupBy": "Compose Project Name"
+	}
+}
