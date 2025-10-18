@@ -1,5 +1,5 @@
 # Builder image for git setup
-FROM python:3.8-slim AS builder
+FROM python:3.12-slim AS builder
 
 # Avoid interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
     
 # Slim runtime image
-FROM python:3.8-slim AS slim
+FROM python:3.12-slim AS slim
 
 RUN python -m pip install --upgrade pip && \
     pip cache purge && \
@@ -31,9 +31,9 @@ COPY --from=builder /usr/share/ /usr/share/
 # Add alias to root's .bashrc
 RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
 
-COPY .docker_imgs/python38_base/test_python38_base.sh /usr/local/bin/test_python38_base.sh
-RUN chmod +x /usr/local/bin/test_python38_base.sh
-RUN bash -x /usr/local/bin/test_python38_base.sh
+COPY .docker_imgs/python312_base/test_python312_base.sh /usr/local/bin/test_python312_base.sh
+RUN chmod +x /usr/local/bin/test_python312_base.sh
+RUN bash -x /usr/local/bin/test_python312_base.sh
 
 # Set up minimal environment
 ENV DEBIAN_FRONTEND=noninteractive
