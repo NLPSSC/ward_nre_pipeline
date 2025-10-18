@@ -11,7 +11,7 @@
 			{
 				"label": "git Bundle/Upload NRE Pipeline",
 				"type": "shell",
-				"command": "scripts\\bundle\\push_gitbundle.bat",
+				"command": ".scripts\\bundle\\push_gitbundle.bat",
 				"isBackground": false,
 				"problemMatcher": [],
 				"group": "build",
