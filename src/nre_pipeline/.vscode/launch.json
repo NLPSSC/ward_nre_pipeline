@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "QuickUMLS (Test)",
+            "name":"[nre_pipeline] - QuickUMLS (Test)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/nre_pipeline/test_quickumls_processor.py",
@@ -10,7 +10,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Pipeline (NoOp, real data, Test)",
+            "name":"[nre_pipeline] - Pipeline (NoOp, real data, Test)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/nre_pipeline/test_pipeline.py",
@@ -18,7 +18,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Processor (NoOp, Test)",
+            "name":"[nre_pipeline] - Processor (NoOp, Test)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/nre_pipeline/test_processor.py",
@@ -26,7 +26,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Writer (Test)",
+            "name":"[nre_pipeline] - Writer (Test)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/nre_pipeline/test_writer.py",
@@ -34,7 +34,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Reader (Test)",
+            "name":"[nre_pipeline] - Reader (Test)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/nre_pipeline/test_reader.py",
@@ -42,7 +42,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Current File",
+            "name":"[nre_pipeline] - Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
@@ -50,7 +50,7 @@
             "envFile": "${workspaceFolder}/.env",
         },
         {
-            "name": "Debug NRE Pipeline (Verbose)",
+            "name":"[nre_pipeline] - Debug NRE Pipeline (Verbose)",
             "type": "debugpy",
             "request": "launch",
             "module": "nre_pipeline",
@@ -67,7 +67,7 @@
             "redirectOutput": true
         },
         {
-            "name": "Debug NRE Pipeline (Default)",
+            "name":"[nre_pipeline] - Debug NRE Pipeline (Default)",
             "type": "debugpy",
             "request": "launch",
             "module": "nre_pipeline",
@@ -82,7 +82,7 @@
             "redirectOutput": true
         },
         {
-            "name": "Debug NRE Pipeline (__main__.py)",
+            "name":"[nre_pipeline] - Debug NRE Pipeline (__main__.py)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/__main__.py",

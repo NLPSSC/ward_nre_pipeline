@@ -45,7 +45,8 @@ if !errorlevel! neq 0 (
 echo [DEBUG] Current directory: %cd%
 
 REM Create bundle filename and ensure bundles directory exists
-set "file_name=%formatted_datetime%_nre_pipeline.bundle"
+set "project_name=ward_nre_pipeline"
+set "file_name=%formatted_datetime%_%project_name%.bundle"
 set "bundle_path=%cd%\bundles"
 echo [DEBUG] Creating bundles directory: %bundle_path%
 mkdir "%bundle_path%" 2>nul
@@ -56,7 +57,7 @@ REM Remote server configuration
 set "remote_configuration=lambda-server"
 set "remote_update_path=/home/westerd/_/research_projects/upload"
 set "remote_upload_dest=%remote_configuration%:%remote_update_path%"
-set "remote_repo=/home/westerd/_/research_projects/nre_pipeline"
+set "remote_repo=/home/westerd/_/research_projects/%project_name%"
 echo [INFO] Remote server: %remote_configuration%
 echo [INFO] Upload path: %remote_upload_dest%
 echo [INFO] Remote repo: %remote_repo%

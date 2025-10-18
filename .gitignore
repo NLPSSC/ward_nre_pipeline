@@ -214,9 +214,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-
 # custom
-
 envs/ 
 *.bundle
 .data/nre_pipeline/quickumls
