@@ -9,17 +9,22 @@
 			"name": "nre_pipeline"
 		}
 	],
-	"settings": {
-		"python-envs.defaultEnvManager": "ms-python.python:conda",
-		"python-envs.defaultPackageManager": "ms-python.python:conda",
-		"sqltools.connections": [
-			{
-				"previewLimit": 50,
-				"driver": "SQLite",
-				"name": "test_db",
-				"group": "nre_pipeline",
-				"database": "${workspaceFolder:nre_pipeline}/.data/temp/test.db"
-			}
-		]
+	"tasks": {
+		"version": "2.0.0",
+		"label": "git Bundle/Upload NRE Pipeline",
+		"type": "shell",
+		"command": "scripts\\bundle\\push_gitbundle.bat",
+		"isBackground": false,
+		"problemMatcher": [],
+		"group": "build",
+		"options": {
+			"statusbar": {
+				"color": "#34998b"
+			},
+			"windows": {
+				"console": "externalTerminal"
+			},
+			"close": "onExit"
+		}
 	}
 }
