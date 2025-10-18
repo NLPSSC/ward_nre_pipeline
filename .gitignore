@@ -220,3 +220,4 @@ envs/
 .data/nre_pipeline/quickumls
 .data/nre_pipeline/umls
 .data/bundles
+.data/temp
