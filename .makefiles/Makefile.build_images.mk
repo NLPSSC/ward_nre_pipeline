@@ -12,7 +12,7 @@ help-build_images:
 	@echo ""
 
 PYTHON38_BASE_IMAGE_NAME := nlpssc/python38-base:latest
-PYTHON38_BASE_DOCKERFILE := .docker_imgs/Dockerfile.python38_base
+PYTHON38_BASE_DOCKERFILE := .docker_imgs/python38_base/Dockerfile.python38_base
 
 build-python38_base:
 	@[ ! -f $(PYTHON38_BASE_DOCKERFILE) ] && \
