@@ -44,7 +44,6 @@ endef
 
 endif	
 
-
 dev-%-build:
 	@docker compose -f .devcontainer/$*/docker-compose.yml build $*
 
@@ -70,7 +69,7 @@ dev-%-test:
 
 
 help-%:
-	@echo "\033[1;34m$* Targets\033[0m"
+	@echo "\033[1;34m$*\033[0m Targets"
 	@echo "----------------------------"
 	@echo ""
 	@echo "  \033[1;32mdev-$*-build\033[0m   Build the $* DevContainer image"
