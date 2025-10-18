@@ -44,7 +44,10 @@ endef
 endif	
 
 dev-%-build:
-	@docker compose -f .devcontainer/$*/docker-compose.yml build $*
+	docker compose -f .devcontainer/$*/docker-compose.yml build $*
+
+dev-%-rebuild:
+	docker compose -f .devcontainer/$*/docker-compose.yml build --no-cache $*
 
 # Start (and attach to) the genalog_api service
 dev-%-up:
@@ -55,8 +58,8 @@ dev-%-down:
 	@docker compose -f .devcontainer/$*/docker-compose.yml down
 
 # Open a bash shell in the genalog_api container
-dev-%-shell: dev-$*-up
-	@docker compose -f .devcontainer/$*/docker-compose.yml exec $* /bin/bash
+dev-%-shell: dev-%-up
+	docker compose -f .devcontainer/$*/docker-compose.yml exec $* /bin/bash
 
 # Run a command in the genalog_api container
 dev-%-exec:
@@ -68,7 +71,7 @@ dev-%-test:
 
 
 help-%:
-	@echo "\033[1;34m$*\033[0m Targets"
+	@echo "\033[1;34m$*\033[0m Targets (devcontainer)"
 	@echo "----------------------------"
 	@echo ""
 	@echo "  \033[1;32mdev-$*-build\033[0m   Build the $* DevContainer image"

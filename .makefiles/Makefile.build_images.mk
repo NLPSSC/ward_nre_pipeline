@@ -40,13 +40,14 @@ validate-%:
 
 # Pattern rule for building only allowed base images
 %-build: 
-	$(MAKE) validate-$* && \
+	$(MAKE) --no-print-directory validate-$* && \
 		[ ! -f $(call get_label_dockerfile,$*) ] && \
 			echo "Dockerfile not found" || \
 			$(call docker-build, $(call get_label_dockerfile,$*), $(call get_label_image_name,$*), .)
 
 %-rebuild:
-	$(MAKE) --no-print-directory $*-build FORCE_REBUILD=1
+	@$(MAKE) --no-print-directory validate-$* && \
+		$(MAKE) --no-print-directory $*-build FORCE_REBUILD=1
 
 %-bash: %-build
 	@docker run --rm -it --entrypoint /bin/bash $(call get_label_image_name,$*)
