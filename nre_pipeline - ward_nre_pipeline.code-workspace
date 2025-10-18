@@ -3,8 +3,107 @@
 		{
 			"path": ".",
 			"name": "ward_nre_pipeline"
+		},
+		{
+			"path": "../test_data",
+			"name": "test_documents"
 		}
 	],
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Reader (Test)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/test_reader.py",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder:ward_nre_pipeline}/.env",
+			},
+			{
+				"name": "QuickUMLS (Test)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/nre_pipeline/test_quickumls_processor.py",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+			},
+			{
+				"name": "Pipeline (NoOp, real data, Test)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/nre_pipeline/test_pipeline.py",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+			},
+			{
+				"name": "Processor (NoOp, Test)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/nre_pipeline/test_processor.py",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+			},
+			{
+				"name": "Writer (Test)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/nre_pipeline/test_writer.py",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.env",
+			},
+			{
+				"name": "Debug NRE Pipeline (Verbose)",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "nre_pipeline",
+				"args": [
+					"--verbose"
+				],
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"env": {},
+				"envFile": "${workspaceFolder}/.env",
+				"python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+				"justMyCode": true,
+				"stopOnEntry": false,
+				"redirectOutput": true
+			},
+			{
+				"name": "Debug NRE Pipeline (Default)",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "nre_pipeline",
+				"args": [],
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"env": {},
+				"envFile": "${workspaceFolder}/.env",
+				"python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+				"justMyCode": true,
+				"stopOnEntry": false,
+				"redirectOutput": true
+			},
+			{
+				"name": "Debug NRE Pipeline (__main__.py)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/src/__main__.py",
+				"args": [
+					"--verbose"
+				],
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"env": {},
+				"envFile": "${workspaceFolder}/.env",
+				"python": "${workspaceFolder}/envs/nre_pipeline/Scripts/python.exe",
+				"justMyCode": true,
+				"stopOnEntry": false,
+				"redirectOutput": true
+			}
+		],
+		"compounds": []
+	},
 	"tasks": {
 		"version": "2.0.0",
 		"tasks": [

@@ -19,16 +19,14 @@ if __name__ == "__main__":
     setup_logging(False)
 
     txt_file_count = 0
-    test_case_path = (
-        r"Z:\_\data\corpora\ocred_docs_from_pubmed\Buffalo_Med_J_Mon_Rev_Med_Surg_Sci"
-    )
+    test_case_path = "/test_data"
     for root, dirs, files in os.walk(test_case_path):
         txt_file_count += sum(1 for f in files if f.lower().endswith(".txt"))
     logger.info(f"Total .txt files found: {txt_file_count}")
 
     reader = FileSystemReader(
         path=test_case_path,
-        batch_size=1000,
+        batch_size=2,
         extensions=[".txt"],
     )
 
