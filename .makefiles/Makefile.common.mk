@@ -39,7 +39,6 @@ define docker-build
 	-f $(1) -t $(2) $(3) && \
 	docker image inspect $(2) | \
 		jq -r '"Size: " + ((.[0].Size / 1024 / 1024 * 100 | round / 100) | tostring) + " MB"'
-	
 endef
 
 endif	

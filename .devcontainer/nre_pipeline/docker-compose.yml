@@ -8,4 +8,5 @@ services:
       - ../..:/workspace:cached
     environment:
       - DEBIAN_FRONTEND=noninteractive
+      - ENVIRONMENT=development
     command: ["sleep", "infinity"]
