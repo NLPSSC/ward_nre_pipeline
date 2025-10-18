@@ -1,0 +1,11 @@
+services:
+  nre_pipeline:
+    container_name: nre_pipeline-devcontainer
+    build:
+      context: ../..
+      dockerfile: .devcontainer/nre_pipeline/Dockerfile
+    volumes:
+      - ../..:/workspace:cached
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: ["sleep", "infinity"]

@@ -1,0 +1,13 @@
+{
+    "name": "nre_pipeline Development Container",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "nre_pipeline",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "workspaceFolder": "/workspace"
+}

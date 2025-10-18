@@ -97,9 +97,10 @@
 			"**/venv/**": true,
 			"envs/": true,
 			"**/__pycache__/**": true,
-			".devcontainer": true,
+			".devcontainer/genalog_api": true,
 			"src/genalog_api": true,
-			"genalog_api-ward_nre_pipeline.code-workspace": true
+			"tests/genalog_api": true,
+			
 		},
 		"explorerExclude.backup": {},
 		"python.useEnvironmentsExtension": true,
