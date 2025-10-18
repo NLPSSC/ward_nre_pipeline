@@ -5,9 +5,33 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.python"
+                "ms-python.python",
+                "redhat.vscode-yaml",
+                "redhat.vscode-xml",
+                "ms-vscode.test-adapter-converter",
+                "actboy168.tasks",
+                "spmeesseman.vscode-taskexplorer",
+                "anweber.statusbar-commands",
+                "mathematic.vscode-pdf",
+                "chrisdias.vscode-opennewinstance",
+                "bierner.markdown-mermaid",
+                "yzhang.markdown-all-in-one",
+                "ms-vscode.makefile-tools",
+                "ms-toolsai.vscode-jupyter-powertoys",
+                "ms-toolsai.jupyter-renderers",
+                "ms-toolsai.jupyter",
+                "codezombiech.gitignore",
+                "bierner.github-markdown-preview",
+                "github.vscode-github-actions",
+                "ms-toolsai.datawrangler",
+                "ms-azuretools.vscode-containers",
+                "ms-python.black-formatter",
+                "mhutchie.git-graph",
+                "tamasfe.even-better-toml",
+                "ms-azuretools.vscode-docker",
+                "njpwerner.autodocstring"
             ]
         }
     },
-    "workspaceFolder": "/workspace"
+    "workspaceFolder": "/workspace",
 }

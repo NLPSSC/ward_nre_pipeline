@@ -60,12 +60,6 @@
 			"ms-vscode.remote-server",
 			"ms-vscode-remote.vscode-remote-extensionpack",
 			"ms-vscode.remote-explorer",
-			"ms-mssql.sql-bindings-vscode",
-			"ms-mssql.sql-database-projects-vscode",
-			"adpyke.vscode-sql-formatter",
-			"alexcvzz.vscode-sqlite",
-			"mtxr.sqltools",
-			"mtxr.sqltools-driver-sqlite",
 			"anweber.statusbar-commands",
 			"spmeesseman.vscode-taskexplorer",
 			"actboy168.tasks",
@@ -101,10 +95,11 @@
 			"src/genalog_api": true,
 			"tests/genalog_api": true,
 			".makefiles/Makefile.genalog_api.mk": true
-			
 		},
 		"explorerExclude.backup": {},
 		"python.useEnvironmentsExtension": true,
-		"python.venvFolders": ["envs"]
+		"python.venvFolders": [
+			"envs"
+		]
 	}
 }

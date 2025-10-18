@@ -10,10 +10,10 @@ BUILD_IMAGES_INCLUDED := 1
 # Python 3.8 Base
 ###############################################################################
 
-PYTHON38_TEXT := "Python 3.8"
-PYTHON38_LABEL := python38_base
-PYTHON38_BASE_IMAGE_NAME := nlpssc/python38-base:latest
-PYTHON38_BASE_DOCKERFILE := .docker_imgs/$(PYTHON38_LABEL)/Dockerfile.python38_base
+# PYTHON38_TEXT := "Python 3.8"
+# PYTHON38_LABEL := python38_base
+# PYTHON38_BASE_IMAGE_NAME := nlpssc/python38-base:latest
+# PYTHON38_BASE_DOCKERFILE := .docker_imgs/$(PYTHON38_LABEL)/Dockerfile.python38_base
 
 get_label_text = $(shell .makefiles/get_config_value.sh $(1) 'text')
 get_label_image_name = $(shell .makefiles/get_config_value.sh $(1) 'image_name')
@@ -39,13 +39,14 @@ validate-%:
 	fi
 
 # Pattern rule for building only allowed base images
-%-build: validate-%
-	@[ ! -f $(call get_label_dockerfile,$*) ] && \
-		echo "Dockerfile not found" || \
-		$(call docker-build, $(call get_label_dockerfile,$*), $(call get_label_image_name,$*), .)
+%-build: 
+	$(MAKE) validate-$* && \
+		[ ! -f $(call get_label_dockerfile,$*) ] && \
+			echo "Dockerfile not found" || \
+			$(call docker-build, $(call get_label_dockerfile,$*), $(call get_label_image_name,$*), .)
 
 %-rebuild:
-	@$(MAKE) --no-print-directory $*-build FORCE_REBUILD=1
+	$(MAKE) --no-print-directory $*-build FORCE_REBUILD=1
 
 %-bash: %-build
 	@docker run --rm -it --entrypoint /bin/bash $(call get_label_image_name,$*)
