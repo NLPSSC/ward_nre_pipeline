@@ -1,16 +1,16 @@
 import os
+import psutil
 from concurrent.futures import Future
 from typing import Any, Generator
-
 from loguru import logger
-
-from nre_pipeline import setup_logging
+from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.reader._filesystem import FileSystemReader
-import psutil
+
+TEST_CASE_PATH = "/test_data"
 
 
-def process_batch(batch):
+def mock_processor(batch):
     document_count: int = len(batch)
     return document_count
 
@@ -19,13 +19,12 @@ if __name__ == "__main__":
     setup_logging(False)
 
     txt_file_count = 0
-    test_case_path = "/test_data"
-    for root, dirs, files in os.walk(test_case_path):
+    for root, dirs, files in os.walk(TEST_CASE_PATH):
         txt_file_count += sum(1 for f in files if f.lower().endswith(".txt"))
     logger.info(f"Total .txt files found: {txt_file_count}")
 
     reader = FileSystemReader(
-        path=test_case_path,
+        path=TEST_CASE_PATH,
         batch_size=2,
         extensions=[".txt"],
     )
@@ -35,6 +34,10 @@ if __name__ == "__main__":
 
     max_workers = psutil.cpu_count(logical=False) or 4
     logger.info(f"Using {max_workers} worker processes")
+
+    #################################################################################
+    # Process batches in parallel using a process pool executor using mock processor
+    #################################################################################
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         # Submit initial batch of futures
         futures = {}
@@ -45,7 +48,7 @@ if __name__ == "__main__":
         for _ in range(max_workers * 2):  # Keep 2x workers busy
             try:
                 batch: DocumentBatch = next(reader_iter)
-                future: Future[int] = executor.submit(process_batch, batch)
+                future: Future[int] = executor.submit(mock_processor, batch)
                 futures[future] = batch_counter
                 batch_counter += 1
             except StopIteration:
@@ -62,7 +65,7 @@ if __name__ == "__main__":
                 # Submit next batch if available
                 try:
                     batch = next(reader_iter)
-                    new_future = executor.submit(process_batch, batch)
+                    new_future = executor.submit(mock_processor, batch)
                     futures[new_future] = batch_counter
                     batch_counter += 1
                 except StopIteration:
@@ -72,8 +75,8 @@ if __name__ == "__main__":
                 del futures[future]
                 break  # Break to restart as_completed with updated futures dict
 
-    assert total_count == txt_file_count, (
-        f"Expected {txt_file_count} documents, but found {total_count}"
-    )
+    assert (
+        total_count == txt_file_count
+    ), f"Expected {txt_file_count} documents, but found {total_count}"
 
     logger.info(f"Total documents processed: {total_count}")
