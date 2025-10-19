@@ -10,6 +10,7 @@
         "resources/",
         "examples/",
         "envs/",
-        "scripts/"
+        "scripts/",
+        "tests/nre_pipeline/__archive/"
     ],
 }

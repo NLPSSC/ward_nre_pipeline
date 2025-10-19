@@ -13,8 +13,12 @@ RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
 # Set up requirements
 RUN mkdir -p /requirements && chmod a+rw /requirements
 COPY .devcontainer/nre_pipeline/*requirements.txt ./requirements
-RUN if [ -f /requirements/requirements.txt ]; then python -m pip install -r /requirements/requirements.txt; fi
-RUN if [ -f /requirements/dev-requirements.txt ]; then python -m pip install -r /requirements/dev-requirements.txt; fi
+RUN if [ -f /requirements/requirements.txt ]; then \
+        python -m pip install -r /requirements/requirements.txt; \
+    fi
+RUN if [ -f /requirements/dev-requirements.txt ]; then \
+        python -m pip install -r /requirements/dev-requirements.txt; \
+    fi
 
 # Copy test data
 # TODO #4 this needs to be moved to a step outside the Dockerfile
