@@ -2,10 +2,9 @@ import os
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Literal, Optional
+from typing import Any, Generator, List, Literal, Optional, Tuple
 
 from loguru import logger
-import requests
 
 from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.models._batch import DocumentBatch
@@ -13,56 +12,15 @@ from nre_pipeline.models._nlp_result_item import NLPResultFeature
 from nre_pipeline.processor import Processor
 from quickumls import QuickUMLS
 
+from nre_pipeline.processor.quickumls_processor.umls_methods._umls_rest_client import (
+    UMLSRestApiClient,
+)
+from nre_pipeline.processor.quickumls_processor.umls_methods._umls_common_methods import (
+    UMLSTerm,
+)
+
 TGT_URL = f"https://utslogin.nlm.nih.gov/cas/v1/api-key"
 BASE_URL = "https://uts-ws.nlm.nih.gov/rest"
-
-
-class UMLSRestApiClient:
-
-    def __init__(self) -> None:
-        api_key = os.getenv("UMLS_API_KEY")
-        if not api_key:
-            dev_umls_key_path = os.getenv("DEV_UMLS_KEY_PATH")
-            if not dev_umls_key_path:
-                raise ValueError(
-                    "Either UMLS_API_KEY must be defined or the DEV_UMLS_KEY_PATH must be defined."
-                )
-            api_key = Path(dev_umls_key_path).read_text().strip()
-        self._api_key: str = api_key
-
-    def get_umls_concepts(self, text: str) -> List[Dict[str, Any]]:
-        """
-        Calls the UMLS REST API to get UMLS concepts for the given search string.
-        Returns a list of concept dicts.
-        """
-
-        # Get a ticket granting ticket (TGT)
-        tgt_resp = requests.post(TGT_URL, data={"apikey": self._api_key})
-        if tgt_resp.status_code != 201:
-            raise Exception("Failed to get UMLS TGT")
-        tgt = tgt_resp.headers["location"]
-
-        # Get a service ticket (ST)
-        st_resp = requests.post(tgt, data={"service": BASE_URL})
-        if st_resp.status_code != 200:
-            raise Exception("Failed to get UMLS service ticket")
-        service_ticket = st_resp.text
-
-        # Search for concepts
-        search_url = f"{BASE_URL}/search/current"
-        params = {
-            "string": text,
-            "ticket": service_ticket,
-            "pageSize": 10,
-        }
-        resp = requests.get(search_url, params=params)
-        resp.raise_for_status()
-        results = resp.json()["result"]["results"]
-        return results
-
-    def get_semantic_types_by_concept(self, concept: Dict[str, Any]) -> List[str]:
-        # Implement REST API call to UMLS
-        pass
 
 
 class QuickUMLSProcessor(Processor):
@@ -275,7 +233,3 @@ class QuickUMLSProcessor(Processor):
 
         logger.info("QuickUMLS path validated.")
         return quickumls_path_obj
-
-if __name__ == "__main__":
-    umls_rest_api_client = UMLSRestApiClient()
-    concepts = umls_rest_api_client.get_umls_concepts("cirrhosis")

@@ -10,7 +10,7 @@ import os
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.processor._base import ProcessorQueue
-from nre_pipeline.processor._quickumls import QuickUMLSProcessor
+from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 
 
 from nre_pipeline.models._batch import DocumentBatch

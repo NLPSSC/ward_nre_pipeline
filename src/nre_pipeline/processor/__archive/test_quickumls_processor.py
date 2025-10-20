@@ -6,7 +6,7 @@ from loguru import logger
 
 from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
-from nre_pipeline.processor._quickumls import QuickUMLSProcessor
+from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem import FileSystemReader
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
 
