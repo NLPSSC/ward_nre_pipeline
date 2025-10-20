@@ -7,11 +7,11 @@ from nre_pipeline.models._document import Document
 
 
 class DocumentBatch:
-    
+
     batch_id_path = os.getenv("BATCH_ID_PATH", None)
     if batch_id_path is None:
         raise ValueError("BATCH_ID_PATH environment variable is not set")
-    
+
     _db_path = Path(batch_id_path)
 
     def __init__(self, documents: List[Document]):
@@ -43,3 +43,6 @@ class DocumentBatch:
 
     def __getitem__(self, index: int) -> Document:
         return self._documents[index]
+
+    def __repr__(self) -> str:
+        return f"DocumentBatch(batch_id={self._batch_id}, doc_count={len(self._documents)})"

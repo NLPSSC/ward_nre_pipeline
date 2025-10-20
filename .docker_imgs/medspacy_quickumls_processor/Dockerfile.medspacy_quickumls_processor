@@ -1,5 +1,5 @@
 # medspacy_quickumls
-FROM nlpssc/python312-base:latest AS base
+FROM nlpssc/python311-base:latest AS base
 
 # Avoid interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,6 +20,8 @@ RUN python -m spacy download en_core_web_sm
 COPY .docker_imgs/medspacy_quickumls_processor/test_medspacy_quickumls_processor_base.sh /usr/local/bin/test_medspacy_quickumls_processor_base.sh
 RUN chmod +x /usr/local/bin/test_medspacy_quickumls_processor_base.sh
 RUN bash -x /usr/local/bin/test_medspacy_quickumls_processor_base.sh
+
+RUN bash -c 'PYTHON_VERSION="$(python --version 2>&1)" && [[ "${PYTHON_VERSION}" == "Python 3.11.14" ]]'
 
 CMD ["bash"]
 

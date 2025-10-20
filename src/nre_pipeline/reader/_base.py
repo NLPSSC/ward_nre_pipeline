@@ -3,7 +3,8 @@ import threading
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator
 
-from nre_pipeline.interruptible_mixin import InterruptibleMixin
+
+from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch
 
