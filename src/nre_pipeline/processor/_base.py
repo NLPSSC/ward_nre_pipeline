@@ -1,6 +1,8 @@
+from multiprocessing import Process
 import queue
 import threading
 from abc import ABC, abstractmethod
+from time import sleep
 from typing import Any, Generator, cast
 
 from loguru import logger
@@ -120,92 +122,16 @@ class ProcessorQueue:
 
 
 class Processor(ABC, InterruptibleMixin):
-    """
-    Base class for asynchronous, interruptible processors that transform DocumentBatch
-    objects into a stream of NLPResult items.
-
-    The Processor class provides a consistent concurrency and lifecycle model for
-    concrete processor implementations:
-
-    - Each Processor instance is "callable" (implements __call__). Calling an idle
-        processor with a DocumentBatch will start a background thread that runs the
-        processing logic and returns a ProcessorQueue object that can be used to
-        consume results as they become available.
-    - A Processor tracks its availability with an internal lock-protected flag.
-        Attempting to call a Processor that is already busy will raise
-        ProcessorNotAvailable.
-    - The actual processing work is performed by subclasses implementing the
-        abstract method _call_processor(document_batch) which should return a
-        generator (or iterable) that yields NLPResult items for the given batch.
-    - The background thread wraps the generator with a small monitor to handle
-        generator exhaustion and to put results into the provided queue. After the
-        last result, the thread places the ProcessorQueue.QUEUE_EMPTY sentinel in the
-        queue to signal completion.
-    - Interruptibility: Processor inherits interrupt behavior from InterruptibleMixin
-        (via the user_interrupt() method). The constructor takes a process_interupt
-        threading.Event which is supplied to the mixin; implementations of
-        _call_processor should also honor user_interrupted() and stop early if set.
-
-    Thread- and concurrency-related details:
-    - The boolean attribute that indicates availability (_available_for_processing)
-        is guarded by a threading.Lock and exposed via the property
-        available_for_processing that returns the current state in a thread-safe way.
-    - The background thread renames itself for easier debugging (e.g.
-        "Processing Batch #<id>").
-    - Exceptions raised inside the background thread are caught and logged; they are
-        not propagated back to the caller of __call__.
-
-    Notes about _call_processor:
-    - _call_processor(document_batch) must be implemented by subclasses and should
-        return a generator (or any iterable) producing NLPResult objects. If it
-        returns None, it will be treated as producing no results.
-    - Because the base implementation inspects the generator to determine progress,
-        the generator will be exhausted and then re-created by calling _call_processor
-        again. Implementations should therefore either return a fresh generator on
-        each call or be idempotent/restartable.
-
-    Exceptions and return values:
-    - Calling an already-busy processor raises ProcessorNotAvailable(self).
-    - __call__ returns a ProcessorQueue object wrapping the underlying queue and
-        the halt-processing event; consumers read NLPResult items from that queue and
-        should stop when they observe the ProcessorQueue.QUEUE_EMPTY sentinel.
-
-    Example:
-            A minimal subclass and usage example:
-
-            class MyProcessor(Processor):
-                    def _call_processor(self, document_batch):
-                            # Example generator producing NLPResult-like objects.
-                            for doc in document_batch.documents:
-                                            break
-                                    yield NLPResult(doc.id, analysis=... )
-
-            # Usage:
-            q = queue.Queue()
-            interrupt_event = threading.Event()
-            proc = MyProcessor(processor_id=0, queue=q, process_interupt=interrupt_event)
-
-            processor_queue = proc(document_batch)   # starts background thread
-            for item in processor_queue:
-                    if item is ProcessorQueue.QUEUE_EMPTY:
-                            break
-                    # process NLPResult 'item'
-
-    Implementation guidance for subclass authors:
-    - Always implement _call_processor to yield results incrementally so consumers
-        can begin processing before the whole batch finishes.
-    - Check self.user_interrupted() periodically inside _call_processor and stop
-        yielding if an interrupt has been signaled.
-    - Ensure _call_processor returns a new generator/iterable each time it is
-        called (it will be called twice internally by the base class).
-    """
-
+    
     def __init__(
-        self, processor_id: int, queue: queue.Queue, process_interrupt: threading.Event
+        self,
+        processor_id: int,
+        writer_queue: queue.Queue,
+        process_interrupt: threading.Event,
     ) -> None:
         super().__init__(user_interrupt=process_interrupt)
         self._index = processor_id
-        self._queue = queue
+        self._writer_queue = writer_queue
         self._available_for_processing = True
         self._lock = threading.Lock()
 
@@ -240,8 +166,8 @@ class Processor(ABC, InterruptibleMixin):
                     logger.warning(f"Processor {self} interrupted by user.")
                     return
                 for nlp_result in monitor_call(document_batch):
-                    self._queue.put(nlp_result)
-                self._queue.put(ProcessorQueue.QUEUE_EMPTY)
+                    self._writer_queue.put(nlp_result)
+                self._writer_queue.put(ProcessorQueue.QUEUE_EMPTY)
             except Exception as e:
                 logger.error(f"Error in processor task: {e}")
             finally:
@@ -265,7 +191,7 @@ class Processor(ABC, InterruptibleMixin):
         thread = threading.Thread(target=task)
         thread.start()
 
-        return ProcessorQueue(self._queue, self.get_halt_processing_event())
+        return ProcessorQueue(self._writer_queue, self.get_halt_processing_event())
 
     @abstractmethod
     def _call_processor(
@@ -273,3 +199,5 @@ class Processor(ABC, InterruptibleMixin):
     ) -> Generator[NLPResultFeatures, Any, None]:
         """Process a document and return the result."""
         raise NotImplementedError("Subclasses must implement this method.")
+
+

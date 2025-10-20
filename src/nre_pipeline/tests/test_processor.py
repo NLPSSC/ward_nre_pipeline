@@ -60,7 +60,7 @@ if __name__ == "__main__":
         processing_queue = mgr.Queue()
         halt_event = mgr.Event()
         processor = NoOpProcessor(
-            processor_id=1, queue=processing_queue, process_interrupt=halt_event
+            processor_id=1, writer_queue=processing_queue, process_interrupt=halt_event
         )
 
         test_doc_batch: DocumentBatch = generate_mock_document_batch(10)
