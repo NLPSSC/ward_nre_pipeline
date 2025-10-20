@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Generator, List, Literal, Optional, Tuple
+from typing import Any, Dict, Generator, List, Literal, Optional, Set, Tuple, Union
 
 from loguru import logger
 
@@ -11,7 +11,11 @@ from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
 from nre_pipeline.processor import Processor
 from quickumls import QuickUMLS
+from quickumls.core import constants as quickumls_constants
 
+from nre_pipeline.processor.quickumls_processor.config.config_loader import (
+    get_quickumls_config,
+)
 from nre_pipeline.processor.quickumls_processor.umls_methods._umls_rest_client import (
     UMLSRestApiClient,
 )
@@ -21,6 +25,14 @@ from nre_pipeline.processor.quickumls_processor.umls_methods._umls_common_method
 
 TGT_URL = f"https://utslogin.nlm.nih.gov/cas/v1/api-key"
 BASE_URL = "https://uts-ws.nlm.nih.gov/rest"
+
+
+def _semantic_types_in_config_to_set(
+    semantic_types: Optional[List[str]] = None,
+) -> Optional[Set[str]]:
+    if not semantic_types:
+        return None
+    return set(semantic_types)
 
 
 class QuickUMLSProcessor(Processor):
@@ -99,18 +111,47 @@ class QuickUMLSProcessor(Processor):
     # Class-level shared matcher to avoid redundant initialization
     _shared_matcher: Optional[QuickUMLS] = None
     _matcher_lock = threading.Lock()
+    _quickumls_config: Optional[Dict[str, Any]] = None
 
     def __init__(
-        self, metric: Literal["cosine", "jaccard", "levenshtein"], *args, **kwargs
+        self,
+        metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path],
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self._matcher: QuickUMLS = self._get_shared_matcher()
         self._metric = metric
-        # get_quickumls_config
+        self._matcher: QuickUMLS = self._initalize_matcher(metric)
 
     @classmethod
-    def _get_shared_matcher(cls) -> QuickUMLS:
-        """Get or create a shared QuickUMLS matcher instance."""
+    def _initalize_matcher(
+        cls, metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path]
+    ) -> QuickUMLS:
+        """Get or create a shared QuickUMLS matcher instance.
+
+        This classmethod lazily initializes and returns a shared QuickUMLS matcher stored
+        on the class as `cls._shared_matcher`. Initialization is performed in a threadsafe
+        way using a double-checked locking pattern with `cls._matcher_lock` to avoid
+        constructing multiple matcher instances when called concurrently.
+
+        Behavior:
+        - Obtains the QuickUMLS index path by calling `cls._init_quickumls_path()`.
+        - Uses `cls._quickumls_config` if present (otherwise an empty dict) to pass
+            keyword arguments to the QuickUMLS constructor.
+        - Attempts to construct QuickUMLS with the provided configuration. If the
+            constructor raises `TypeError` (for example, when a particular QuickUMLS
+            version does not accept a given keyword argument), falls back to constructing
+            QuickUMLS with only the path.
+        - Logs initialization progress and any warnings or errors. Any exception raised
+            during initialization is logged with traceback and then re-raised.
+
+        Returns:
+                QuickUMLS: The shared QuickUMLS matcher instance stored as `cls._shared_matcher`.
+
+        Raises:
+                Exception: Any exception that occurs during initialization is propagated after
+                being logged.
+        """
         if cls._shared_matcher is None:
             with cls._matcher_lock:
                 if cls._shared_matcher is None:  # Double-check locking
@@ -120,10 +161,20 @@ class QuickUMLSProcessor(Processor):
                             f"Initializing shared QuickUMLS matcher at {quickumls_path}"
                         )
                         try:
-
                             # Prefer Levenshtein distance if supported by the QuickUMLS constructor.
+
+                            quickumls_config: Dict[str, Any] = get_quickumls_config(
+                                metric
+                            )
+
+                            # delete any values in quickumls_config that are None
+                            # quickumls_config = {
+                            #     k: v for k, v in quickumls_config.items() if v is not None
+                            # }
+                            
                             cls._shared_matcher = QuickUMLS(
-                                quickumls_path, similarity_name="levenshtein"
+                                quickumls_path,
+                                **quickumls_config
                             )
                         except TypeError:
                             # Older/newer QuickUMLS versions may not accept similarity_name; fall back gracefully.
@@ -145,6 +196,48 @@ class QuickUMLSProcessor(Processor):
     def _call_processor(
         self, document_batch: DocumentBatch
     ) -> Generator[NLPResultFeatures, Any, None]:
+        """
+        Process a batch of documents, extract UMLS concepts using QuickUMLS, and yield NLPResultFeatures for each found match.
+
+        Parameters
+        ----------
+        document_batch : DocumentBatch
+            Batch containing the documents to process. Each document is expected to have at least
+            the attributes `text` (str) and `note_id` (identifier used in yielded results).
+
+        Yields
+        ------
+        NLPResultFeatures
+            A generator yielding one NLPResultFeatures instance per individual QuickUMLS match.
+            Each yielded NLPResultFeatures contains:
+              - note_id: the originating document's note_id
+              - result_features: a list of NLPResultFeature instances with keys/values:
+                  - "ngram": matched surface text (str)
+                  - "term": canonical term (str)
+                  - "cui": UMLS Concept Unique Identifier (str)
+                  - "similarity": similarity score returned by QuickUMLS (float)
+                  - "semtypes": semantic types associated with the concept (list)
+                  - "pos_start": start character offset of the match in the document text (int)
+                  - "pos_end": end character offset of the match in the document text (int)
+
+        Behavior
+        --------
+        - Iterates over document_batch._documents and calls self._matcher.match(doc.text) to obtain QuickUMLS matches.
+        - QuickUMLS returns a list of match groups; each group may contain one or more match dicts.
+        - The function iterates every match dict and yields a corresponding NLPResultFeatures object.
+        - Internal counters (e.g., total_found_in_batch, match_count) are maintained for bookkeeping but are not returned.
+
+        Error handling
+        --------------
+        - Any exception raised while processing a document is logged (with full exception info).
+        - If processing a document fails, a single NLPResultFeatures with an empty result_features list is yielded for that document.
+
+        Notes
+        -----
+        - If a document has no matches, nothing is yielded for that document (unless an exception occurs).
+        - Expected keys in each QuickUMLS match dict: "ngram", "term", "cui", "similarity", "semtypes", "start", "end".
+        - Return type: Generator[NLPResultFeatures, Any, None].
+        """
         total_found_in_batch = 0
         for doc in document_batch._documents:
             try:

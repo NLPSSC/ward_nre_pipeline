@@ -35,7 +35,10 @@ def test_processor():
         try:
             # Initialize the processor
             processor = QuickUMLSProcessor(
-                processor_id=0, queue=processing_queue, process_interrupt=halt_event
+                processor_id=0,
+                metric="levenshtein",
+                queue=processing_queue,
+                process_interrupt=halt_event,
             )
             logger.success("Processor initialized successfully")
 
