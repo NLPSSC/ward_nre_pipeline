@@ -1,18 +1,15 @@
 import os
 import psutil
-from concurrent.futures import Future
-from typing import Any, Generator, Iterator
-
-import dotenv
-
-dotenv.load_dotenv(dotenv.find_dotenv())
-
+from typing import Iterator
 from loguru import logger
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.reader._filesystem import FileSystemReader
 
-TEST_CASE_PATH = "/test_data"
+
+TEST_DATA_PATH = os.getenv("TEST_DATA_PATH")
+if not TEST_DATA_PATH:
+    raise ValueError("TEST_DATA_PATH environment variable is not set")
 
 
 def mock_processor(batch) -> int:
@@ -24,12 +21,12 @@ if __name__ == "__main__":
     setup_logging(False)
 
     txt_file_count = 0
-    for root, dirs, files in os.walk(TEST_CASE_PATH):
+    for root, dirs, files in os.walk(TEST_DATA_PATH):
         txt_file_count += sum(1 for f in files if f.lower().endswith(".txt"))
     logger.info(f"Total .txt files found: {txt_file_count}")
 
     reader = FileSystemReader(
-        path=TEST_CASE_PATH,
+        path=TEST_DATA_PATH,
         batch_size=2,
         extensions=[".txt"],
     )
