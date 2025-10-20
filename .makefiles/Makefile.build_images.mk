@@ -40,7 +40,7 @@ validate-%:
 
 # Pattern rule for building only allowed base images
 %-build: 
-	$(MAKE) --no-print-directory validate-$* && \
+	@$(MAKE) --no-print-directory validate-$* && \
 		[ ! -f $(call get_label_dockerfile,$*) ] && \
 			echo "Dockerfile not found" || \
 			$(call docker-build, $(call get_label_dockerfile,$*), $(call get_label_image_name,$*), .)

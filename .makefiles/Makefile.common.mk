@@ -44,10 +44,10 @@ endef
 endif	
 
 dev-%-build:
-	docker compose -f .devcontainer/$*/docker-compose.yml build $*
+	@docker compose -f .devcontainer/$*/docker-compose.yml build $*
 
 dev-%-rebuild:
-	docker compose -f .devcontainer/$*/docker-compose.yml build --no-cache $*
+	@docker compose -f .devcontainer/$*/docker-compose.yml build --no-cache $*
 
 # Start (and attach to) the genalog_api service
 dev-%-up:
