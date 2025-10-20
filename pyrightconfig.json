@@ -11,6 +11,6 @@
         "examples/",
         "envs/",
         "scripts/",
-        "tests/nre_pipeline/__archive/"
+        "**/__archive/**",
     ],
 }
