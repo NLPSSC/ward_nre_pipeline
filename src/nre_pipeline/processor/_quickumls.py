@@ -37,7 +37,9 @@ class QuickUMLSProcessor(Processor):
                     logger.info("Shared QuickUMLS matcher initialized successfully.")
         return cls._shared_matcher
 
-    def _call(self, document_batch: DocumentBatch) -> Generator[NLPResult, Any, None]:
+    def _call_processor(
+        self, document_batch: DocumentBatch
+    ) -> Generator[NLPResult, Any, None]:
         total_found_in_batch = 0
         for doc in document_batch._documents:
             try:

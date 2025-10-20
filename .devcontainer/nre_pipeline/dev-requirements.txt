@@ -2,3 +2,4 @@ ipywidgets
 jupyterlab
 pytest
 flake8
+wonderwords

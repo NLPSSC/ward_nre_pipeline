@@ -1,7 +1,7 @@
+from multiprocessing import Manager
 from typing import List
-
 from loguru import logger
-from nre_pipeline import setup_logging
+from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
 from nre_pipeline.models._nlp_result import NLPResult, NLPResultItem
@@ -50,16 +50,37 @@ def create_nlp_result(index, docs):
 
 if __name__ == "__main__":
     setup_logging(False)
-    processor = NoOpProcessor(processor_id=1)
+    import queue
 
-    test_doc_batch: DocumentBatch = generate_mock_document_batch(10)
-    mock_documents: List[Document] = test_doc_batch._documents
-    expected_results: List[NLPResult] = [
-        create_nlp_result(i, mock_documents) for i in range(len(mock_documents))
-    ]
-    doc_index = 0
+    mgr = Manager()
+    try:
+        processing_queue = mgr.Queue()
+        halt_event = mgr.Event()
+        processor = NoOpProcessor(
+            processor_id=1, queue=processing_queue, process_interupt=halt_event
+        )
 
-    for idx, result in enumerate(processor(test_doc_batch)):
-        assert result == expected_results[idx]
+        test_doc_batch: DocumentBatch = generate_mock_document_batch(10)
+        mock_documents: List[Document] = test_doc_batch._documents
+        expected_results: List[NLPResult] = [
+            create_nlp_result(i, mock_documents) for i in range(len(mock_documents))
+        ]
+        doc_index = 0
 
-    logger.success("Test Complete")
+        try:
+            for result in processor.next_result():
+                assert (
+                    result == expected_results[doc_index]
+                ), f"Mismatch at document index {doc_index}"
+                doc_index += 1
+        except AssertionError as e:
+            logger.error(f"Test failed at document index {doc_index}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during processor test: {e}")
+            raise
+        else:
+            logger.success("Test Complete")
+    finally:
+        mgr.shutdown()
+        logger.info("Manager resources cleaned up.")

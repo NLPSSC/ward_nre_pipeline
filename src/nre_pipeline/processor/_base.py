@@ -1,23 +1,24 @@
+import queue
 import threading
 from abc import ABC, abstractmethod
 from typing import Any, Generator, List
 
 from loguru import logger
 
-from nre_pipeline.interruptible_mixin import InterruptibleMixin
+
+from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.models import NLPResult
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.processor._not_available_ex import ProcessorNotAvailable
-from tqdm import tqdm
-from tkinter import Tk, Toplevel, Label, StringVar
-import time
 
 
 class Processor(ABC, InterruptibleMixin):
-    def __init__(self, processor_id: int, user_interrupt=None) -> None:
-        super().__init__()
+    def __init__(
+        self, processor_id: int, queue: queue.Queue, process_interupt: threading.Event
+    ) -> None:
+        super().__init__(user_interrupt=process_interupt)
         self._index = processor_id
-        self._queue = None
+        self._queue = queue
         self._available_for_processing = True
         self._lock = threading.Lock()
 
@@ -27,6 +28,26 @@ class Processor(ABC, InterruptibleMixin):
     def __repr__(self) -> str:
         availability = "available" if self._available_for_processing else "busy"
         return f"{super().__str__()} ({availability})"
+
+    def next_result(self):
+        while not self.user_interrupted():
+            try:
+                item = self._queue.get(block=True, timeout=1)
+                yield item
+            except queue.Empty:
+                continue
+            except Exception as e:
+                logger.error(f"Error getting item from queue: {e}")
+                break
+        # Drain remaining items if any
+        try:
+            while True:
+                item = self._queue.get(block=True, timeout=1)
+                yield item
+        except queue.Empty:
+            pass
+        except Exception as e:
+            logger.error(f"Error draining queue: {e}")
 
     @property
     def available_for_processing(self) -> bool:
@@ -41,52 +62,43 @@ class Processor(ABC, InterruptibleMixin):
             self._available_for_processing = False
 
         def task():
-            threading.current_thread().name = (
-                f"Processing Batch #{document_batch.batch_id}"
-            )
-            logger.debug(
-                f"Processor {self} is processing batch {document_batch.batch_id}"
-            )
-            if self.user_interrupted():
-                logger.warning(f"Processor {self} interrupted by user.")
+            try:
+                threading.current_thread().name = (
+                    f"Processing Batch #{document_batch.batch_id}"
+                )
+                logger.debug(
+                    f"Processor {self} is processing batch {document_batch.batch_id}"
+                )
+                if self.user_interrupted():
+                    logger.warning(f"Processor {self} interrupted by user.")
+                    return
+                nlp_results: List[NLPResult] = list(monitor_call(document_batch))
+                self._queue.put(nlp_results)
+            except Exception as e:
+                logger.error(f"Error in processor task: {e}")
+            finally:
                 self._available_for_processing = True
-                return
-            nlp_results: List[NLPResult] = list(monitor_call(document_batch))
-            assert self._queue is not None
-            self._queue.put(nlp_results)
-            self._available_for_processing = True
 
         def monitor_call(_document_batch):
             results = []
-            # Create a simple Tkinter progress dialog
-            root = Tk()
-            root.withdraw()  # Hide the main window
-
-            progress_win = Toplevel(root)
-            progress_win.title(f"Processing Batch #{document_batch.batch_id}")
-            progress_var = StringVar()
-            progress_label = Label(progress_win, textvariable=progress_var, width=40)
-            progress_label.pack(padx=20, pady=20)
-
-            results = []
-            total = sum(1 for _ in self._call(_document_batch))
-            progress_win.update()
-
+            processor_iter = self._call_processor(_document_batch)
+            if processor_iter is None:
+                processor_iter = []
+            total = sum(1 for _ in processor_iter)
             # Re-run generator since we exhausted it for counting
-            for idx, result in enumerate(self._call(_document_batch), 1):
+            processor_iter = self._call_processor(_document_batch)
+            if processor_iter is None:
+                processor_iter = []
+            for idx, result in enumerate(processor_iter, 1):
                 results.append(result)
-                progress_var.set(f"Processing {idx}/{total}")
-                progress_win.update()
-                time.sleep(0.01)  # Small delay to allow UI update
-
-            progress_win.destroy()
-            root.quit()
             return results
 
         thread = threading.Thread(target=task)
         thread.start()
 
     @abstractmethod
-    def _call(self, document_batch: DocumentBatch) -> Generator[NLPResult, Any, None]:
+    def _call_processor(
+        self, document_batch: DocumentBatch
+    ) -> Generator[NLPResult, Any, None]:
         """Process a document and return the result."""
         raise NotImplementedError("Subclasses must implement this method.")
