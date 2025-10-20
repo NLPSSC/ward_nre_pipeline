@@ -13,6 +13,14 @@
 		"version": "0.2.0",
 		"configurations": [
 			{
+				"name": "Current File",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"envFile": "${workspaceFolder}/.nre_pipeline.env",
+			},
+			{
 				"name": "Reader (Test)",
 				"type": "debugpy",
 				"request": "launch",
@@ -37,7 +45,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "QuickUMLS (Test)",
+				"name": "QuickUMLSProcessor (Test)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_quickumls_processor.py",

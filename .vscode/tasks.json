@@ -7,34 +7,6 @@
             "command": "conda config --add channels conda-forge && conda config --set channel_priority strict",
             "group": "build",
             "problemMatcher": []
-        },
-        {
-            "label": "git Bundle/Upload NRE Pipeline",
-            "type": "shell",
-            "command": ".scripts/bundle/push_gitbundle.bat",
-            "isBackground": false,
-            "problemMatcher": [],
-            "group": "build",
-            "options": {
-                "statusbar": {
-                    "color": "#34998b"
-                },
-                "windows": {
-                    "console": "externalTerminal"
-                },
-                "close": "onExit"
-            }
-        },
-        {
-            "label": "Set WORKSPACE_NAME env var",
-            "type": "shell",
-            "command": "echo Setting WORKSPACE_NAME to ${workspaceFolderBasename}",
-            "options": {
-                "env": {
-                    "WORKSPACE_NAME": "${workspaceFolderBasename}"
-                }
-            },
-            "problemMatcher": []
         }
     ]
 }

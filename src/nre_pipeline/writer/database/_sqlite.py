@@ -4,8 +4,7 @@ from typing import Any, Callable, Dict, List, cast
 
 from loguru import logger
 
-from nre_pipeline.models._nlp_result import NLPResult
-from nre_pipeline.models._nlp_result_item import NLPResultItem
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
@@ -34,7 +33,7 @@ def convert_python_type_to_sqlite_type(item) -> str:
         raise ValueError(f"Unsupported Python type: {python_type}")
 
 
-def serialize_item(item: NLPResultItem) -> Any:
+def serialize_item(item: NLPResultFeatures) -> Any:
     if item.value_type is set:
         return json.dumps(list(item.value))
     elif item.value_type is list:
@@ -57,12 +56,12 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         self._cached_insert_query: str | None = None
         super().__init__(*args, **kwargs)
 
-    def get_create_table_query(self, nlp_result: NLPResult) -> str:
+    def get_create_table_query(self, nlp_result: NLPResultFeatures) -> str:
         note_id: str | int = nlp_result.note_id
         additional_columns = ", ".join(
             [
                 f"{item.key} {convert_python_type_to_sqlite_type(item)}"
-                for item in nlp_result.results
+                for item in nlp_result.result_features
             ]
         )
 
@@ -87,7 +86,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
             )
         return cast(str, _path)
 
-    def _record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+    def _record(self, nlp_result: NLPResultFeatures | List[NLPResultFeatures]) -> None:
         # Branching logic in case more than one result is passed
         if isinstance(nlp_result, List):
             return self._record_batch(nlp_result)
@@ -98,11 +97,11 @@ class SQLiteNLPWriter(DBNLPResultWriter):
                 query = self.get_insert_query(nlp_result)
                 insert_params = (
                     nlp_result.note_id,
-                    *[serialize_item(item) for item in nlp_result.results],
+                    *[serialize_item(item) for item in nlp_result.result_features],
                 )
                 context.insert(query, insert_params)
 
-    def _record_batch(self, nlp_results: List[NLPResult]) -> None:
+    def _record_batch(self, nlp_results: List[NLPResultFeatures]) -> None:
         """Batch record multiple NLP results for better performance."""
         if not nlp_results:
             return
@@ -115,7 +114,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
                 for nlp_result in nlp_results:
                     insert_params = (
                         nlp_result.note_id,
-                        *[serialize_item(item) for item in nlp_result.results],
+                        *[serialize_item(item) for item in nlp_result.result_features],
                     )
                     batch_params.append(insert_params)
                 context.insert_batch(query, batch_params)

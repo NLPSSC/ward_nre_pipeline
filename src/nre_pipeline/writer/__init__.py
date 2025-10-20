@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List
 
 
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
-from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 
 
 class NLPResultWriter(ABC, InterruptibleMixin):
@@ -17,7 +17,7 @@ class NLPResultWriter(ABC, InterruptibleMixin):
         super().__init__(user_interrupt=user_interrupt)
 
     @abstractmethod
-    def record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+    def record(self, nlp_result: NLPResultFeatures | List[NLPResultFeatures]) -> None:
         """
         Write data to the corpus.
 
@@ -29,7 +29,7 @@ class NLPResultWriter(ABC, InterruptibleMixin):
         self._record(nlp_result)
 
     @abstractmethod
-    def _record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+    def _record(self, nlp_result: NLPResultFeatures | List[NLPResultFeatures]) -> None:
         pass
 
     @staticmethod

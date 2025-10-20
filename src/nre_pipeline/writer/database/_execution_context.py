@@ -4,7 +4,7 @@ from typing import List, Self
 
 
 class DatabaseExecutionContext:
-    from nre_pipeline.models._nlp_result import NLPResult
+    from nre_pipeline.models._nlp_result import NLPResultFeatures
     from nre_pipeline.writer import database
 
     def __enter__(self) -> Self:
@@ -71,5 +71,5 @@ class DatabaseExecutionContext:
         raise NotImplementedError("Must implement update method.")
 
     @abstractmethod
-    def select(self, query: str, params: tuple = ()) -> List[NLPResult]:
+    def select(self, query: str, params: tuple = ()) -> List[NLPResultFeatures]:
         raise NotImplementedError("Must implement select method.")
