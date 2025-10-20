@@ -19,8 +19,8 @@ class CorpusReader(ABC, InterruptibleMixin):
     def __init__(
         self,
         batch_size: int,
+        user_interrupt: threading.Event,
         allow_batch_resize: bool = False,
-        user_interrupt: threading.Event | None = None,
         **config
     ) -> None:
         super().__init__(user_interrupt=user_interrupt)

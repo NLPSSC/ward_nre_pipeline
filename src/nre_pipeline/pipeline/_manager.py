@@ -29,8 +29,6 @@ PipelineManagerConfig: TypeAlias = Dict[str, Any]
 
 class PipelineManager(InterruptibleMixin):
 
-    
-
     def __init__(
         self,
         *,
@@ -48,8 +46,11 @@ class PipelineManager(InterruptibleMixin):
             processor(i, self._user_interrupt) for i in range(num_processor_workers)
         ]
         for proc in self._processors:
-            proc._queue = self._queue  # type: ignore
-        config = {"user_interrupt": self._user_interrupt, 'num_processor_workers': num_processor_workers}
+            proc._writer_queue = self._queue  # type: ignore
+        config = {
+            "user_interrupt": self._user_interrupt,
+            "num_processor_workers": num_processor_workers,
+        }
         self._processor_iter: cycle = cycle(self._processors)
         self._reader: CorpusReader = reader(config)
         self._writer: NLPResultWriter = writer(config)
