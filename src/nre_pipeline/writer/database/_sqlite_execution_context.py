@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from typing import List
 
-from nre_pipeline.models import NLPResult
+from nre_pipeline.models._nlp_result import NLPResult
 from nre_pipeline.writer.database import DatabaseExecutionContext
 
 

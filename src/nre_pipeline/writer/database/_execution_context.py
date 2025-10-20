@@ -4,7 +4,7 @@ from typing import List, Self
 
 
 class DatabaseExecutionContext:
-    from nre_pipeline.models import NLPResult
+    from nre_pipeline.models._nlp_result import NLPResult
     from nre_pipeline.writer import database
 
     def __enter__(self) -> Self:
@@ -61,7 +61,7 @@ class DatabaseExecutionContext:
     @abstractmethod
     def insert(self, query: str, params: tuple = ()) -> int | None:
         raise NotImplementedError("Must implement insert method.")
-    
+
     @abstractmethod
     def insert_batch(self, query: str, params_list: List[tuple]) -> None:
         raise NotImplementedError("Must implement insert_batch method.")

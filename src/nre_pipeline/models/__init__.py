@@ -2,4 +2,4 @@ from ._nlp_result import NLPResult
 from ._document import Document
 from ._batch import DocumentBatch
 
-__all__ = ["NLPResult", "Document", "DocumentBatch"]
+__all__ = ["_nlp_result", "Document", "DocumentBatch"]

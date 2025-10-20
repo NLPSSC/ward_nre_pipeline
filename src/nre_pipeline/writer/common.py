@@ -2,7 +2,7 @@ from abc import abstractmethod
 from multiprocessing import Lock
 from typing import List
 
-from nre_pipeline.models import NLPResult
+from nre_pipeline.models._nlp_result import NLPResult
 from nre_pipeline.writer import NLPResultWriter, database
 
 
@@ -53,7 +53,6 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
         """Get the database execution context."""
         raise NotImplementedError()
 
-    
     @abstractmethod
     def _record_batch(self, nlp_results: List[NLPResult]) -> None:
         raise NotImplementedError()

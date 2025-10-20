@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List
 
 
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
-from nre_pipeline.models import NLPResult
+from nre_pipeline.models._nlp_result import NLPResult
 
 
 class NLPResultWriter(ABC, InterruptibleMixin):

@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict, List, cast
 
 from loguru import logger
 
-from nre_pipeline.models import NLPResult
-from nre_pipeline.models._nlp_result import NLPResultItem
+from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.models._nlp_result_item import NLPResultItem
 from nre_pipeline.writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
@@ -126,7 +126,9 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         additional_columns = [item.key for item in nlp_result.results]
         additional_columns_str = ", ".join(additional_columns)
         question_marks = ", ".join(["?"] * len(additional_columns))
-        query: str = f"INSERT INTO nlp_results (note_id, {additional_columns_str}) VALUES (?, {question_marks})"
+        query: str = (
+            f"INSERT INTO nlp_results (note_id, {additional_columns_str}) VALUES (?, {question_marks})"
+        )
         self._cached_insert_query = query
         return query
 
