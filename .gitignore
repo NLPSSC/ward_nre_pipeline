@@ -225,3 +225,4 @@ envs/
 resources/umls/ 
 quickumls/
 .data/temp
+data/batch_ids.db

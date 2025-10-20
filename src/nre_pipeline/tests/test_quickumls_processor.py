@@ -36,7 +36,7 @@ def test_processor():
             # Initialize the processor
             processor = QuickUMLSProcessor(
                 processor_id=0,
-                metric="levenshtein",
+                metric="cosine",
                 queue=processing_queue,
                 process_interrupt=halt_event,
             )
@@ -87,6 +87,6 @@ def test_processor():
 
 
 if __name__ == "__main__":
-    logger.info("MedspacyUmlsProcessor Test")
+    logger.info("QuickUMLSProcessor Test")
     logger.info("=" * 50)
     test_processor()

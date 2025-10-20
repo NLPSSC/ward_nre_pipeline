@@ -16,7 +16,6 @@ Each YAML file provides default settings for a specific similarity metric. Commo
 - `similarity_name`: Name of the similarity metric (cosine, jaccard, levenshtein)
 - `window`: Number of tokens in the matching window (default: 5)
 - `min_match_length`: Minimum length of a match (default: 3)
-- `ignore_syntax`: Whether to ignore syntax filtering (default: false)
 - `best_match`: Return only the best match per span (default: true)
 - `verbose`: Enable verbose logging (default: false)
 
@@ -34,8 +33,6 @@ threshold: 0.7
 similarity_name: cosine
 window: 5
 min_match_length: 3
-ignore_syntax: false
-best_match: true
 verbose: false
 accepted_semtypes: [
     "T047",

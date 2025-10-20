@@ -70,6 +70,7 @@ def get_quickumls_config(
         config: Dict[str, Any] = load_config(config_param)
     else:
         config = load_default_config(config_param)
+        
     if quick_umls_parameters is not None:
         if quick_umls_parameters.threshold is not None:
             config["threshold"] = float(quick_umls_parameters.threshold)

@@ -2,7 +2,5 @@ threshold: 0.8
 similarity_name: cosine
 window: 5
 min_match_length: 3
-ignore_syntax: false
-best_match: true
 verbose: false
 
