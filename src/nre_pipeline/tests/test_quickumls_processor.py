@@ -7,6 +7,10 @@ import os
 import sys
 from pathlib import Path
 
+from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.processor._base import ProcessorQueue
+from nre_pipeline.processor._quickumls import QuickUMLSProcessor
+
 # Add src to path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -14,7 +18,6 @@ from loguru import logger
 
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
-from nre_pipeline.processor._medspacy_umls import MedspacyUmlsProcessor
 
 
 def test_processor():
@@ -31,7 +34,7 @@ def test_processor():
 
     try:
         # Initialize the processor
-        processor = MedspacyUmlsProcessor(processor_id=0)
+        processor = QuickUMLSProcessor(processor_id=0)
         print("✓ Processor initialized successfully")
 
         # Create a test document with medical content
@@ -55,21 +58,19 @@ def test_processor():
 
         # Process the batch
         print(f"\nProcessing batch with {len(test_documents)} documents...")
-        results = list(processor._call(batch))
+        processor_queue: ProcessorQueue = processor(batch)
 
-        print(f"\nProcessing completed. Found {len(results)} results:")
+        results: list[NLPResult] = list(processor_queue.next_result())
+        assert results, "No results found"
+        assert all(
+            len(result.results) == 0 for result in results
+        ), "All results are empty"
+
         for result in results:
             print(f"  Document {result.note_id}: {len(result.results)} items")
             for item in result.results[:3]:  # Show first 3 items
                 if item.key == "term":
                     print(f"    - {item.value}")
-
-        if not results:
-            print("⚠️  No results found!")
-        elif all(len(result.results) == 0 for result in results):
-            print("⚠️  All results are empty!")
-        else:
-            print("✓ Processing successful with results")
 
     except Exception as e:
         print(f"✗ Error during processing: {e}")

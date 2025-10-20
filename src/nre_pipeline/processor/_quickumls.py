@@ -18,10 +18,8 @@ class QuickUMLSProcessor(Processor):
     _shared_matcher: Optional[QuickUMLS] = None
     _matcher_lock = threading.Lock()
 
-    def __init__(
-        self, processor_id: int, user_interrupt: Optional[threading.Event] = None
-    ) -> None:
-        super().__init__(processor_id, user_interrupt)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self._matcher = self._get_shared_matcher()
 
     @classmethod

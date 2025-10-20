@@ -22,7 +22,7 @@ class ProcessorQueue:
         self._queue = queue
         self._process_interrupt: threading.Event = process_interrupt
 
-    def next_result(self) -> Generator[TQueueItem, Any, None]:
+    def next_result(self) -> Generator[NLPResult, Any, None]:
         while not self._process_interrupt.is_set():
             try:
                 item: TQueueItem = cast(
@@ -30,7 +30,7 @@ class ProcessorQueue:
                 )
                 if item == ProcessorQueue.QUEUE_EMPTY:
                     raise StopIteration()
-                yield item
+                yield cast(NLPResult, item)
             except queue.Empty:
                 continue
             except StopIteration:
@@ -43,7 +43,7 @@ class ProcessorQueue:
         try:
             while True:
                 item = cast(TQueueItem, self._queue.get(block=True, timeout=1))
-                yield item
+                yield cast(NLPResult, item)
         except queue.Empty:
             pass
         except Exception as e:
