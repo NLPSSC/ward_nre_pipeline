@@ -171,15 +171,15 @@ class QuickUMLSProcessor(Processor):
                             # quickumls_config = {
                             #     k: v for k, v in quickumls_config.items() if v is not None
                             # }
-                            
+
                             cls._shared_matcher = QuickUMLS(
-                                quickumls_path,
-                                **quickumls_config
+                                quickumls_path, **quickumls_config
                             )
-                        except TypeError:
+                        except TypeError as te:
                             # Older/newer QuickUMLS versions may not accept similarity_name; fall back gracefully.
                             logger.warning(
-                                "QuickUMLS constructor does not accept 'similarity_name'; using default similarity metric."
+                                "QuickUMLS constructor does not accept 'similarity_name'; using default similarity metric.",
+                                te,
                             )
                             cls._shared_matcher = QuickUMLS(quickumls_path)
                         logger.info(
