@@ -2,10 +2,13 @@ from multiprocessing import Manager
 from typing import List
 from loguru import logger
 from nre_pipeline.common import setup_logging
+from nre_pipeline.models._nlp_result import NLPResult
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
-from nre_pipeline.models._nlp_result import NLPResult, NLPResultItem
+from nre_pipeline.models._nlp_result_item import NLPResultItem
+
 from nre_pipeline.processor._noop import NoOpProcessor
+from nre_pipeline.processor.consts import TQueueItem
 
 
 def doc_text(num_sentences: int):
@@ -52,8 +55,8 @@ if __name__ == "__main__":
     setup_logging(False)
     import queue
 
-    mgr = Manager()
-    try:
+    with Manager() as mgr:
+
         processing_queue = mgr.Queue()
         halt_event = mgr.Event()
         processor = NoOpProcessor(
@@ -68,11 +71,21 @@ if __name__ == "__main__":
         doc_index = 0
 
         try:
-            for result in processor.next_result():
+            results_found = False
+            result: TQueueItem
+            for result in processor(test_doc_batch).next_result():
+                results_found = True
                 assert (
                     result == expected_results[doc_index]
                 ), f"Mismatch at document index {doc_index}"
                 doc_index += 1
+
+            assert (
+                results_found
+            ), "No results were returned by processor_queue.next_result()."
+            assert len(mock_documents) == len(
+                expected_results
+            ), "Mismatch in document count."
         except AssertionError as e:
             logger.error(f"Test failed at document index {doc_index}: {e}")
             raise
@@ -81,6 +94,3 @@ if __name__ == "__main__":
             raise
         else:
             logger.success("Test Complete")
-    finally:
-        mgr.shutdown()
-        logger.info("Manager resources cleaned up.")

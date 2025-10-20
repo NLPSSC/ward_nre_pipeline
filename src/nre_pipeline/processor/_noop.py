@@ -1,9 +1,10 @@
 from multiprocessing import Lock
 from typing import Any, Generator, List
 
+from nre_pipeline.models._nlp_result import NLPResult
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
-from nre_pipeline.models._nlp_result import NLPResult, NLPResultItem
+from nre_pipeline.models._nlp_result_item import NLPResultItem
 from nre_pipeline.processor._base import Processor
 
 

@@ -13,6 +13,9 @@ class InterruptibleMixin:
     def user_interrupted(self) -> bool:
         return self._user_interrupt.is_set()
 
+    def get_halt_processing_event(self) -> threading.Event:
+        return self._user_interrupt
+
     def _listen_for_interrupt(self):
         """Start a thread to listen for Ctrl-C and set user interrupt."""
 
@@ -21,8 +24,19 @@ class InterruptibleMixin:
                 while not self.user_interrupted():
                     sleep(0.1)
             except KeyboardInterrupt:
-                logger.warning("User interrupt (Ctrl-C) detected. Stopping pipeline...")
+                try:
+                    logger.warning("User interrupt (Ctrl-C) detected. Stopping pipeline...")
+                except Exception:
+                    pass
                 self._user_interrupt.set()
+            except BrokenPipeError:
+                # Handle process shutdown gracefully
+                pass
+            except Exception as e:
+                try:
+                    logger.error(f"Interrupt handler error: {e}")
+                except Exception:
+                    pass
 
         t = threading.Thread(target=interrupt_handler, daemon=True)
         t.start()
