@@ -4,7 +4,7 @@ from loguru import logger
 
 
 @dataclass
-class NLPResultItem:
+class NLPResultFeature:
     key: str
     value: Any
     value_type: Type | None = field(default=None)
@@ -14,8 +14,8 @@ class NLPResultItem:
             self.value_type = type(self.value)
 
     def __eq__(self, value: object) -> bool:
-        lhs: NLPResultItem = cast(NLPResultItem, self)
-        rhs: NLPResultItem = cast(NLPResultItem, value)
+        lhs: NLPResultFeature = cast(NLPResultFeature, self)
+        rhs: NLPResultFeature = cast(NLPResultFeature, value)
         keys_eq = lhs.key == rhs.key
         if keys_eq is False:
             logger.warning(f"Keys do not match: {lhs.key} != {rhs.key}")

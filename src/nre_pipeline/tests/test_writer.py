@@ -2,8 +2,7 @@ import sqlite3
 import tempfile
 from typing import List
 from loguru import logger
-from nre_pipeline.models._nlp_result import NLPResult
-from nre_pipeline.models._nlp_result_item import NLPResultItem
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
 
 
@@ -15,10 +14,10 @@ def mock_results(n):
 
     for row_idx in range(n):
         results = [
-            NLPResultItem(key=f"key_{col_idx}", **make_value(row_idx, col_idx))
+            NLPResultFeatures(key=f"key_{col_idx}", **make_value(row_idx, col_idx))
             for col_idx in range(3)
         ]
-        yield NLPResult(note_id=row_idx + 1, results=results)
+        yield NLPResultFeatures(note_id=row_idx + 1, result_features=results)
 
 
 if __name__ == "__main__":
@@ -26,7 +25,7 @@ if __name__ == "__main__":
     import os
     import tempfile
 
-    test_values: List[NLPResult] = list(mock_results(10))
+    test_values: List[NLPResultFeatures] = list(mock_results(10))
     with tempfile.TemporaryDirectory() as temp_dir:
         db_path = os.path.join(temp_dir, "test.db")
         writer = SQLiteNLPWriter(db_path=db_path)
@@ -41,7 +40,7 @@ if __name__ == "__main__":
 
         read_values = [r[1:] for r in rows]
         flattened_test_values = [
-            (t.note_id, *[x.value for x in t.results]) for t in test_values
+            (t.note_id, *[x.value for x in t.result_features]) for t in test_values
         ]
 
         assert read_values == flattened_test_values

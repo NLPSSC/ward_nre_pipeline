@@ -2,11 +2,11 @@ from multiprocessing import Manager
 from typing import List
 from loguru import logger
 from nre_pipeline.common import setup_logging
-from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
-from nre_pipeline.models._nlp_result_item import NLPResultItem
 
+from nre_pipeline.models._nlp_result_item import NLPResultFeature
 from nre_pipeline.processor._noop import NoOpProcessor
 from nre_pipeline.processor.consts import TQueueItem
 
@@ -39,14 +39,14 @@ def create_nlp_result(index, docs):
     token_count = len(tokens)
     the_count = sum(1 for token in tokens if token.lower() == "the")
     fraction_of_thes = the_count / len(tokens) if len(tokens) > 0 else 0
-    return NLPResult(
+    return NLPResultFeatures(
         note_id=doc.note_id,
-        results=[
-            NLPResultItem(key="first_word", value=first_token),
-            NLPResultItem(key="last_word", value=last_token),
-            NLPResultItem(key="token_count", value=token_count),
-            NLPResultItem(key="the_count", value=the_count),
-            NLPResultItem(key="fraction_of_thes", value=fraction_of_thes),
+        result_features=[
+            NLPResultFeature(key="first_word", value=first_token),
+            NLPResultFeature(key="last_word", value=last_token),
+            NLPResultFeature(key="token_count", value=token_count),
+            NLPResultFeature(key="the_count", value=the_count),
+            NLPResultFeature(key="fraction_of_thes", value=fraction_of_thes),
         ],
     )
 
@@ -60,12 +60,12 @@ if __name__ == "__main__":
         processing_queue = mgr.Queue()
         halt_event = mgr.Event()
         processor = NoOpProcessor(
-            processor_id=1, queue=processing_queue, process_interupt=halt_event
+            processor_id=1, queue=processing_queue, process_interrupt=halt_event
         )
 
         test_doc_batch: DocumentBatch = generate_mock_document_batch(10)
         mock_documents: List[Document] = test_doc_batch._documents
-        expected_results: List[NLPResult] = [
+        expected_results: List[NLPResultFeatures] = [
             create_nlp_result(i, mock_documents) for i in range(len(mock_documents))
         ]
         doc_index = 0

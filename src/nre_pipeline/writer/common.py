@@ -2,7 +2,7 @@ from abc import abstractmethod
 from multiprocessing import Lock
 from typing import List
 
-from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.writer import NLPResultWriter, database
 
 
@@ -20,10 +20,10 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
         return "nlp_results"
 
     @abstractmethod
-    def get_create_table_query(self, nlp_result: NLPResult) -> str:
+    def get_create_table_query(self, nlp_result: NLPResultFeatures) -> str:
         raise NotImplementedError()
 
-    def record(self, nlp_result: NLPResult | List[NLPResult]) -> None:
+    def record(self, nlp_result: NLPResultFeatures | List[NLPResultFeatures]) -> None:
         if isinstance(nlp_result, list):
             return self.record_batch(nlp_result)
         self._ensure_table(nlp_result)
@@ -33,14 +33,14 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
                 # Perform the actual record operation
                 self._record(nlp_result)
 
-    def record_batch(self, nlp_results: List[NLPResult]) -> None:
+    def record_batch(self, nlp_results: List[NLPResultFeatures]) -> None:
         """Batch record multiple NLP results for better performance."""
         if not nlp_results:
             return
         self._ensure_table(nlp_results[0])
         self._record_batch(nlp_results)
 
-    def _ensure_table(self, nlp_result: NLPResult):
+    def _ensure_table(self, nlp_result: NLPResultFeatures):
         with self._table_create_lock:
             if self._table_created is True:
                 return
@@ -54,7 +54,7 @@ class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):
         raise NotImplementedError()
 
     @abstractmethod
-    def _record_batch(self, nlp_results: List[NLPResult]) -> None:
+    def _record_batch(self, nlp_results: List[NLPResultFeatures]) -> None:
         raise NotImplementedError()
 
     @abstractmethod

@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from typing import List
 
-from nre_pipeline.models._nlp_result import NLPResult
+from nre_pipeline.models._nlp_result import NLPResultFeatures
 from nre_pipeline.writer.database import DatabaseExecutionContext
 
 
@@ -59,7 +59,7 @@ class SQLiteExecutionContext(DatabaseExecutionContext):
         self._cursor.execute(query, params)
         return self._cursor.rowcount
 
-    def select(self, query: str, params: tuple = ()) -> List[NLPResult]:
+    def select(self, query: str, params: tuple = ()) -> List[NLPResultFeatures]:
         self._cursor.execute(query, params)
         rows = self._cursor.fetchall()
-        return [NLPResult(**row) for row in rows]
+        return [NLPResultFeatures(**row) for row in rows]

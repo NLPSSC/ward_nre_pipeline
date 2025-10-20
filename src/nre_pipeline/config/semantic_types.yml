@@ -1,0 +1,104 @@
+# UMLS Semantic Type Codes and Explanations
+T047: Disease or Syndrome
+T121: Pharmacologic Substance
+T109: Organic Chemical
+T116: Amino Acid, Peptide, or Protein
+T195: Antibiotic
+T200: Clinical Drug
+T203: Drug Delivery Device
+T123: Biologically Active Substance
+T191: Neoplastic Process
+T046: Pathologic Function
+T184: Sign or Symptom
+T033: Finding
+T061: Therapeutic or Preventive Procedure
+T074: Medical Device
+T170: Intellectual Product
+T201: Clinical Attribute
+T040: Organism Function
+T041: Mental Process
+T042: Organ or Tissue Function
+T043: Cell Function
+T044: Molecular Function
+T045: Genetic Function
+T048: Mental or Behavioral Dysfunction
+T049: Cell or Molecular Dysfunction
+T050: Experimental Model of Disease
+T051: Event
+T052: Activity
+T053: Social Behavior
+T054: Social Concept
+T055: Individual Behavior
+T056: Group Behavior
+T057: Occupational Activity
+T058: Health Care Activity
+T059: Laboratory Procedure
+T060: Diagnostic Procedure
+T062: Research Activity
+T063: Molecular Biology Research Technique
+T064: Governmental or Regulatory Activity
+T065: Educational Activity
+T066: Environmental Effect of Humans
+T067: Phenomenon or Process
+T068: Human-caused Phenomenon or Process
+T069: Natural Phenomenon or Process
+T070: Laboratory or Test Result
+T071: Entity
+T072: Physical Object
+T073: Manufactured Object
+T075: Food
+T077: Conceptual Entity
+T078: Idea or Concept
+T079: Temporal Concept
+T080: Qualitative Concept
+T081: Quantitative Concept
+T082: Spatial Concept
+T083: Geographic Area
+T084: Occupation or Discipline
+T085: Organization
+T086: Group
+T087: Professional or Occupational Group
+T088: Population Group
+T089: Family Group
+T090: Age Group
+T091: Patient or Disabled Group
+T092: Animal
+T093: Vertebrate
+T094: Mammal
+T095: Bird
+T096: Fish
+T097: Amphibian
+T098: Reptile
+T099: Invertebrate
+T100: Virus
+T101: Rickettsia or Chlamydia
+T102: Bacterium
+T103: Archaeon
+T104: Fungus
+T105: Alga
+T106: Plant
+T107: Anatomical Structure
+T108: Body Part, Organ, or Organ Component
+T110: Cell
+T111: Cell Component
+T112: Organism Attribute
+T113: Organism
+T114: Organism Substance
+T115: Biomedical or Dental Material
+T117: Vitamin
+T118: Chemical
+T119: Chemical Viewed Structurally
+T120: Chemical Viewed Functionally
+T122: Biomedical or Dental Material
+T124: Receptor
+T125: Hormone
+T126: Enzyme
+T127: Immunologic Factor
+T129: Immunologic Factor
+T130: Indicator, Reagent, or Diagnostic Aid
+T131: Hazardous or Poisonous Substance
+T192: Receptor
+T193: Enzyme
+T194: Indicator, Reagent, or Diagnostic Aid
+T196: Element, Ion, or Isotope
+T197: Inorganic Chemical
