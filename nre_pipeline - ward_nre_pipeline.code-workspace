@@ -21,7 +21,7 @@
 				"envFile": "${workspaceFolder}/.nre_pipeline.env",
 			},
 			{
-				"name": "Reader (Test)",
+				"name": "[Test] Reader",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_reader.py",
@@ -29,7 +29,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "Writer (Test)",
+				"name": "[Test] Writer",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_writer.py",
@@ -37,7 +37,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "Processor (NoOp, Test)",
+				"name": "[Test] Processor (NoOp)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_processor.py",
@@ -45,7 +45,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "QuickUMLSProcessor (Test)",
+				"name": "[Test] QuickUMLSProcessor",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_quickumls_processor.py",
@@ -53,7 +53,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "Pipeline (NoOp, real data, Test)",
+				"name": "[Test] Pipeline (NoOp, real data)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_pipeline.py",
