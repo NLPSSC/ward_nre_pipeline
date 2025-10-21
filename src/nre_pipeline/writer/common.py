@@ -4,7 +4,7 @@ from typing import List, Union
 
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import database
-from nre_pipeline.writer._base_writer import NLPResultWriter
+from nre_pipeline.common.base._base_writer import NLPResultWriter
 
 
 class DBNLPResultWriter(NLPResultWriter, database.TransactionCallbackMixin):

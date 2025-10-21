@@ -6,7 +6,7 @@ class VerboseMixin:
         logger.debug(
             "Initializing VerboseMixin, called by {}", self.__class__.__name__
         )
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self._verbose = verbose
 
     def _debug_log(self, message: str):

@@ -6,7 +6,7 @@ from loguru import logger
 
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
-from nre_pipeline.writer._base_writer import NLPResultWriter
+from nre_pipeline.common.base._base_writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
     DatabaseExecutionContext,

@@ -19,7 +19,7 @@ from typing import Dict, List, Literal, Union, cast
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.processor._base_processor import QUEUE_EMPTY, ProcessorQueue
+from nre_pipeline.common.base._base_processor import QUEUE_EMPTY, ProcessorQueue
 from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
 from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter

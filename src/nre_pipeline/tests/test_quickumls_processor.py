@@ -11,7 +11,7 @@ from typing import List, cast
 
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.processor._base_processor import ProcessorQueue
+from nre_pipeline.common.base._base_processor import ProcessorQueue
 from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 
 

@@ -5,7 +5,7 @@ from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
-from nre_pipeline.processor._base_processor import Processor
+from nre_pipeline.common.base._base_processor import Processor
 
 
 class NoOpProcessor(Processor):

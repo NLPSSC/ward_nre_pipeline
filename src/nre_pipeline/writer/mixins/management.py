@@ -1,5 +1,8 @@
 class ManagementMixin:
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     def reset(self):
         self._close()
         self._delete()

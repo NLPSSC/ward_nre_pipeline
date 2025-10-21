@@ -1,6 +1,6 @@
 import queue
 import threading
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Generator, cast
 
 from loguru import logger
@@ -133,17 +133,17 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         process_interrupt: threading.Event,
         **kwargs,
     ) -> None:
-        super().__init__(
-            user_interrupt=process_interrupt, **kwargs
-        )
+        super().__init__(user_interrupt=process_interrupt, **kwargs)
         self._processor_index = processor_id
         self._document_batch_inqueue = document_batch_inqueue
         self._nlp_results_outqueue = nlp_results_outqueue
 
         # Name the current thread using the derived class name and processor index
-        threading.current_thread().name = f"{self.__class__.__name__}-{self._processor_index}"
+        threading.current_thread().name = (
+            f"{self.__class__.__name__}-{self._processor_index}"
+        )
 
-    def _thread_loop(self):
+    def _thread_worker(self):
         self()
 
     def __repr__(self) -> str:
@@ -155,7 +155,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
             sentinel_seen = False
             while not self.user_interrupted():
                 try:
-                    item = self._document_batch_inqueue.get(block=True, timeout=.1)
+                    item = self._document_batch_inqueue.get(block=True, timeout=0.1)
                 except queue.Empty:
                     continue
                 if item == ProcessorQueue.QUEUE_EMPTY:
@@ -165,8 +165,8 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
                         self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
                         sentinel_seen = True
                     break
-                processor_iter: Generator[NLPResultItem, Any, None] = self._call_processor(
-                    cast(DocumentBatch, item)
+                processor_iter: Generator[NLPResultItem, Any, None] = (
+                    self._call_processor(cast(DocumentBatch, item))
                 )
                 for result in processor_iter:
                     self._nlp_results_outqueue.put(result)
