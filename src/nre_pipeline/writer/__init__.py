@@ -9,11 +9,15 @@ from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.processor._base import QUEUE_EMPTY
+from nre_pipeline.writer.init_strategy import _InitStrategy
+from nre_pipeline.writer.mixins.management import ManagementMixin
 
 DEFAULT_WRITE_BATCH_SIZE = 10
 
 
-class NLPResultWriter(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
+class NLPResultWriter(
+    ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin, ManagementMixin
+):
     """
     Abstract base class for corpus writers that write to files.
     """
@@ -22,10 +26,14 @@ class NLPResultWriter(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         self,
         nlp_results_outqueue: queue.Queue,
         user_interrupt: threading.Event,
+        init_strategy: _InitStrategy | None = None,
         **config
     ):
         self._nlp_results_outqueue = nlp_results_outqueue
         self._num_processor_workers = config.get("num_processor_workers", 1)
+        if init_strategy is not None:
+            init_strategy(self)
+
         super().__init__(user_interrupt=user_interrupt, target=self._writer_loop)
 
     def _writer_loop(self):
