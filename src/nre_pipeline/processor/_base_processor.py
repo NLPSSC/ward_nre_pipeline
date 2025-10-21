@@ -123,7 +123,7 @@ class ProcessorQueue:
             logger.error(f"Error draining queue: {e}")
 
 
-class Processor(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
+class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
 
     def __init__(
         self,
@@ -134,38 +134,45 @@ class Processor(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         **kwargs,
     ) -> None:
         super().__init__(
-            user_interrupt=process_interrupt, target=self._reader_loop, **kwargs
+            user_interrupt=process_interrupt, **kwargs
         )
-        self._index = processor_id
+        self._processor_index = processor_id
         self._document_batch_inqueue = document_batch_inqueue
         self._nlp_results_outqueue = nlp_results_outqueue
 
-    def _reader_loop(self):
+        # Name the current thread using the derived class name and processor index
+        threading.current_thread().name = f"{self.__class__.__name__}-{self._processor_index}"
+
+    def _thread_loop(self):
         self()
 
     def __repr__(self) -> str:
-        return f"[{self.__class__.__name__}] [{self._index}]"
+        return f"[{self.__class__.__name__}] [{self._processor_index}]"
 
     def __call__(self):
-        # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
-        sentinel_seen = False
-        while not self.user_interrupted():
-            try:
-                item = self._document_batch_inqueue.get(block=True, timeout=.1)
-            except queue.Empty:
-                continue
-            if item == ProcessorQueue.QUEUE_EMPTY:
-                if not sentinel_seen:
-                    # Only the first processor to see QUEUE_EMPTY propagates it
-                    self._document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
-                    self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
-                    sentinel_seen = True
-                break
-            processor_iter: Generator[NLPResultItem, Any, None] = self._call_processor(
-                cast(DocumentBatch, item)
-            )
-            for result in processor_iter:
-                self._nlp_results_outqueue.put(result)
+        try:
+            # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
+            sentinel_seen = False
+            while not self.user_interrupted():
+                try:
+                    item = self._document_batch_inqueue.get(block=True, timeout=.1)
+                except queue.Empty:
+                    continue
+                if item == ProcessorQueue.QUEUE_EMPTY:
+                    if not sentinel_seen:
+                        # Only the first processor to see QUEUE_EMPTY propagates it
+                        # self._document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
+                        self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
+                        sentinel_seen = True
+                    break
+                processor_iter: Generator[NLPResultItem, Any, None] = self._call_processor(
+                    cast(DocumentBatch, item)
+                )
+                for result in processor_iter:
+                    self._nlp_results_outqueue.put(result)
+        except Exception as e:
+            logger.error(f"Error in processor loop: {e}")
+            self.set_user_interrupt()
 
     @abstractmethod
     def _call_processor(

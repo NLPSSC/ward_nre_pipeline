@@ -5,10 +5,16 @@ from loguru import logger
 
 
 class InterruptibleMixin:
-    def __init__(self, *args, user_interrupt: threading.Event, **kwargs):
+    def __init__(self, *args, **kwargs):
+        logger.debug(
+            "Initializing InterruptibleMixin, called by {}", self.__class__.__name__
+        )
+        self._user_interrupt: threading.Event = kwargs.pop("user_interrupt")
         super().__init__(*args, **kwargs)
-        self._user_interrupt: threading.Event = user_interrupt
         self._listen_for_interrupt()
+
+    def set_user_interrupt(self):
+        self._user_interrupt.set()
 
     def user_interrupted(self) -> bool:
         return self._user_interrupt.is_set()

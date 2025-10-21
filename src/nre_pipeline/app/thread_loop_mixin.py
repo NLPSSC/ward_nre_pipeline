@@ -1,11 +1,22 @@
+from abc import ABC, abstractmethod
 from threading import Thread
 
+from loguru import logger
 
-class ThreadLoopMixin:
 
-    def __init__(self, target, *args, **kwargs) -> None:
-        self.target = target
-        self._thread = Thread(target=self.target, args=args, kwargs=kwargs)
+class ThreadLoopMixin(ABC):
+
+    def __init__(self, *args, **kwargs) -> None:
+        logger.debug(
+            "Initializing ThreadLoopMixin, called by {}", self.__class__.__name__
+        )
+        super().__init__(*args, **kwargs)
+        self._thread = Thread(target=self._thread_loop)
+        # self.start()
+
+    @abstractmethod
+    def _thread_loop(self):
+        raise NotImplementedError("Subclasses must implement this method.")
 
     def start(self):
         self._thread.start()

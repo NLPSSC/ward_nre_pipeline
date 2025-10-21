@@ -10,7 +10,7 @@ from nre_pipeline.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.processor import Processor
 from nre_pipeline.processor._not_available_ex import ProcessorNotAvailable
 from nre_pipeline.reader import CorpusReader
-from nre_pipeline.writer import NLPResultWriter
+from nre_pipeline.writer._base_writer import NLPResultWriter
 
 logger = logging.getLogger(__name__)
 
