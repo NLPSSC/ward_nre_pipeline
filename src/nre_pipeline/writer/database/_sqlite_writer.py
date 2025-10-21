@@ -76,7 +76,8 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         return
 
     def _delete(self):
-        os.remove(self._db_path)
+        if os.path.exists(self._db_path):
+            os.remove(self._db_path)
 
     def _create(self) -> None:
         """
