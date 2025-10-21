@@ -125,7 +125,7 @@ def test_processor():
             kwargs={
                 "db_path": "/output/results.db",
                 "nlp_results_outqueue": nlp_results_outqueue,
-                "user_interrupt": halt_event
+                "user_interrupt": halt_event,
                 "verbose": True,
             },
         )
