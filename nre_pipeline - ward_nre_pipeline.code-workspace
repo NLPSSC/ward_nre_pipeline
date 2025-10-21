@@ -10,6 +10,10 @@
 		{
 			"path": "../output"
 		}
+		,
+		{
+			"path": "../input_data"
+		}
 	],
 	"launch": {
 		"version": "0.2.0",

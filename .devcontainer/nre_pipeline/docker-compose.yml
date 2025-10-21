@@ -14,6 +14,12 @@ volumes:
       type: none
       o: bind
       device: /home/westerd/_/project_data/ward_nre_pipeline/test_data
+  input_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/z/_/data/corpora/ocred_docs_from_pubmed
 services:
   nre_pipeline:
     container_name: nre_pipeline-devcontainer
@@ -25,6 +31,7 @@ services:
       - ../..:/workspace:cached
       - output:/output
       - test_data:/test_data
+      - input_data:/input_data
     environment:
       - DEBIAN_FRONTEND=noninteractive
       - ENVIRONMENT=development
