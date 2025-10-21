@@ -12,7 +12,7 @@ from loguru import logger
 
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch, DocumentBatchBuilder
-from nre_pipeline.reader._base_reader import CorpusReader
+from nre_pipeline.common.base._base_reader import CorpusReader
 
 
 class FileSystemReader(CorpusReader):

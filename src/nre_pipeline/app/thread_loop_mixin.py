@@ -11,11 +11,11 @@ class ThreadLoopMixin(ABC):
             "Initializing ThreadLoopMixin, called by {}", self.__class__.__name__
         )
         super().__init__(*args, **kwargs)
-        self._thread = Thread(target=self._thread_loop)
+        self._thread = Thread(target=self._thread_worker)
         # self.start()
 
     @abstractmethod
-    def _thread_loop(self):
+    def _thread_worker(self):
         raise NotImplementedError("Subclasses must implement this method.")
 
     def start(self):

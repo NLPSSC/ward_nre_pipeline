@@ -5,10 +5,11 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Set, Union
 
 from loguru import logger
 
+from nre_pipeline.common.base._base_processor import Processor
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
-from nre_pipeline.processor import Processor
+
 from quickumls import QuickUMLS
 
 from nre_pipeline.processor.quickumls_processor.config.config_loader import (

@@ -1,7 +1,7 @@
 import os
 import queue
 import threading
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Callable, Generator, Iterator, List, Optional, cast
 
 
@@ -10,7 +10,7 @@ from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.processor._base_processor import QUEUE_EMPTY
+from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 
 from loguru import logger
 
@@ -34,9 +34,7 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         document_batch_inqueue: Optional[queue.Queue] = None,
         **config,
     ) -> None:
-        super().__init__(
-            user_interrupt=user_interrupt, **config
-        )
+        super().__init__(user_interrupt=user_interrupt, **config)
         self._num_processor_workers = config.get("num_processor_workers", 1)
         self._allow_batch_resize = allow_batch_resize
         self._doc_batch_size = doc_batch_size
@@ -59,32 +57,36 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         ):
             raise ValueError("max_notes_to_read must be an integer")
 
-    def _thread_loop(self, **kwargs):
-        if self._document_batch_inqueue is None:
-            raise RuntimeError("The inqueue is not set.")
-        self._debug_log("Starting reader loop")
-        doc_count = 0
-        for batch in self._iter():
-            batch_len = len(batch)
-            if self._max_notes_to_read is not None:
-                if doc_count + batch_len > self._max_notes_to_read:
-                    # Only send the remaining docs needed to reach max_notes_to_read
-                    remaining = self._max_notes_to_read - doc_count
-                    if remaining > 0:
-                        limited_batch = DocumentBatch(
-                            cast(List[Document], batch[:remaining])
+    def _thread_worker(self, **kwargs):
+        try:
+            if self._document_batch_inqueue is None:
+                raise RuntimeError("The inqueue is not set.")
+            self._debug_log("Starting reader loop")
+            doc_count = 0
+            for batch in self._iter():
+                batch_len = len(batch)
+                if self._max_notes_to_read is not None:
+                    if doc_count + batch_len > self._max_notes_to_read:
+                        # Only send the remaining docs needed to reach max_notes_to_read
+                        remaining = self._max_notes_to_read - doc_count
+                        if remaining > 0:
+                            limited_batch = DocumentBatch(
+                                cast(List[Document], batch[:remaining])
+                            )
+                            self._document_batch_inqueue.put(limited_batch)
+                        logger.warning(
+                            f"Reached max notes to read: {self._max_notes_to_read}"
                         )
-                        self._document_batch_inqueue.put(limited_batch)
-                    logger.warning(
-                        f"Reached max notes to read: {self._max_notes_to_read}"
-                    )
+                        break
+                self._document_batch_inqueue.put(batch)
+                doc_count += batch_len
+                if self.user_interrupted():
+                    self._debug_log("User interrupt detected")
                     break
-            self._document_batch_inqueue.put(batch)
-            doc_count += batch_len
-            if self.user_interrupted():
-                self._debug_log("User interrupt detected")
-                break
-        self._document_batch_inqueue.put(QUEUE_EMPTY)
+            self._document_batch_inqueue.put(QUEUE_EMPTY)
+        except Exception as e:
+            logger.error(f"Error occurred in reader loop: {e}")
+            self.set_user_interrupt()
 
     def resize_batch(self) -> None:
         """

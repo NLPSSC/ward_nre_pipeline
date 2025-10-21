@@ -3,7 +3,7 @@ from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.processor._base_processor import QUEUE_EMPTY
+from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
 from nre_pipeline.writer.init_strategy import _InitStrategy
 from nre_pipeline.writer.mixins.management import ManagementMixin
@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, List, Union
 
 
 class NLPResultWriter(
-    ThreadLoopMixin, InterruptibleMixin, VerboseMixin, ManagementMixin
+    ThreadLoopMixin, InterruptibleMixin, ManagementMixin, VerboseMixin
 ):
     """
     Abstract base class for corpus writers that write to files.
@@ -37,7 +37,7 @@ class NLPResultWriter(
         super().__init__(user_interrupt=user_interrupt)
         threading.current_thread().name = f"{self.__class__.__name__}"
 
-    def _thread_loop(self):
+    def _thread_worker(self):
         try:
             write_batch = []
             while not self.user_interrupted():
