@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 import sqlite3
-from typing import Iterator, List
+from typing import Iterator, List, Union
+
+from regex import D
 
 from nre_pipeline.models._document import Document
 
@@ -41,8 +43,12 @@ class DocumentBatch:
     def __len__(self) -> int:
         return len(self._documents)
 
-    def __getitem__(self, index: int) -> Document:
-        return self._documents[index]
+    def __getitem__(self, index: int | slice) -> Union[Document, List[Document]]:
+        if isinstance(index, slice):
+            return self._documents[index]
+        if isinstance(index, int):
+            return self._documents[index]
+        raise TypeError("Index must be an int or a slice")
 
     def __repr__(self) -> str:
         return f"DocumentBatch(batch_id={self._batch_id}, doc_count={len(self._documents)})"

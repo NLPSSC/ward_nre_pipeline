@@ -4,11 +4,9 @@ FileSystemReader class for recursively iterating over files in a directory.
 
 from __future__ import annotations
 
-import multiprocessing
 import os
 from pathlib import Path
-import queue
-from typing import Any, Callable, Generator, List, Optional
+from typing import Any, Callable, Generator, List
 
 from loguru import logger
 
@@ -32,7 +30,7 @@ class FileSystemReader(CorpusReader):
     def __init__(
         self,
         path: List[str | Path] | Path | str,
-        batch_size: int,
+        doc_batch_size: int,
         extensions: List[str] | None = None,
         exclude: list[str | Path] | None = None,
         allow_batch_resize: bool = True,
@@ -50,7 +48,9 @@ class FileSystemReader(CorpusReader):
         """
 
         super().__init__(
-            batch_size=batch_size, allow_batch_resize=allow_batch_resize, **kwargs
+            doc_batch_size=doc_batch_size,
+            allow_batch_resize=allow_batch_resize,
+            **kwargs,
         )
 
         if isinstance(path, (str, Path)):
@@ -58,9 +58,9 @@ class FileSystemReader(CorpusReader):
         else:
             self._path: List[Path] = [Path(p) for p in path]
 
-        if batch_size < 1:
+        if doc_batch_size < 1:
             raise ValueError("Batch size must be at least 1")
-        self._batch_size: int = batch_size
+        self._batch_size: int = doc_batch_size
         self._extensions: List[str] | None = extensions
         self._exclude: List[Path] = [Path(p) for p in (exclude or [])]
 
@@ -92,6 +92,7 @@ class FileSystemReader(CorpusReader):
         # Filter files by extension and exclusion patterns
         filtered_files = (self.make_doc(f) for f in files if not self._is_excluded(f))
         iteration_number = 0
+        total_documents = 0
         while True:
             iteration_number += 1
             batch: List[Document] = [
@@ -99,6 +100,7 @@ class FileSystemReader(CorpusReader):
             ]
             if not batch:
                 break
+            total_documents += len(batch)
             document_batch = DocumentBatch(batch)
             logger.debug(
                 "Loading batch # {}, iteration {}",
@@ -106,6 +108,7 @@ class FileSystemReader(CorpusReader):
                 iteration_number,
             )
             yield document_batch
+        logger.info("Total Documents Read: {}", total_documents)
 
     def _files_to_process_iter(self):
         return (
@@ -190,7 +193,7 @@ class FileSystemReader(CorpusReader):
         #     raise ValueError("Exclude must be provided.")
         return lambda: FileSystemReader(
             path=path,
-            batch_size=batch_size,
+            doc_batch_size=batch_size,
             extensions=extensions,
             exclude=exclude,
         )

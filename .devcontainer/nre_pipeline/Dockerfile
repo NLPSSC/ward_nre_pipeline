@@ -14,6 +14,7 @@ RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
 RUN mkdir -p /requirements && chmod a+rw /requirements
 RUN mkdir -p /test_data && chmod a+rw /test_data
 RUN mkdir -p /output && chmod a+rw /output
+RUN mkdir -p /input_data && chmod a+rw /input_data
 
 COPY .devcontainer/nre_pipeline/*requirements.txt ./requirements
 RUN if [ -f /requirements/requirements.txt ]; then \

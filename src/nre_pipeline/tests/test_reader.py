@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     reader = FileSystemReader(
         path=TEST_DATA_PATH,
-        batch_size=2,
+        doc_batch_size=2,
         extensions=[".txt"],
     )
 
