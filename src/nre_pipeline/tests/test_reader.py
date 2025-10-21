@@ -18,7 +18,7 @@ def mock_processor(batch) -> int:
 
 
 if __name__ == "__main__":
-    setup_logging(False)
+    setup_logging(verbose=False)
 
     txt_file_count = 0
     for root, dirs, files in os.walk(TEST_DATA_PATH):

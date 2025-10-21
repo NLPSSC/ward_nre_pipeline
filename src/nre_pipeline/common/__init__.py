@@ -2,7 +2,7 @@ import sys
 from loguru import logger
 
 
-def setup_logging(verbose: bool = False):
+def setup_logging(*, verbose: bool = False):
     """Set up logging configuration."""
     if hasattr(setup_logging, "_setup_logging") is False:
         # Remove default handler

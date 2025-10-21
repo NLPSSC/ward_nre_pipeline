@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 import queue
 import threading
 from typing import Any, Callable, Dict, List, Union
@@ -12,7 +13,9 @@ from nre_pipeline.processor._base import QUEUE_EMPTY
 from nre_pipeline.writer.init_strategy import _InitStrategy
 from nre_pipeline.writer.mixins.management import ManagementMixin
 
-DEFAULT_WRITE_BATCH_SIZE = 100
+DEFAULT_WRITE_BATCH_SIZE = os.getenv("DEFAULT_WRITE_BATCH_SIZE", None)
+if DEFAULT_WRITE_BATCH_SIZE is None:
+    raise RuntimeError("DEFAULT_WRITE_BATCH_SIZE environment variable is not set")
 
 
 class NLPResultWriter(
@@ -40,7 +43,7 @@ class NLPResultWriter(
         write_batch = []
         while not self.user_interrupted():
             try:
-                nlp_result = self._nlp_results_outqueue.get(timeout=.1)
+                nlp_result = self._nlp_results_outqueue.get(timeout=0.1)
             except queue.Empty:
                 continue
 

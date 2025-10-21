@@ -18,7 +18,7 @@ from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProce
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
 
-logger = setup_logging(False)
+logger = setup_logging(verbose=False)
 
 
 def test_processor():
