@@ -11,7 +11,11 @@ class InterruptibleMixin:
         )
         self._user_interrupt: threading.Event = kwargs.pop("user_interrupt")
         super().__init__(*args, **kwargs)
+        self._is_complete = False
         self._listen_for_interrupt()
+
+    def set_complete(self):
+        self._is_complete = True
 
     def set_user_interrupt(self):
         self._user_interrupt.set()
@@ -27,11 +31,13 @@ class InterruptibleMixin:
 
         def interrupt_handler():
             try:
-                while not self.user_interrupted():
+                while self._is_complete is False and not self.user_interrupted():
                     sleep(0.1)
             except KeyboardInterrupt:
                 try:
-                    logger.warning("User interrupt (Ctrl-C) detected. Stopping pipeline...")
+                    logger.warning(
+                        "User interrupt (Ctrl-C) detected. Stopping pipeline..."
+                    )
                 except Exception:
                     pass
                 self._user_interrupt.set()
@@ -43,6 +49,8 @@ class InterruptibleMixin:
                     logger.error(f"Interrupt handler error: {e}")
                 except Exception:
                     pass
+            finally:
+                logger.debug("Interrupt handler finished for {}.", self.__class__.__name__)
 
         t = threading.Thread(target=interrupt_handler, daemon=True)
         t.start()

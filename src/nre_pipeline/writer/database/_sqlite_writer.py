@@ -1,4 +1,5 @@
 import json
+from multiprocessing import Process
 import os
 from typing import Any, Callable, Dict, List, cast
 
@@ -186,3 +187,37 @@ class SQLiteNLPWriter(DBNLPResultWriter):
 
     def writer_details(self) -> Dict[str, Any]:
         return {"database_path": self._db_path}
+
+
+def _get_sqlite_output_db() -> str:
+    results_path = os.getenv("RESULTS_PATH", None)
+    if results_path is None:
+        raise RuntimeError("RESULTS_PATH path not set")
+    return results_path
+
+
+def build_sqlite_configuration(
+    nlp_results_outqueue, halt_event, use_strategy, writer_is_verbose
+):
+    return {
+        "db_path": _get_sqlite_output_db(),
+        "nlp_results_outqueue": nlp_results_outqueue,
+        "user_interrupt": halt_event,
+        "init_strategy": use_strategy,
+        "verbose": writer_is_verbose,
+    }
+
+
+def initialize_writer_process(
+    writer_type,
+    config,
+) -> Process:
+
+    nlp_results_writer_process = Process(
+        target=writer_type,
+        kwargs=config,
+    )
+
+    nlp_results_writer_process.start()
+
+    return nlp_results_writer_process

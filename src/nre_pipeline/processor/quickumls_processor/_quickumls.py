@@ -275,3 +275,16 @@ class QuickUMLSProcessor(Processor):
 
         logger.info("QuickUMLS path validated.")
         return quickumls_path_obj
+
+
+def build_quickumls_processor_config(
+    document_batch_inqueue, nlp_results_outqueue, halt_event
+):
+    
+    return {
+        "metric": "jaccard",
+        "document_batch_inqueue": document_batch_inqueue,
+        "nlp_results_outqueue": nlp_results_outqueue,
+        "process_interrupt": halt_event,
+    }
+    

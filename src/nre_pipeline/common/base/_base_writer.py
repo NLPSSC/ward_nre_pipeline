@@ -62,6 +62,8 @@ class NLPResultWriter(
         except Exception as e:
             logger.error(f"Error occurred while recording NLP results: {e}")
             self.set_user_interrupt()
+        finally:
+            self.set_complete()
 
     def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
         """
