@@ -4,7 +4,7 @@ from typing import Iterator
 from loguru import logger
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.reader._filesystem import FileSystemReader
+from nre_pipeline.reader._filesystem_reader import FileSystemReader
 
 
 TEST_DATA_PATH = os.getenv("TEST_DATA_PATH")

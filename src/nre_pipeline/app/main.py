@@ -12,7 +12,7 @@ from nre_pipeline import setup_logging
 from nre_pipeline.pipeline._manager import PipelineManager
 from nre_pipeline.processor._noop import NoOpProcessor
 from nre_pipeline.reader import FileSystemReader
-from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
+from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter
 
 
 def run(args: Any) -> int:

@@ -6,13 +6,13 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Callable, Generator, List
+from typing import Any, Callable, Generator, List, Union
 
 from loguru import logger
 
 from nre_pipeline.models import Document
-from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.reader._base import CorpusReader
+from nre_pipeline.models._batch import DocumentBatch, DocumentBatchBuilder
+from nre_pipeline.reader._base_reader import CorpusReader
 
 
 class FileSystemReader(CorpusReader):
@@ -60,7 +60,6 @@ class FileSystemReader(CorpusReader):
 
         if doc_batch_size < 1:
             raise ValueError("Batch size must be at least 1")
-        self._batch_size: int = doc_batch_size
         self._extensions: List[str] | None = extensions
         self._exclude: List[Path] = [Path(p) for p in (exclude or [])]
 
@@ -75,48 +74,45 @@ class FileSystemReader(CorpusReader):
         self.start()
 
     def _batch_resize(self, num_processor_workers: int) -> int | None:
-        total_file_count = sum(1 for _ in self._files_to_process_iter())
+        total_file_count = self._get_file_count()
         new_batch_size = (total_file_count // num_processor_workers) + 1
         return new_batch_size
+
+    def _get_file_count(self):
+        return sum(1 for _ in self._files_to_process_iter())
 
     def _iter(self) -> Generator[DocumentBatch, Any, None]:
         """
         Return an iterator that yields files recursively.
 
         Yields:
-            Path: Each file found in the directory tree
+            DocumentBatch: Each batch of Document objects
         """
-
-        # All files in all paths
         files = self._files_to_process_iter()
-        # Filter files by extension and exclusion patterns
         filtered_files = (self.make_doc(f) for f in files if not self._is_excluded(f))
         iteration_number = 0
         total_documents = 0
-        while True:
+        batch_size = self._doc_batch_size
+
+        batch_builder = DocumentBatchBuilder(batch_size)
+        for ff in filtered_files:
             iteration_number += 1
-            batch: List[Document] = [
-                doc for _, doc in zip(range(self._batch_size), filtered_files)
-            ]
-            if not batch:
-                break
-            total_documents += len(batch)
-            document_batch = DocumentBatch(batch)
-            logger.debug(
-                "Loading batch # {}, iteration {}",
-                document_batch.batch_id,
-                iteration_number,
-            )
-            yield document_batch
+            batch: Union[DocumentBatch, None] = batch_builder.add_document(ff)
+            if batch is not None:
+                total_documents += len(batch)
+                yield batch
+                batch_builder = DocumentBatchBuilder(batch_size)
+
+        if batch_builder.has_docs():
+            yield batch_builder.build()
+
         logger.info("Total Documents Read: {}", total_documents)
 
     def _files_to_process_iter(self):
-        return (
-            (Path(root) / f)
-            for p in self._path
-            for root, dirs, files in os.walk(p)
-            for f in files
-        )
+        for p in self._path:
+            for root, dirs, files in os.walk(p):
+                for f in files:
+                    yield Path(root) / f
 
     def _is_excluded(self, file_path: Path) -> bool:
         """

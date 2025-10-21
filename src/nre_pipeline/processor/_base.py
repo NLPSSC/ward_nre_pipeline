@@ -147,18 +147,19 @@ class Processor(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         return f"[{self.__class__.__name__}] [{self._index}]"
 
     def __call__(self):
-
+        # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
+        sentinel_seen = False
         while not self.user_interrupted():
             try:
-                item = self._document_batch_inqueue.get(block=True, timeout=5)
+                item = self._document_batch_inqueue.get(block=True, timeout=.1)
             except queue.Empty:
                 continue
             if item == ProcessorQueue.QUEUE_EMPTY:
-                # Signal end of processing to other processors consuming inqueue
-                self._document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
-
-                # Signal end of processing to consumer of outqueue
-                self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
+                if not sentinel_seen:
+                    # Only the first processor to see QUEUE_EMPTY propagates it
+                    self._document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
+                    self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
+                    sentinel_seen = True
                 break
             processor_iter: Generator[NLPResultItem, Any, None] = self._call_processor(
                 cast(DocumentBatch, item)

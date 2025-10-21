@@ -8,6 +8,7 @@ from regex import D
 from nre_pipeline.models._document import Document
 
 
+
 class DocumentBatch:
 
     batch_id_path = os.getenv("BATCH_ID_PATH", None)
@@ -52,3 +53,23 @@ class DocumentBatch:
 
     def __repr__(self) -> str:
         return f"DocumentBatch(batch_id={self._batch_id}, doc_count={len(self._documents)})"
+
+class DocumentBatchBuilder:
+
+    def __init__(self, batch_size: int) -> None:
+        self._batch_size: int = batch_size
+        self._documents: List[Document] = []
+
+    def add_document(self, document: Document) -> Union[DocumentBatch, None]:
+        self._documents.append(document)
+        if len(self._documents) >= self._batch_size:
+            batch = DocumentBatch(self._documents)
+            self._documents = []
+            return batch
+        return None
+    
+    def has_docs(self) -> bool:
+        return len(self._documents) > 0
+    
+    def build(self):
+        return DocumentBatch(self._documents)

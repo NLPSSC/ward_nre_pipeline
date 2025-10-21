@@ -1,6 +1,5 @@
 import os
 import sys
-import threading
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Literal, Optional, Set, Union
 
@@ -101,10 +100,7 @@ class QuickUMLSProcessor(Processor):
         for detailed initialization and error information.
     """
 
-    # Class-level shared matcher to avoid redundant initialization
-    _shared_matcher: Optional[QuickUMLS] = None
-    _matcher_lock = threading.Lock()
-    _quickumls_config: Optional[Dict[str, Any]] = None
+    # Each instance will have its own matcher
 
     def __init__(
         self,
@@ -114,78 +110,35 @@ class QuickUMLSProcessor(Processor):
     ) -> None:
         super().__init__(*args, **kwargs)
         self._metric = metric
-        self._matcher: QuickUMLS = self._initalize_matcher(metric)
+        self._matcher: QuickUMLS = self._create_matcher(metric)
         self.start()
 
-    @classmethod
-    def _initalize_matcher(
-        cls, metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path]
+    def _create_matcher(
+        self, metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path]
     ) -> QuickUMLS:
-        """Get or create a shared QuickUMLS matcher instance.
-
-        This classmethod lazily initializes and returns a shared QuickUMLS matcher stored
-        on the class as `cls._shared_matcher`. Initialization is performed in a threadsafe
-        way using a double-checked locking pattern with `cls._matcher_lock` to avoid
-        constructing multiple matcher instances when called concurrently.
-
-        Behavior:
-        - Obtains the QuickUMLS index path by calling `cls._init_quickumls_path()`.
-        - Uses `cls._quickumls_config` if present (otherwise an empty dict) to pass
-            keyword arguments to the QuickUMLS constructor.
-        - Attempts to construct QuickUMLS with the provided configuration. If the
-            constructor raises `TypeError` (for example, when a particular QuickUMLS
-            version does not accept a given keyword argument), falls back to constructing
-            QuickUMLS with only the path.
-        - Logs initialization progress and any warnings or errors. Any exception raised
-            during initialization is logged with traceback and then re-raised.
-
-        Returns:
-                QuickUMLS: The shared QuickUMLS matcher instance stored as `cls._shared_matcher`.
-
-        Raises:
-                Exception: Any exception that occurs during initialization is propagated after
-                being logged.
         """
-        if cls._shared_matcher is None:
-            with cls._matcher_lock:
-                if cls._shared_matcher is None:  # Double-check locking
-                    try:
-                        quickumls_path: Path = cls._init_quickumls_path()
-                        logger.info(
-                            f"Initializing shared QuickUMLS matcher at {quickumls_path}"
-                        )
-                        try:
-                            # Prefer Levenshtein distance if supported by the QuickUMLS constructor.
-
-                            quickumls_config: Dict[str, Any] = get_quickumls_config(
-                                metric
-                            )
-
-                            # delete any values in quickumls_config that are None
-                            # quickumls_config = {
-                            #     k: v for k, v in quickumls_config.items() if v is not None
-                            # }
-
-                            cls._shared_matcher = QuickUMLS(
-                                quickumls_path, **quickumls_config
-                            )
-                        except TypeError as te:
-                            # Older/newer QuickUMLS versions may not accept similarity_name; fall back gracefully.
-                            logger.warning(
-                                "QuickUMLS constructor does not accept 'similarity_name'; using default similarity metric.",
-                                te,
-                            )
-                            cls._shared_matcher = QuickUMLS(quickumls_path)
-                        logger.info(
-                            "Shared QuickUMLS matcher initialized successfully."
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f"Failed to initialize QuickUMLS matcher: {e}",
-                            exc_info=True,
-                        )
-                        raise
-        return cls._shared_matcher
+        Create and return a new QuickUMLS matcher for this processor instance.
+        """
+        try:
+            quickumls_path: Path = self._init_quickumls_path()
+            logger.info(f"Initializing QuickUMLS matcher at {quickumls_path}")
+            quickumls_config: Dict[str, Any] = get_quickumls_config(metric)
+            try:
+                matcher = QuickUMLS(quickumls_path, **quickumls_config)
+            except TypeError as te:
+                logger.warning(
+                    "QuickUMLS constructor does not accept 'similarity_name'; using default similarity metric.",
+                    te,
+                )
+                matcher = QuickUMLS(quickumls_path)
+            logger.info("QuickUMLS matcher initialized successfully.")
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize QuickUMLS matcher: {e}",
+                exc_info=True,
+            )
+            raise
+        return matcher
 
     def _call_processor(
         self, document_batch: DocumentBatch
@@ -236,6 +189,7 @@ class QuickUMLSProcessor(Processor):
         for doc in document_batch._documents:
             try:
                 # Extract UMLS concepts using QuickUMLS
+                logger.debug(f"Processing document: {doc.note_id}")
                 umls_matches = self._matcher.match(doc.text)
 
                 if len(umls_matches) > 0:
