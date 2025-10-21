@@ -5,8 +5,10 @@
 			"name": "ward_nre_pipeline"
 		},
 		{
-			"path": "../test_data",
-			"name": "test_documents"
+			"path": "../test_data"
+		},
+		{
+			"path": "../output"
 		}
 	],
 	"launch": {
@@ -45,7 +47,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] QuickUMLSProcessor",
+				"name": "[Test] QuickUMLS (serial, one processor)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_quickumls_processor.py",
@@ -53,10 +55,10 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] Pipeline (NoOp, real data)",
+				"name": "[Test] QuickUMLS (multiprocess)",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_pipeline.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_process_corpus_with_quickumls.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},

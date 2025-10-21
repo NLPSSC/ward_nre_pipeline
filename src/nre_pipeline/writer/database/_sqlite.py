@@ -4,7 +4,8 @@ from typing import Any, Callable, Dict, List, cast
 
 from loguru import logger
 
-from nre_pipeline.models._nlp_result import NLPResultFeatures
+from nre_pipeline.models._nlp_result import NLPResultItem
+from nre_pipeline.models._nlp_result_item import NLPResultFeature
 from nre_pipeline.writer import NLPResultWriter
 from nre_pipeline.writer.common import DBNLPResultWriter
 from nre_pipeline.writer.database import (
@@ -14,10 +15,11 @@ from nre_pipeline.writer.database import (
 
 
 def convert_python_type_to_sqlite_type(item) -> str:
+    import numpy as np
     python_type = item.value_type
-    if python_type is int:
+    if python_type in (int, np.int64, np.int32, np.int16, np.int8):
         return "INTEGER"
-    elif python_type is float:
+    elif python_type in (float, np.float64, np.float32, np.float16):
         return "REAL"
     elif python_type is str:
         return "TEXT"
@@ -33,7 +35,7 @@ def convert_python_type_to_sqlite_type(item) -> str:
         raise ValueError(f"Unsupported Python type: {python_type}")
 
 
-def serialize_item(item: NLPResultFeatures) -> Any:
+def serialize_item(item: NLPResultFeature) -> Any:
     if item.value_type is set:
         return json.dumps(list(item.value))
     elif item.value_type is list:
@@ -55,8 +57,9 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         self._db_path = self._get_db_path(db_path)
         self._cached_insert_query: str | None = None
         super().__init__(*args, **kwargs)
+        self.start()
 
-    def get_create_table_query(self, nlp_result: NLPResultFeatures) -> str:
+    def get_create_table_query(self, nlp_result: NLPResultItem) -> str:
         note_id: str | int = nlp_result.note_id
         additional_columns = ", ".join(
             [
@@ -86,7 +89,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
             )
         return cast(str, _path)
 
-    def _record(self, nlp_result: NLPResultFeatures | List[NLPResultFeatures]) -> None:
+    def _record(self, nlp_result: NLPResultItem | List[NLPResultItem]) -> None:
         # Branching logic in case more than one result is passed
         if isinstance(nlp_result, List):
             return self._record_batch(nlp_result)
@@ -101,7 +104,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
                 )
                 context.insert(query, insert_params)
 
-    def _record_batch(self, nlp_results: List[NLPResultFeatures]) -> None:
+    def _record_batch(self, nlp_results: List[NLPResultItem]) -> None:
         """Batch record multiple NLP results for better performance."""
         if not nlp_results:
             return
@@ -122,7 +125,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
     def get_insert_query(self, nlp_result) -> str:
         if self._cached_insert_query is not None:
             return self._cached_insert_query
-        additional_columns = [item.key for item in nlp_result.results]
+        additional_columns = [item.key for item in nlp_result.result_features]
         additional_columns_str = ", ".join(additional_columns)
         question_marks = ", ".join(["?"] * len(additional_columns))
         query: str = (

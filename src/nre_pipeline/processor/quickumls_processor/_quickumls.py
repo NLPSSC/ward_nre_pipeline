@@ -2,25 +2,18 @@ import os
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, Dict, Generator, List, Literal, Optional, Set, Union
 
 from loguru import logger
 
-from nre_pipeline.models._nlp_result import NLPResultFeatures
+from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
 from nre_pipeline.processor import Processor
 from quickumls import QuickUMLS
-from quickumls.core import constants as quickumls_constants
 
 from nre_pipeline.processor.quickumls_processor.config.config_loader import (
     get_quickumls_config,
-)
-from nre_pipeline.processor.quickumls_processor.umls_methods._umls_rest_client import (
-    UMLSRestApiClient,
-)
-from nre_pipeline.processor.quickumls_processor.umls_methods._umls_common_methods import (
-    UMLSTerm,
 )
 
 TGT_URL = f"https://utslogin.nlm.nih.gov/cas/v1/api-key"
@@ -122,6 +115,7 @@ class QuickUMLSProcessor(Processor):
         super().__init__(*args, **kwargs)
         self._metric = metric
         self._matcher: QuickUMLS = self._initalize_matcher(metric)
+        self.start()
 
     @classmethod
     def _initalize_matcher(
@@ -195,7 +189,7 @@ class QuickUMLSProcessor(Processor):
 
     def _call_processor(
         self, document_batch: DocumentBatch
-    ) -> Generator[NLPResultFeatures, Any, None]:
+    ) -> Generator[NLPResultItem, Any, None]:
         """
         Process a batch of documents, extract UMLS concepts using QuickUMLS, and yield NLPResultFeatures for each found match.
 
@@ -260,14 +254,14 @@ class QuickUMLSProcessor(Processor):
                             NLPResultFeature("pos_start", match["start"]),
                             NLPResultFeature("pos_end", match["end"]),
                         ]
-                        yield NLPResultFeatures(
+                        yield NLPResultItem(
                             note_id=doc.note_id, result_features=result_items
                         )
             except Exception as e:
                 logger.error(
                     f"Error processing document {doc.note_id}: {e}", exc_info=True
                 )
-                yield NLPResultFeatures(note_id=doc.note_id, result_features=[])
+                yield NLPResultItem(note_id=doc.note_id, result_features=[])
 
     def _init_quickumls(self):
         quickumls_path = os.getenv("QUICKUMLS_PATH", None)

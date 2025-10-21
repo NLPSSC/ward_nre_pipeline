@@ -7,7 +7,8 @@ from __future__ import annotations
 import multiprocessing
 import os
 from pathlib import Path
-from typing import Any, Callable, Generator, List
+import queue
+from typing import Any, Callable, Generator, List, Optional
 
 from loguru import logger
 
@@ -69,6 +70,9 @@ class FileSystemReader(CorpusReader):
 
             if not p.is_dir():
                 raise ValueError(f"Path is not a directory: {p}")
+
+        self._debug_log("FileSystemReader loaded")
+        self.start()
 
     def _batch_resize(self, num_processor_workers: int) -> int | None:
         total_file_count = sum(1 for _ in self._files_to_process_iter())

@@ -1,3 +1,19 @@
+
+version: "3.8"
+
+volumes:
+  output:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/westerd/_/project_data/ward_nre_pipeline/output
+  test_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/westerd/_/project_data/ward_nre_pipeline/test_data
 services:
   nre_pipeline:
     container_name: nre_pipeline-devcontainer
@@ -7,6 +23,8 @@ services:
       dockerfile: .devcontainer/nre_pipeline/Dockerfile
     volumes:
       - ../..:/workspace:cached
+      - output:/output
+      - test_data:/test_data
     environment:
       - DEBIAN_FRONTEND=noninteractive
       - ENVIRONMENT=development

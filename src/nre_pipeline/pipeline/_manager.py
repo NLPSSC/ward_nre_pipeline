@@ -46,7 +46,7 @@ class PipelineManager(InterruptibleMixin):
             processor(i, self._user_interrupt) for i in range(num_processor_workers)
         ]
         for proc in self._processors:
-            proc._writer_queue = self._queue  # type: ignore
+            proc._nlp_results_outqueue = self._queue  # type: ignore
         config = {
             "user_interrupt": self._user_interrupt,
             "num_processor_workers": num_processor_workers,
