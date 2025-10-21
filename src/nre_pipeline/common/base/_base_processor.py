@@ -89,7 +89,6 @@ class ProcessorQueue:
         monitor logs for troubleshooting.
     """
 
-    QUEUE_EMPTY: TQueueEmpty = QUEUE_EMPTY
 
     def __init__(self, queue: queue.Queue, process_interrupt: threading.Event) -> None:
         self._queue = queue
@@ -101,7 +100,7 @@ class ProcessorQueue:
                 item: TQueueItem = cast(
                     TQueueItem, self._queue.get(block=True, timeout=1)
                 )
-                if item == ProcessorQueue.QUEUE_EMPTY:
+                if item == QUEUE_EMPTY:
                     raise StopIteration()
                 yield cast(NLPResultItem, item)
             except queue.Empty:
@@ -131,12 +130,14 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         document_batch_inqueue: queue.Queue,
         nlp_results_outqueue: queue.Queue,
         process_interrupt: threading.Event,
+        processing_barrier,
         **kwargs,
     ) -> None:
         super().__init__(user_interrupt=process_interrupt, **kwargs)
         self._processor_index = processor_id
         self._document_batch_inqueue = document_batch_inqueue
         self._nlp_results_outqueue = nlp_results_outqueue
+        self._processing_barrier = processing_barrier
 
         # Name the current thread using the derived class name and processor index
         threading.current_thread().name = (
@@ -152,29 +153,40 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
     def __call__(self):
         try:
             # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
-            sentinel_seen = False
+
+            total_output_count = 0
             while not self.user_interrupted():
                 try:
                     item = self._document_batch_inqueue.get(block=True, timeout=0.1)
                 except queue.Empty:
                     continue
-                if item == ProcessorQueue.QUEUE_EMPTY:
-                    if not sentinel_seen:
-                        # Only the first processor to see QUEUE_EMPTY propagates it
-                        # self._document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
-                        self._nlp_results_outqueue.put(ProcessorQueue.QUEUE_EMPTY)
-                        sentinel_seen = True
+                if item == QUEUE_EMPTY:
+                    if self._document_batch_inqueue.qsize() > 0:
+                        raise RuntimeError(
+                            "Queue is not empty after receiving QUEUE_EMPTY"
+                        )
+                    self._processing_barrier.wait()
+                    logger.debug(
+                        "Processing sentinel released for processor {}",
+                        self._processor_index,
+                    )
+                    self._document_batch_inqueue.put(QUEUE_EMPTY)
                     break
                 processor_iter: Generator[NLPResultItem, Any, None] = (
                     self._call_processor(cast(DocumentBatch, item))
                 )
                 for result in processor_iter:
+                    total_output_count += 1
+                    # logger.debug(
+                    #     "Total passed to nlp_results_outqueue: {}", total_output_count
+                    # )
                     self._nlp_results_outqueue.put(result)
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
-            self.set_user_interrupt()
         finally:
             self.set_complete()
+            self.set_user_interrupt()
+            
 
     @abstractmethod
     def _call_processor(
@@ -194,13 +206,22 @@ def _get_num_processors_to_create():
     return num_processors_to_create
 
 
-def initialize_nlp_processes(processor_type, config) -> List[Process]:
+def initialize_nlp_processes(processor_type, config, manager):
 
     configs = []
 
-    for idx in range(_get_num_processors_to_create()):
+    num_processes_to_create = _get_num_processors_to_create()
+    processing_barrier = manager.Barrier(num_processes_to_create)
+    for idx in range(num_processes_to_create):
         new_config = {k: v for k, v in config.items()}
-        new_config.update({"processor_id": idx})
+
+        logger.debug(
+            "Acquiring semaphore for processor {}",
+            idx,
+        )
+        new_config.update(
+            {"processor_id": idx, "processing_barrier": processing_barrier}
+        )
         configs.append(new_config)
 
     nlp_processes: List[Process] = [
@@ -214,4 +235,4 @@ def initialize_nlp_processes(processor_type, config) -> List[Process]:
     for p in nlp_processes:
         p.start()
 
-    return nlp_processes
+    return nlp_processes, processing_barrier

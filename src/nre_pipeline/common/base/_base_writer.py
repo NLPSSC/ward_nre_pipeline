@@ -2,8 +2,8 @@ from loguru import logger
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
-from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
+from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
 from nre_pipeline.writer.init_strategy import _InitStrategy
 from nre_pipeline.writer.mixins.management import ManagementMixin
@@ -26,11 +26,13 @@ class NLPResultWriter(
         self,
         nlp_results_outqueue: queue.Queue,
         user_interrupt: threading.Event,
+        processing_barrier,
         init_strategy: _InitStrategy | None = None,
         **config,
     ):
         self._nlp_results_outqueue = nlp_results_outqueue
         self._num_processor_workers = config.get("num_processor_workers", 1)
+        self._processing_barrier = processing_barrier
         if init_strategy is not None:
             init_strategy(self)
 
@@ -41,14 +43,18 @@ class NLPResultWriter(
         try:
             write_batch = []
             while not self.user_interrupted():
+
                 try:
-                    nlp_result = self._nlp_results_outqueue.get(timeout=0.1)
+                    nlp_result = self._nlp_results_outqueue.get(timeout=1)
+                    # logger.debug("_thread_worker for {}", self.__class__.__name__)
+                    if nlp_result == QUEUE_EMPTY:
+                        logger.info("Received QUEUE_EMPTY sentinel")
+                        break
+
                 except queue.Empty:
                     continue
 
-                if nlp_result == QUEUE_EMPTY:
-                    break
-                elif isinstance(nlp_result, NLPResultItem):
+                if isinstance(nlp_result, NLPResultItem):
                     write_batch.append(nlp_result)
                     if len(write_batch) >= DEFAULT_WRITE_BATCH_SIZE:
                         self.record(write_batch)
@@ -64,6 +70,7 @@ class NLPResultWriter(
             self.set_user_interrupt()
         finally:
             self.set_complete()
+            pass
 
     def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
         """
