@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import queue
 import threading
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 
 
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
@@ -12,7 +12,7 @@ from nre_pipeline.processor._base import QUEUE_EMPTY
 from nre_pipeline.writer.init_strategy import _InitStrategy
 from nre_pipeline.writer.mixins.management import ManagementMixin
 
-DEFAULT_WRITE_BATCH_SIZE = 10
+DEFAULT_WRITE_BATCH_SIZE = 100
 
 
 class NLPResultWriter(
@@ -40,7 +40,7 @@ class NLPResultWriter(
         write_batch = []
         while not self.user_interrupted():
             try:
-                nlp_result = self._nlp_results_outqueue.get(timeout=5)
+                nlp_result = self._nlp_results_outqueue.get(timeout=.1)
             except queue.Empty:
                 continue
 
@@ -48,18 +48,17 @@ class NLPResultWriter(
                 break
             elif isinstance(nlp_result, NLPResultItem):
                 write_batch.append(nlp_result)
-                if len(write_batch) > DEFAULT_WRITE_BATCH_SIZE:
+                if len(write_batch) >= DEFAULT_WRITE_BATCH_SIZE:
                     self.record(write_batch)
                     write_batch = []
             else:
                 raise RuntimeError("Unexpected item type in writer queue")
 
-        if len(write_batch) > DEFAULT_WRITE_BATCH_SIZE:
+        if write_batch:
             self.record(write_batch)
             write_batch = []
 
-    @abstractmethod
-    def record(self, nlp_result: NLPResultItem | List[NLPResultItem]) -> None:
+    def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
         """
         Write data to the corpus.
 
@@ -71,7 +70,7 @@ class NLPResultWriter(
         self._record(nlp_result)
 
     @abstractmethod
-    def _record(self, nlp_result: NLPResultItem | List[NLPResultItem]) -> None:
+    def _record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
         pass
 
     @staticmethod

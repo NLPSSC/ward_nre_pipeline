@@ -3,7 +3,7 @@ import tempfile
 from typing import List
 from loguru import logger
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
+from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter
 
 
 def mock_results(n):

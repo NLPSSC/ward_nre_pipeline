@@ -115,9 +115,11 @@ class SQLiteNLPWriter(DBNLPResultWriter):
             )
         return cast(str, _path)
 
-    def _record(self, nlp_result: NLPResultItem | List[NLPResultItem]) -> None:
-        # Branching logic in case more than one result is passed
-        if isinstance(nlp_result, List):
+    def _record(self, nlp_result: Any) -> None:
+        """
+        Record one or more NLP result items in the database.
+        """
+        if isinstance(nlp_result, list):
             return self._record_batch(nlp_result)
 
         self._ensure_table(nlp_result)

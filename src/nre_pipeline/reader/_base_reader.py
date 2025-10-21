@@ -2,7 +2,7 @@ import os
 import queue
 import threading
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Generator, Iterator, List, Optional, cast
+from typing import Any, Callable, Generator, Iterator, List, Optional, cast
 
 
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
@@ -42,60 +42,40 @@ class CorpusReader(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         self._init_debug_config()
 
     def _init_debug_config(self) -> None:
-        if isinstance(self._debug_config, Dict) is False:
+        if not isinstance(self._debug_config, dict):
             logger.warning(
                 "debug_config is not a dictionary; initializing with empty dictionary."
             )
             self._debug_config = {}
-        else:
-            logger.debug("debug_config set.")
-            self._max_notes_to_read = self._debug_config.get("max_notes_to_read", None)
-            if isinstance(self._max_notes_to_read, int) is False:
-                raise ValueError("max_notes_to_read must be an integer")
+        logger.debug("debug_config set.")
+        self._max_notes_to_read = self._debug_config.get("max_notes_to_read", None)
+        if self._max_notes_to_read is not None and not isinstance(
+            self._max_notes_to_read, int
+        ):
+            raise ValueError("max_notes_to_read must be an integer")
 
     def _reader_loop(self, **kwargs):
         if self._document_batch_inqueue is None:
             raise RuntimeError("The inqueue is not set.")
-        assert self._document_batch_inqueue is not None
         self._debug_log("Starting reader loop")
-        batch_count = 0
         doc_count = 0
         for batch in self._iter():
-            self._debug_log(f"Processing batch {batch_count}")
-            if self._document_batch_inqueue is not None:
-                # Update the document count
-                doc_count += len(batch)
-
-                ##################################################################
-                # If self._max_notes_to_read is set, this means we should limit
-                # the number of documents read for debugging.
-                ##################################################################
-                if (
-                    self._max_notes_to_read is not None
-                    and doc_count >= self._max_notes_to_read
-                ):
+            batch_len = len(batch)
+            if self._max_notes_to_read is not None:
+                if doc_count + batch_len > self._max_notes_to_read:
+                    # Only send the remaining docs needed to reach max_notes_to_read
+                    remaining = self._max_notes_to_read - doc_count
+                    if remaining > 0:
+                        limited_batch = DocumentBatch(
+                            cast(List[Document], batch[:remaining])
+                        )
+                        self._document_batch_inqueue.put(limited_batch)
                     logger.warning(
                         f"Reached max notes to read: {self._max_notes_to_read}"
                     )
-                    
-                    # If we've reached the max notes to read, we need to adjust the batch size
-                    # doc_count - the current count of notes to this point
-                    # doc_count % self._max_notes_to_read - the number of notes to read in the last batch
-
-                    # back out the current batch size from the doc count
-                    doc_count -= len(batch)
-                    # Calculate the number of notes to add in the last batch
-                    remaining_notes_to_add = len(batch) - ((doc_count + len(batch)) % self._max_notes_to_read)
-                    if remaining_notes_to_add > 0:
-                        sub_batch = batch[:remaining_notes_to_add]
-                        if isinstance(sub_batch, DocumentBatch):
-                            sub_batch = [sub_batch]
-                        batch = DocumentBatch(cast(List[Document], sub_batch))
-                        self._document_batch_inqueue.put(batch)
-                        self._document_batch_inqueue.put(QUEUE_EMPTY)
                     break
-
-                self._document_batch_inqueue.put(batch)
+            self._document_batch_inqueue.put(batch)
+            doc_count += batch_len
             if self.user_interrupted():
                 self._debug_log("User interrupt detected")
                 break
