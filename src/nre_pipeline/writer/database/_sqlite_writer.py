@@ -197,7 +197,11 @@ def _get_sqlite_output_db() -> str:
 
 
 def build_sqlite_configuration(
-    nlp_results_outqueue, halt_event, use_strategy, writer_is_verbose
+    nlp_results_outqueue,
+    halt_event,
+    use_strategy,
+    writer_is_verbose,
+    processing_barrier,
 ):
     return {
         "db_path": _get_sqlite_output_db(),
@@ -205,6 +209,7 @@ def build_sqlite_configuration(
         "user_interrupt": halt_event,
         "init_strategy": use_strategy,
         "verbose": writer_is_verbose,
+        "processing_barrier": processing_barrier,
     }
 
 

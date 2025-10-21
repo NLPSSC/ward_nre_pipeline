@@ -50,7 +50,9 @@ class InterruptibleMixin:
                 except Exception:
                     pass
             finally:
-                logger.debug("Interrupt handler finished for {}.", self.__class__.__name__)
+                logger.debug(
+                    "Interrupt handler finished for {}.", self.__class__.__name__
+                )
 
         t = threading.Thread(target=interrupt_handler, daemon=True)
         t.start()

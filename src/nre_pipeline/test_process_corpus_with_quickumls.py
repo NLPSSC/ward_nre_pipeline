@@ -67,6 +67,7 @@ def test_processor():
 
         document_batch_inqueue = _create_inqueue(manager)
         nlp_results_outqueue = _create_outqueue(manager)
+
         halt_event = manager.Event()
 
         reader_process = initialize_reader(
@@ -84,11 +85,12 @@ def test_processor():
         #     logger.success("Reader-only test complete")
         #     sys.exit(0)
 
-        nlp_processes: List[Process] = initialize_nlp_processes(
+        nlp_processes, processing_barrier = initialize_nlp_processes(
             processor_type=QuickUMLSProcessor,
             config=build_quickumls_processor_config(
                 document_batch_inqueue, nlp_results_outqueue, halt_event
             ),
+            manager=manager,
         )
 
         nlp_results_writer_process: Process = initialize_writer_process(
@@ -98,6 +100,7 @@ def test_processor():
                 halt_event,
                 use_strategy=ResetEachUseStrategy(),
                 writer_is_verbose=True,
+                processing_barrier=processing_barrier,
             ),
         )
 

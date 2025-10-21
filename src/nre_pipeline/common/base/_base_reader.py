@@ -90,6 +90,7 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
             self.set_user_interrupt()
         finally:
             self.set_complete()
+            pass
 
     def resize_batch(self) -> None:
         """
