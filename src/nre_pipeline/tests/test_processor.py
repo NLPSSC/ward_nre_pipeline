@@ -54,7 +54,7 @@ def create_nlp_result(index, docs):
 
 
 if __name__ == "__main__":
-    setup_logging(False)
+    setup_logging(verbose=False)
     import queue
 
     with Manager() as mgr:
