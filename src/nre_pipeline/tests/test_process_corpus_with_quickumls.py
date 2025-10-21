@@ -62,7 +62,7 @@ def test_processor():
     run_state: Literal["reader_only", "full_test"] = "full_test"
 
     INQUEUE_MAX_DOCBATCH_COUNT: int = 1
-    NUM_PROCESSORS_TO_CREATE: int = 1
+    NUM_PROCESSORS_TO_CREATE: int = 4
     OUTQUEUE_MAX_DOCBATCH_COUNT: int = 1
     READER_MAX_DOC_PER_BATCH: int = 10
 
