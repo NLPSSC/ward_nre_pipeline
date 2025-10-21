@@ -1,6 +1,6 @@
 from typing import Literal, TypeAlias
 
-from ._base import Processor
+from ._base_processor import Processor
 from ._noop import NoOpProcessor
 
 

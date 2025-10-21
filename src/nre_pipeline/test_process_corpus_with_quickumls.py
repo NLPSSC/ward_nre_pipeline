@@ -19,7 +19,7 @@ from typing import Dict, List, Literal, Union, cast
 from nre_pipeline.common import setup_logging
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.processor._base import QUEUE_EMPTY, ProcessorQueue
+from nre_pipeline.processor._base_processor import QUEUE_EMPTY, ProcessorQueue
 from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
 from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter
@@ -219,9 +219,11 @@ def _get_runstate():
 
 
 def _get_num_processors_to_create():
-    num_processors_to_create = int(
-        os.getenv("NUM_PROCESSORS_TO_CREATE", multiprocessing.cpu_count())
-    )
+    num_processors_to_create = os.getenv("NUM_PROCESSORS_TO_CREATE", None)
+    if num_processors_to_create is None or len(num_processors_to_create) == 0:
+        num_processors_to_create = multiprocessing.cpu_count()
+    else:
+        num_processors_to_create = int(num_processors_to_create)
     logger.debug("NUM_PROCESSORS_TO_CREATE: {}", num_processors_to_create)
     return num_processors_to_create
 

@@ -7,7 +7,7 @@ from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
 
 from nre_pipeline.models._nlp_result_item import NLPResultFeature
-from nre_pipeline.processor._base import ProcessorQueue
+from nre_pipeline.processor._base_processor import ProcessorQueue
 from nre_pipeline.processor._noop import NoOpProcessor
 
 

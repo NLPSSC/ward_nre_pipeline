@@ -62,9 +62,10 @@
 				"name": "[Test] QuickUMLS (multiprocess)",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_process_corpus_with_quickumls.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/test_process_corpus_with_quickumls.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
+				"cwd": "${workspaceFolder:ward_nre_pipeline}",
 			},
 			{
 				"name": "Debug NRE Pipeline (Verbose)",

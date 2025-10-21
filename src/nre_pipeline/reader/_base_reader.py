@@ -10,14 +10,18 @@ from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.processor._base import QUEUE_EMPTY
+from nre_pipeline.processor._base_processor import QUEUE_EMPTY
 
 from loguru import logger
 
-MIN_BATCH_SIZE = int(os.getenv("MIN_BATCH_SIZE", 100))
+min_batch_size = os.getenv("MIN_BATCH_SIZE")
+if min_batch_size is None or len(min_batch_size) == 0:
+    MIN_BATCH_SIZE = 100
+else:
+    MIN_BATCH_SIZE = int(min_batch_size)
 
 
-class CorpusReader(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
+class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
     """
     Abstract base class for corpus readers that iterate over files.
     """
@@ -31,7 +35,7 @@ class CorpusReader(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         **config,
     ) -> None:
         super().__init__(
-            user_interrupt=user_interrupt, target=self._reader_loop, **config
+            user_interrupt=user_interrupt, **config
         )
         self._num_processor_workers = config.get("num_processor_workers", 1)
         self._allow_batch_resize = allow_batch_resize
@@ -40,6 +44,7 @@ class CorpusReader(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         self._debug_config = config.get("debug_config", {})
         self._max_notes_to_read: Optional[int] = None
         self._init_debug_config()
+        threading.current_thread().name = f"{self.__class__.__name__}"
 
     def _init_debug_config(self) -> None:
         if not isinstance(self._debug_config, dict):
@@ -54,7 +59,7 @@ class CorpusReader(ABC, InterruptibleMixin, VerboseMixin, ThreadLoopMixin):
         ):
             raise ValueError("max_notes_to_read must be an integer")
 
-    def _reader_loop(self, **kwargs):
+    def _thread_loop(self, **kwargs):
         if self._document_batch_inqueue is None:
             raise RuntimeError("The inqueue is not set.")
         self._debug_log("Starting reader loop")
