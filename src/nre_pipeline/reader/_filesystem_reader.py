@@ -4,6 +4,7 @@ FileSystemReader class for recursively iterating over files in a directory.
 
 from __future__ import annotations
 
+from multiprocessing import Process
 import os
 from pathlib import Path
 from typing import Any, Callable, Generator, List, Union
@@ -12,7 +13,12 @@ from loguru import logger
 
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch, DocumentBatchBuilder
-from nre_pipeline.common.base._base_reader import CorpusReader
+from nre_pipeline.common.base._base_reader import (
+    CorpusReader,
+    _get_reader_max_doc_per_batch,
+    _initialize_read_debug_config,
+)
+from loguru import logger
 
 
 class FileSystemReader(CorpusReader):
@@ -193,3 +199,38 @@ class FileSystemReader(CorpusReader):
             extensions=extensions,
             exclude=exclude,
         )
+
+
+def build_file_system_reader_config(
+    permitted_extensions, reader_is_verbose, document_batch_inqueue, halt_event
+):
+    return {
+        "path": _get_input_data(),
+        "doc_batch_size": _get_reader_max_doc_per_batch(),
+        "extensions": permitted_extensions,
+        "document_batch_inqueue": document_batch_inqueue,
+        "user_interrupt": halt_event,
+        "verbose": reader_is_verbose,
+        "debug_config": _initialize_read_debug_config(),
+    }
+
+
+def _get_input_data():
+    input_data = os.getenv("INPUT_DATA_PATH")
+    if not input_data:
+        raise ValueError("INPUT_DATA_PATH environment variable is not set")
+    input_data_path = Path(input_data)
+    logger.debug("Input data path: {}", input_data_path)
+    return input_data_path
+
+
+def initialize_reader(
+    reader_type,
+    config,
+) -> Process:
+    reader_process = Process(
+        target=reader_type,
+        kwargs=config,
+    )
+    reader_process.start()
+    return reader_process

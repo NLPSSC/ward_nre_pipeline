@@ -1,11 +1,11 @@
+from multiprocessing import Process
+import multiprocessing
+import os
 import queue
 import threading
 from abc import abstractmethod
-from typing import Any, Generator, cast
-
+from typing import Any, Generator, List, cast
 from loguru import logger
-
-
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
@@ -173,6 +173,8 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
             self.set_user_interrupt()
+        finally:
+            self.set_complete()
 
     @abstractmethod
     def _call_processor(
@@ -180,3 +182,36 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
     ) -> Generator[NLPResultItem, Any, None]:
         """Process a document and return the result."""
         raise NotImplementedError("Subclasses must implement this method.")
+
+
+def _get_num_processors_to_create():
+    num_processors_to_create = os.getenv("NUM_PROCESSORS_TO_CREATE", None)
+    if num_processors_to_create is None or len(num_processors_to_create) == 0:
+        num_processors_to_create = multiprocessing.cpu_count()
+    else:
+        num_processors_to_create = int(num_processors_to_create)
+    logger.debug("NUM_PROCESSORS_TO_CREATE: {}", num_processors_to_create)
+    return num_processors_to_create
+
+
+def initialize_nlp_processes(processor_type, config) -> List[Process]:
+
+    configs = []
+
+    for idx in range(_get_num_processors_to_create()):
+        new_config = {k: v for k, v in config.items()}
+        new_config.update({"processor_id": idx})
+        configs.append(new_config)
+
+    nlp_processes: List[Process] = [
+        Process(
+            target=processor_type,
+            kwargs=config,
+        )
+        for config in configs
+    ]
+
+    for p in nlp_processes:
+        p.start()
+
+    return nlp_processes

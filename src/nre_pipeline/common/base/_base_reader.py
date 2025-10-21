@@ -14,6 +14,7 @@ from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 
 from loguru import logger
 
+
 min_batch_size = os.getenv("MIN_BATCH_SIZE")
 if min_batch_size is None or len(min_batch_size) == 0:
     MIN_BATCH_SIZE = 100
@@ -87,6 +88,8 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         except Exception as e:
             logger.error(f"Error occurred in reader loop: {e}")
             self.set_user_interrupt()
+        finally:
+            self.set_complete()
 
     def resize_batch(self) -> None:
         """
@@ -147,3 +150,22 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
             Document: The created Document object
         """
         raise NotImplementedError()
+
+
+def _get_max_notes_to_process():
+    debug_max_notes_to_process = os.getenv("DEBUG_MAX_NOTES_TO_PROCESS", None)
+    if debug_max_notes_to_process is None:
+        return None
+    return int(debug_max_notes_to_process)
+
+
+def _initialize_read_debug_config():
+    debug_config = {"max_notes_to_read": _get_max_notes_to_process()}
+    logger.debug("max_notes_to_read: {}", debug_config["max_notes_to_read"])
+    return debug_config
+
+
+def _get_reader_max_doc_per_batch():
+    reader_max_doc_per_batch = int(os.getenv("READER_MAX_DOC_PER_BATCH", 10))
+    logger.debug("READER_MAX_DOC_PER_BATCH: {}", reader_max_doc_per_batch)
+    return reader_max_doc_per_batch
