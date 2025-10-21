@@ -13,9 +13,11 @@ from nre_pipeline.processor._base import QUEUE_EMPTY
 from nre_pipeline.writer.init_strategy import _InitStrategy
 from nre_pipeline.writer.mixins.management import ManagementMixin
 
-DEFAULT_WRITE_BATCH_SIZE = os.getenv("DEFAULT_WRITE_BATCH_SIZE", None)
-if DEFAULT_WRITE_BATCH_SIZE is None:
+default_write_batch_size = os.getenv("DEFAULT_WRITE_BATCH_SIZE", None)
+if default_write_batch_size is None:
     raise RuntimeError("DEFAULT_WRITE_BATCH_SIZE environment variable is not set")
+else:
+    DEFAULT_WRITE_BATCH_SIZE = int(default_write_batch_size)
 
 
 class NLPResultWriter(
