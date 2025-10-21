@@ -3,6 +3,7 @@
 Simple test for MedspacyUmlsProcessor to debug the matching issue.
 """
 
+import multiprocessing
 import os
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from nre_pipeline.processor._base import QUEUE_EMPTY, ProcessorQueue
 from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem import FileSystemReader
 from nre_pipeline.writer.database._sqlite import SQLiteNLPWriter
+from nre_pipeline.writer.init_strategy import ResetEachUseStrategy
 
 logger = setup_logging(True)
 
@@ -59,15 +61,13 @@ def test_processor():
 
     run_state: Literal["reader_only", "full_test"] = "full_test"
 
-    INQUEUE_MAX_DOCBATCH_COUNT = 10
-    OUTQUEUE_MAX_DOCBATCH_COUNT = 10
-    READER_MAX_DOC_PER_BATCH = random.randint(10, 100)
+    INQUEUE_MAX_DOCBATCH_COUNT: int = 10
+    NUM_PROCESSORS_TO_CREATE: int = multiprocessing.cpu_count()
+    OUTQUEUE_MAX_DOCBATCH_COUNT: int = 10
+    READER_MAX_DOC_PER_BATCH: int = 100 or random.randint(10, 100)
 
     DEBUG_CONFIG: Union[Dict[str, int], None] = {
-        "max_notes_to_read": READER_MAX_DOC_PER_BATCH
-        * random.randint(1, 5)
-        * (READER_MAX_DOC_PER_BATCH % 17)
-        * random.randint(1, 3)
+        "max_notes_to_read": 1000 or (READER_MAX_DOC_PER_BATCH * random.randint(1, 5) * (READER_MAX_DOC_PER_BATCH % 17) * random.randint(1, 3))
     }
 
     logger.debug("READER_MAX_DOC_PER_BATCH: {}", READER_MAX_DOC_PER_BATCH)
@@ -101,7 +101,7 @@ def test_processor():
             logger.success("Reader-only test complete")
             sys.exit(0)
 
-        num_processors_to_create = 2
+        
         nlp_results_outqueue = manager.Queue(maxsize=OUTQUEUE_MAX_DOCBATCH_COUNT)
         nlp_processes = [
             Process(
@@ -114,7 +114,7 @@ def test_processor():
                     "process_interrupt": halt_event,
                 },
             )
-            for idx in range(num_processors_to_create)
+            for idx in range(NUM_PROCESSORS_TO_CREATE)
         ]
 
         for p in nlp_processes:
@@ -126,6 +126,7 @@ def test_processor():
                 "db_path": "/output/results.db",
                 "nlp_results_outqueue": nlp_results_outqueue,
                 "user_interrupt": halt_event,
+                # "init_strategy": ResetEachUseStrategy(),
                 "verbose": True,
             },
         )

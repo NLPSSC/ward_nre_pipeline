@@ -16,6 +16,7 @@ from nre_pipeline.writer.database import (
 
 def convert_python_type_to_sqlite_type(item) -> str:
     import numpy as np
+
     python_type = item.value_type
     if python_type in (int, np.int64, np.int32, np.int16, np.int8):
         return "INTEGER"
@@ -53,11 +54,36 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         DBNLPResultWriter (_type_): _description_
     """
 
-    def __init__(self, db_path: str | None = None, *args, **kwargs):
+    def __init__(
+        self,
+        db_path: str | None = None,
+        *args,
+        **kwargs,
+    ):
         self._db_path = self._get_db_path(db_path)
         self._cached_insert_query: str | None = None
         super().__init__(*args, **kwargs)
         self.start()
+
+    ##################################################################
+    # ManagementMixin
+    ##################################################################
+    def _close(self) -> None:
+        """
+        Closes the database connection.
+        """
+        # currently the database runs a connection per request, so can just return
+        return
+
+    def _delete(self):
+        os.remove(self._db_path)
+
+    def _create(self) -> None:
+        """
+        Creates the database.
+        """
+        # Currently the database runs a connection per request, so can just return
+        return
 
     def get_create_table_query(self, nlp_result: NLPResultItem) -> str:
         note_id: str | int = nlp_result.note_id
