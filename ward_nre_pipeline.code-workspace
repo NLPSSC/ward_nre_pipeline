@@ -3,6 +3,12 @@
 		{
 			"path": ".",
 			"name": "ward_nre_pipeline"
+		},
+		{
+			"path": "../project_data/ward_nre_pipeline/output"
+		},
+		{
+			"path": "../project_data/ward_nre_pipeline/test_data"
 		}
 	],
 	"tasks": {

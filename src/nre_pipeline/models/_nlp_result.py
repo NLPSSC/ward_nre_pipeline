@@ -6,7 +6,7 @@ from nre_pipeline.models._nlp_result_item import NLPResultFeature
 
 
 @dataclass
-class NLPResultFeatures:
+class NLPResultItem:
     note_id: str | int
     result_features: List[NLPResultFeature]
 
@@ -31,7 +31,7 @@ class NLPResultFeatures:
         return result
 
     def __eq__(self, value: object) -> bool:
-        if not isinstance(value, NLPResultFeatures):
+        if not isinstance(value, NLPResultItem):
             return False
         note_id_eq: bool = self.note_id == value.note_id
         if note_id_eq is False:
