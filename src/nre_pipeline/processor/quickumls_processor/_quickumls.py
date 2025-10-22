@@ -187,10 +187,11 @@ class QuickUMLSProcessor(Processor):
         - Return type: Generator[NLPResultFeatures, Any, None].
         """
         total_found_in_batch = 0
+
         for doc in document_batch._documents:
             try:
                 # Extract UMLS concepts using QuickUMLS
-                logger.debug(f"Processing document: {doc.note_id}")
+                # logger.debug(f"Processing document: {doc.note_id}")
                 umls_matches = self._matcher.match(doc.text)
 
                 if len(umls_matches) > 0:
@@ -278,13 +279,13 @@ class QuickUMLSProcessor(Processor):
 
 
 def build_quickumls_processor_config(
-    document_batch_inqueue, nlp_results_outqueue, halt_event
+    document_batch_inqueue, nlp_results_outqueue, halt_event, total_docs_processed
 ):
-    
+
     return {
         "metric": "jaccard",
         "document_batch_inqueue": document_batch_inqueue,
         "nlp_results_outqueue": nlp_results_outqueue,
         "process_interrupt": halt_event,
+        "total_docs_processed": total_docs_processed,
     }
-    
