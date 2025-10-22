@@ -7,6 +7,8 @@ from abc import abstractmethod
 from typing import Any, Generator, List, cast
 from loguru import logger
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
+from nre_pipeline.app.lock_folder_mixin import LockFolderMixin
+from nre_pipeline.app.pipeline_component import PipelineComponent
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models._nlp_result import NLPResultItem
@@ -121,7 +123,7 @@ class ProcessorQueue:
             logger.error(f"Error draining queue: {e}")
 
 
-class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
+class Processor(PipelineComponent, ThreadLoopMixin, LockFolderMixin, VerboseMixin):
 
     def __init__(
         self,
@@ -157,7 +159,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
 
             total_output_count = 0
             total_docs_processed = 0
-            while not self.user_interrupted():
+            while True:
                 try:
                     item = self._document_batch_inqueue.get(block=True, timeout=0.1)
                 except queue.Empty:
@@ -195,8 +197,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
         finally:
-            self.set_complete()
-            self.set_user_interrupt()
+            pass
 
     @abstractmethod
     def _call_processor(

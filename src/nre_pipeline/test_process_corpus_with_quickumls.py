@@ -5,8 +5,10 @@ Simple test for MedspacyUmlsProcessor to debug the matching issue.
 
 
 from multiprocessing import Manager, Process, freeze_support
+import os
 import queue
 from typing import List, cast
+import uuid
 from nre_pipeline.common import setup_logging
 from nre_pipeline.common.base._base_processor import initialize_nlp_processes
 from nre_pipeline.models._batch import DocumentBatch
@@ -67,16 +69,16 @@ def test_processor():
 
         document_batch_inqueue = _create_inqueue(manager)
         nlp_results_outqueue = _create_outqueue(manager)
-        total_docs_processed = manager.Value("i", 0)
-        halt_event = manager.Event()
+        run_id = uuid.uuid4().hex[:16]
+
+        lock_folder = f'/tmp/{run_id}/lock_folder'
+
+        os.makedirs(lock_folder, exist_ok=True)
 
         reader_process = initialize_reader(
             FileSystemReader,
             config=build_file_system_reader_config(
-                permitted_extensions,
-                reader_is_verbose,
-                document_batch_inqueue,
-                halt_event,
+                permitted_extensions, reader_is_verbose, document_batch_inqueue, lock_folder=lock_folder
             ),
         )
 
@@ -88,7 +90,7 @@ def test_processor():
         nlp_processes, processing_barrier = initialize_nlp_processes(
             processor_type=QuickUMLSProcessor,
             config=build_quickumls_processor_config(
-                document_batch_inqueue, nlp_results_outqueue, halt_event, total_docs_processed
+                document_batch_inqueue, nlp_results_outqueue, lock_folder=lock_folder
             ),
             manager=manager,
         )
@@ -97,10 +99,8 @@ def test_processor():
             writer_type=SQLiteNLPWriter,
             config=build_sqlite_configuration(
                 nlp_results_outqueue,
-                halt_event,
                 use_strategy=ResetEachUseStrategy(),
-                writer_is_verbose=True,
-                processing_barrier=processing_barrier,
+                writer_is_verbose=True, lock_folder=lock_folder
             ),
         )
 
