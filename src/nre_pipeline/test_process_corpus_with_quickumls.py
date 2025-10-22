@@ -67,7 +67,7 @@ def test_processor():
 
         document_batch_inqueue = _create_inqueue(manager)
         nlp_results_outqueue = _create_outqueue(manager)
-
+        total_docs_processed = manager.Value("i", 0)
         halt_event = manager.Event()
 
         reader_process = initialize_reader(
@@ -88,7 +88,7 @@ def test_processor():
         nlp_processes, processing_barrier = initialize_nlp_processes(
             processor_type=QuickUMLSProcessor,
             config=build_quickumls_processor_config(
-                document_batch_inqueue, nlp_results_outqueue, halt_event
+                document_batch_inqueue, nlp_results_outqueue, halt_event, total_docs_processed
             ),
             manager=manager,
         )

@@ -89,7 +89,6 @@ class ProcessorQueue:
         monitor logs for troubleshooting.
     """
 
-
     def __init__(self, queue: queue.Queue, process_interrupt: threading.Event) -> None:
         self._queue = queue
         self._process_interrupt: threading.Event = process_interrupt
@@ -131,6 +130,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         nlp_results_outqueue: queue.Queue,
         process_interrupt: threading.Event,
         processing_barrier,
+        total_docs_processed,
         **kwargs,
     ) -> None:
         super().__init__(user_interrupt=process_interrupt, **kwargs)
@@ -138,6 +138,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         self._document_batch_inqueue = document_batch_inqueue
         self._nlp_results_outqueue = nlp_results_outqueue
         self._processing_barrier = processing_barrier
+        self._total_docs_processed = total_docs_processed
 
         # Name the current thread using the derived class name and processor index
         threading.current_thread().name = (
@@ -155,6 +156,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
             # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
 
             total_output_count = 0
+            total_docs_processed = 0
             while not self.user_interrupted():
                 try:
                     item = self._document_batch_inqueue.get(block=True, timeout=0.1)
@@ -172,8 +174,17 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
                     )
                     self._document_batch_inqueue.put(QUEUE_EMPTY)
                     break
+                doc_batch: DocumentBatch = cast(DocumentBatch, item)
+                total_docs_processed += len(doc_batch)
+                if total_docs_processed % 100 == 0:
+                    self._total_docs_processed.value += total_docs_processed
+                    logger.debug(
+                        "Total documents processed: {}",
+                        self._total_docs_processed.value,
+                    )
+
                 processor_iter: Generator[NLPResultItem, Any, None] = (
-                    self._call_processor(cast(DocumentBatch, item))
+                    self._call_processor(doc_batch)
                 )
                 for result in processor_iter:
                     total_output_count += 1
@@ -186,7 +197,6 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         finally:
             self.set_complete()
             self.set_user_interrupt()
-            
 
     @abstractmethod
     def _call_processor(
