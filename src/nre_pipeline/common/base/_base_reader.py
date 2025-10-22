@@ -6,6 +6,8 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, cast
 
 
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
+from nre_pipeline.app.lock_folder_mixin import LockFolderMixin
+from nre_pipeline.app.pipeline_component import PipelineComponent
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models import Document
@@ -22,7 +24,7 @@ else:
     MIN_BATCH_SIZE = int(min_batch_size)
 
 
-class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
+class CorpusReader(PipelineComponent, ThreadLoopMixin, LockFolderMixin, VerboseMixin):
     """
     Abstract base class for corpus readers that iterate over files.
     """
@@ -30,12 +32,11 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
     def __init__(
         self,
         doc_batch_size: int,
-        user_interrupt: threading.Event,
         allow_batch_resize: bool = False,
         document_batch_inqueue: Optional[queue.Queue] = None,
         **config,
     ) -> None:
-        super().__init__(user_interrupt=user_interrupt, **config)
+        super().__init__(**config)
         self._num_processor_workers = config.get("num_processor_workers", 1)
         self._allow_batch_resize = allow_batch_resize
         self._doc_batch_size = doc_batch_size
@@ -81,15 +82,11 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
                         break
                 self._document_batch_inqueue.put(batch)
                 doc_count += batch_len
-                if self.user_interrupted():
-                    self._debug_log("User interrupt detected")
-                    break
+
             self._document_batch_inqueue.put(QUEUE_EMPTY)
         except Exception as e:
             logger.error(f"Error occurred in reader loop: {e}")
-            self.set_user_interrupt()
         finally:
-            self.set_complete()
             pass
 
     def resize_batch(self) -> None:
@@ -114,8 +111,6 @@ class CorpusReader(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
 
         for batch in self._iter():
             yield batch
-            if self.user_interrupted():
-                self._debug_log("User interrupt detected")
 
     @abstractmethod
     def _batch_resize(self, num_processor_workers: int) -> int | None:

@@ -1,12 +1,13 @@
 from loguru import logger
-from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
+from nre_pipeline.app.lock_folder_mixin import LockFolderMixin
+from nre_pipeline.app.pipeline_component import PipelineComponent
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
 from nre_pipeline.writer.init_strategy import _InitStrategy
-from nre_pipeline.writer.mixins.management import ManagementMixin
+from nre_pipeline.writer.mixins.management import WriterManagementMixin
 
 
 import queue
@@ -16,7 +17,11 @@ from typing import Any, Callable, Dict, List, Union
 
 
 class NLPResultWriter(
-    ThreadLoopMixin, InterruptibleMixin, ManagementMixin, VerboseMixin
+    PipelineComponent,
+    ThreadLoopMixin,
+    LockFolderMixin,
+    WriterManagementMixin,
+    VerboseMixin,
 ):
     """
     Abstract base class for corpus writers that write to files.
@@ -42,7 +47,7 @@ class NLPResultWriter(
     def _thread_worker(self):
         try:
             write_batch = []
-            while not self.user_interrupted():
+            while True:
 
                 try:
                     nlp_result = self._nlp_results_outqueue.get(timeout=1)
@@ -67,9 +72,7 @@ class NLPResultWriter(
                 write_batch = []
         except Exception as e:
             logger.error(f"Error occurred while recording NLP results: {e}")
-            self.set_user_interrupt()
         finally:
-            self.set_complete()
             pass
 
     def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
@@ -79,8 +82,6 @@ class NLPResultWriter(
         Args:
             nlp_result: The NLPResult to write
         """
-        if self.user_interrupted():
-            return
         self._record(nlp_result)
 
     @abstractmethod

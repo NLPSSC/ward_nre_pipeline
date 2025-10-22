@@ -202,16 +202,16 @@ class FileSystemReader(CorpusReader):
 
 
 def build_file_system_reader_config(
-    permitted_extensions, reader_is_verbose, document_batch_inqueue, halt_event
+    permitted_extensions, reader_is_verbose, document_batch_inqueue, lock_folder
 ):
     return {
         "path": _get_input_data(),
         "doc_batch_size": _get_reader_max_doc_per_batch(),
         "extensions": permitted_extensions,
         "document_batch_inqueue": document_batch_inqueue,
-        "user_interrupt": halt_event,
         "verbose": reader_is_verbose,
         "debug_config": _initialize_read_debug_config(),
+        "lock_folder": lock_folder,
     }
 
 
