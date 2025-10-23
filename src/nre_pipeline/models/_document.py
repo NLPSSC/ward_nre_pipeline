@@ -6,4 +6,5 @@ from typing import Any
 class Document:
     note_id: str | int
     text: str
+    valid: bool
     metadata: dict[str, Any] = field(default_factory=dict)

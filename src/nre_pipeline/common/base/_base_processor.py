@@ -12,116 +12,113 @@ from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 
-from nre_pipeline.processor.consts import TQueueEmpty, TQueueItem
+from nre_pipeline.processor.consts import TQueueItem
 import queue, threading
 
 
-QUEUE_EMPTY: TQueueEmpty = "QUEUE_EMPTY"
+# class ProcessorQueue:
+#     """
+#     ProcessorQueue
+#     ==============
+
+#     A helper that provides a safe, interruptible generator interface over a
+#     thread-safe queue.Queue instance. Designed to be used by processing
+#     threads that consume NLPResult items produced by other threads or
+#     processes.
+
+#     Behavior
+#     --------
+#     - The generator method next_result() yields items of type `NLPResult`
+#         retrieved from the underlying queue.
+#     - It will keep yielding items until the supplied `process_interrupt`
+#         threading.Event is set, or until a sentinel value (QUEUE_EMPTY)
+#         is encountered in the queue.
+#     - While waiting for items it calls queue.get(block=True, timeout=1) so it
+#         periodically checks the interrupt event and can exit promptly.
+#     - After the main consumption loop ends (due to interrupt or sentinel),
+#         next_result() attempts to "drain" any remaining items still present in
+#         the queue, yielding them until the queue becomes empty.
+#     - Unexpected exceptions during queue operations are logged and cause
+#         the generator to stop.
+
+#     Key attributes
+#     --------------
+#     - QUEUE_EMPTY (class attribute)
+#             A sentinel value used to signal an explicit end-of-stream. When this
+#             token is pulled from the queue the generator stops producing further
+#             results. Its value is the string "QUEUE_EMPTY".
+#     - _queue
+#             The underlying queue.Queue instance from which items are consumed.
+#     - _process_interrupt
+#             A threading.Event used to signal an external request to stop
+#             processing. When set, next_result() will stop after finishing the
+#             current iteration and then drain remaining items.
+
+#     Usage example
+#     -------------
+#     Typical usage pattern by a consumer thread:
 
 
-class ProcessorQueue:
-    """
-    ProcessorQueue
-    ==============
+#             q = queue.Queue()
+#             interrupt = threading.Event()
+#             proc_queue = ProcessorQueue(q, interrupt)
 
-    A helper that provides a safe, interruptible generator interface over a
-    thread-safe queue.Queue instance. Designed to be used by processing
-    threads that consume NLPResult items produced by other threads or
-    processes.
+#             # Producer thread(s) put NLPResult objects into q
+#             # When production is finished, a sentinel can be enqueued:
+#             q.put(QUEUE_EMPTY)
 
-    Behavior
-    --------
-    - The generator method next_result() yields items of type `NLPResult`
-        retrieved from the underlying queue.
-    - It will keep yielding items until the supplied `process_interrupt`
-        threading.Event is set, or until a sentinel value (ProcessorQueue.QUEUE_EMPTY)
-        is encountered in the queue.
-    - While waiting for items it calls queue.get(block=True, timeout=1) so it
-        periodically checks the interrupt event and can exit promptly.
-    - After the main consumption loop ends (due to interrupt or sentinel),
-        next_result() attempts to "drain" any remaining items still present in
-        the queue, yielding them until the queue becomes empty.
-    - Unexpected exceptions during queue operations are logged and cause
-        the generator to stop.
+#             # Consumer uses the generator to process results
+#             for result in proc_queue.next_result():
+#                     # process the NLPResult instance
+#                     handle_result(result)
 
-    Key attributes
-    --------------
-    - QUEUE_EMPTY (class attribute)
-            A sentinel value used to signal an explicit end-of-stream. When this
-            token is pulled from the queue the generator stops producing further
-            results. Its value is the string "QUEUE_EMPTY".
-    - _queue
-            The underlying queue.Queue instance from which items are consumed.
-    - _process_interrupt
-            A threading.Event used to signal an external request to stop
-            processing. When set, next_result() will stop after finishing the
-            current iteration and then drain remaining items.
+#             # Alternatively, to stop processing from another thread:
+#             # interrupt.set()
 
-    Usage example
-    -------------
-    Typical usage pattern by a consumer thread:
+#     Notes and constraints
+#     ---------------------
+#     - Items yielded are expected to be of type `NLPResult`. The class does not
+#         validate item contents beyond casting; callers should ensure items in
+#         the queue are of the expected shape.
+#     - The draining phase after interruption will still block briefly (timeout=1)
+#         while waiting for remaining items. This is intentional to avoid busy-waiting.
+#     - The class logs errors encountered during queue operations; callers should
+#         monitor logs for troubleshooting.
+#     """
 
+#     def __init__(self, queue: queue.Queue, process_interrupt: threading.Event) -> None:
+#         self._queue = queue
+#         self._process_interrupt: threading.Event = process_interrupt
 
-            q = queue.Queue()
-            interrupt = threading.Event()
-            proc_queue = ProcessorQueue(q, interrupt)
+#     def next_result(self) -> Generator[NLPResultItem, Any, None]:
+#         while not self._process_interrupt.is_set():
+#             try:
+#                 item: TQueueItem = cast(
+#                     TQueueItem, self._queue.get(block=True, timeout=1)
+#                 )
+#                 if item == QUEUE_EMPTY:
+#                     raise StopIteration()
+#                 yield cast(NLPResultItem, item)
+#             except queue.Empty:
+#                 continue
+#             except StopIteration:
+#                 break
+#             except Exception as e:
+#                 logger.error(f"Error getting item from queue: {e}")
+#                 break
 
-            # Producer thread(s) put NLPResult objects into q
-            # When production is finished, a sentinel can be enqueued:
-            q.put(ProcessorQueue.QUEUE_EMPTY)
-
-            # Consumer uses the generator to process results
-            for result in proc_queue.next_result():
-                    # process the NLPResult instance
-                    handle_result(result)
-
-            # Alternatively, to stop processing from another thread:
-            # interrupt.set()
-
-    Notes and constraints
-    ---------------------
-    - Items yielded are expected to be of type `NLPResult`. The class does not
-        validate item contents beyond casting; callers should ensure items in
-        the queue are of the expected shape.
-    - The draining phase after interruption will still block briefly (timeout=1)
-        while waiting for remaining items. This is intentional to avoid busy-waiting.
-    - The class logs errors encountered during queue operations; callers should
-        monitor logs for troubleshooting.
-    """
-
-    def __init__(self, queue: queue.Queue, process_interrupt: threading.Event) -> None:
-        self._queue = queue
-        self._process_interrupt: threading.Event = process_interrupt
-
-    def next_result(self) -> Generator[NLPResultItem, Any, None]:
-        while not self._process_interrupt.is_set():
-            try:
-                item: TQueueItem = cast(
-                    TQueueItem, self._queue.get(block=True, timeout=1)
-                )
-                if item == QUEUE_EMPTY:
-                    raise StopIteration()
-                yield cast(NLPResultItem, item)
-            except queue.Empty:
-                continue
-            except StopIteration:
-                break
-            except Exception as e:
-                logger.error(f"Error getting item from queue: {e}")
-                break
-
-        # Drain remaining items if any
-        try:
-            while True:
-                item = cast(TQueueItem, self._queue.get(block=True, timeout=1))
-                yield cast(NLPResultItem, item)
-        except queue.Empty:
-            pass
-        except Exception as e:
-            logger.error(f"Error draining queue: {e}")
+#         # Drain remaining items if any
+#         try:
+#             while True:
+#                 item = cast(TQueueItem, self._queue.get(block=True, timeout=1))
+#                 yield cast(NLPResultItem, item)
+#         except queue.Empty:
+#             pass
+#         except Exception as e:
+#             logger.error(f"Error draining queue: {e}")
 
 
-class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
+class Processor(_BaseProcess, VerboseMixin):
 
     def __init__(
         self,
@@ -130,7 +127,6 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         nlp_results_outqueue: queue.Queue,
         process_interrupt: threading.Event,
         processing_barrier,
-        total_docs_processed,
         **kwargs,
     ) -> None:
         super().__init__(user_interrupt=process_interrupt, **kwargs)
@@ -138,12 +134,16 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
         self._document_batch_inqueue = document_batch_inqueue
         self._nlp_results_outqueue = nlp_results_outqueue
         self._processing_barrier = processing_barrier
-        self._total_docs_processed = total_docs_processed
+        self._total_docs_processed = 0
 
         # Name the current thread using the derived class name and processor index
         threading.current_thread().name = (
             f"{self.__class__.__name__}-{self._processor_index}"
         )
+
+    @property
+    def total_docs_processed(self) -> int:
+        return self._total_docs_processed
 
     def _thread_worker(self):
         self()
@@ -156,7 +156,6 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
             # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
 
             total_output_count = 0
-            total_docs_processed = 0
             while not self.user_interrupted():
                 try:
                     item = self._document_batch_inqueue.get(block=True, timeout=0.1)
@@ -175,13 +174,7 @@ class Processor(ThreadLoopMixin, InterruptibleMixin, VerboseMixin):
                     self._document_batch_inqueue.put(QUEUE_EMPTY)
                     break
                 doc_batch: DocumentBatch = cast(DocumentBatch, item)
-                total_docs_processed += len(doc_batch)
-                if total_docs_processed % 100 == 0:
-                    self._total_docs_processed.value += total_docs_processed
-                    logger.debug(
-                        "Total documents processed: {}",
-                        self._total_docs_processed.value,
-                    )
+                self._total_docs_processed += len(doc_batch)
 
                 processor_iter: Generator[NLPResultItem, Any, None] = (
                     self._call_processor(doc_batch)

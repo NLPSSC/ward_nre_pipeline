@@ -86,8 +86,8 @@ if __name__ == "__main__":
         ), "Input queue should have one item after adding batch."
         logger.debug("Number of batches in queue: {}", document_batch_inqueue.qsize())
 
-        logger.debug("Manually adding ProcessorQueue.QUEUE_EMPTY...")
-        document_batch_inqueue.put(ProcessorQueue.QUEUE_EMPTY)
+        logger.debug("Manually adding QUEUE_EMPTY...")
+        document_batch_inqueue.put(QUEUE_EMPTY)
         assert (
             document_batch_inqueue.qsize() == 2
         ), "Input queue should have two items after adding batch and empty marker."
@@ -111,13 +111,13 @@ if __name__ == "__main__":
 
         try:
             while True:
-                # ProcessorQueue.QUEUE_EMPTY
+                
                 try:
                     outqueue_item = nlp_results_outqueue.get(block=True, timeout=5)
                 except queue.Empty:
                     continue
 
-                if outqueue_item == ProcessorQueue.QUEUE_EMPTY:
+                if outqueue_item == QUEUE_EMPTY:
                     break
                 elif isinstance(outqueue_item, NLPResultItem):
                     nlp_result: NLPResultItem = cast(NLPResultItem, outqueue_item)

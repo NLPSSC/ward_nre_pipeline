@@ -34,9 +34,9 @@ def run(args: Any) -> int:
             num_processor_workers=4,
             processor=NoOpProcessor,
             reader=lambda: FileSystemReader(
-                path=r"Z:\_\data\corpora\ocred_docs_from_pubmed",
+                input_paths=r"Z:\_\data\corpora\ocred_docs_from_pubmed",
                 doc_batch_size=1000,
-                extensions=[".txt"],
+                allowed_extensions=[".txt"],
             ),
             writer=SQLiteNLPWriter,
         ) as manager:

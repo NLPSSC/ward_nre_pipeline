@@ -30,7 +30,7 @@
 				"name": "[Test] Reader",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_reader.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/reader/test_reader.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},

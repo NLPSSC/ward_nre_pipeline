@@ -10,5 +10,6 @@ class VerboseMixin:
         self._verbose = verbose
 
     def _debug_log(self, message: str):
-        if self._verbose:
-            logger.debug(message)
+        if hasattr(self, '_verbose'):
+            if self._verbose:
+                logger.debug(message)
