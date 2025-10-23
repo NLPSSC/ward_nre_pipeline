@@ -34,7 +34,7 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] Processor (NoOp)",
+				"name": "[Test] Reader/Processor (NoOp)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/processor/test_processor.py",
@@ -42,10 +42,10 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] Writer",
+				"name": "[Test] Reader/Processor/Writer[CSV] (NoOp)",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_writer.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/writer/test_writer.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},

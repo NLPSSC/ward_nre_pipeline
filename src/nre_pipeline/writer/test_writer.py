@@ -1,48 +1,95 @@
-import sqlite3
-import tempfile
-from typing import List
+import atexit
+from multiprocessing import Manager, freeze_support
+import os
+import threading
+import time
 from loguru import logger
-from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter
+from tqdm import tqdm
+from nre_pipeline.common import setup_logging
+from nre_pipeline.processor.noop_processor import NoOpProcessor
+from nre_pipeline.reader._filesystem_reader import FileSystemReader
+from nre_pipeline.writer.database._csv_writer import CSVWriter
 
 
-def mock_results(n):
-    def make_value(row, col):
-        if col % 2 == 0:
-            return {"value": f"value_{row}_{col}", "value_type": str}
-        return {"value": col * row, "value_type": int}
+def get_test_data_path(test_data_path: str | None = None) -> str:
+    test_data_path = test_data_path or os.getenv("TEST_DATA_PATH")
+    if not test_data_path or os.path.exists(test_data_path) is False:
+        raise ValueError("TEST_DATA_PATH environment variable is not set")
+    return test_data_path
 
-    for row_idx in range(n):
-        results = [
-            NLPResultItem(key=f"key_{col_idx}", **make_value(row_idx, col_idx))
-            for col_idx in range(3)
-        ]
-        yield NLPResultItem(note_id=row_idx + 1, result_features=results)
+
+def get_total_count_txt_files(test_data_path):
+    total_count: int = sum(
+        1
+        for _, _, files in os.walk(test_data_path)
+        for f in files
+        if f.lower().endswith(".txt")
+    )
+    logger.debug(f"Total .txt files found: {total_count}")
+    return total_count
 
 
 if __name__ == "__main__":
-    # Use a temporary directory instead of NamedTemporaryFile
-    import os
-    import tempfile
+    freeze_support()
+    setup_logging(verbose=False)
 
-    test_values: List[NLPResultItem] = list(mock_results(10))
-    with tempfile.TemporaryDirectory() as temp_dir:
-        db_path = os.path.join(temp_dir, "test.db")
-        writer = SQLiteNLPWriter(db_path=db_path)
-        for result in test_values:
-            writer.record(result)
+    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci/1839")
 
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM {writer.table_name}")
-        rows = cursor.fetchall()
-        conn.close()
+    txt_file_count: int = get_total_count_txt_files(test_data_path)
 
-        read_values = [r[1:] for r in rows]
-        flattened_test_values = [
-            (t.note_id, *[x.value for x in t.result_features]) for t in test_values
-        ]
+    with Manager() as mgr:
 
-        assert read_values == flattened_test_values
+        reader: FileSystemReader = FileSystemReader.create(
+            manager=mgr,
+            input_paths=test_data_path,
+            allowed_extensions=[".txt"],
+            excluded_paths=[],
+        )
 
-        logger.success("All test values written and read successfully.")
+        total_queued: int = 0
+        total_processed: int = 0
+
+        pbar = tqdm(total=txt_file_count, unit="doc", desc="Processed", leave=True)
+        _stop_event = threading.Event()
+
+        def _monitor():
+            last = 0
+            while not _stop_event.is_set():
+                current_processed: int = total_processed
+                diff = current_processed - last
+                if diff > 0:
+                    pbar.update(diff)
+                    last = current_processed
+                time.sleep(0.05)
+
+        _monitor_thread = threading.Thread(target=_monitor, daemon=True)
+        _monitor_thread.start()
+
+        def _cleanup():
+            _stop_event.set()
+            _monitor_thread.join(timeout=1)
+            try:
+                pbar.close()
+            except Exception:
+                pass
+
+        atexit.register(_cleanup)
+
+        processors, outqueue = NoOpProcessor.create(
+            mgr, **{"num_workers": 1, "inqueue": reader.inqueue}
+        )
+        writer: CSVWriter = CSVWriter.create(mgr, **{"outqueue": outqueue})
+
+        reader.start()
+        for p in processors:
+            p.start()
+        writer.start()
+
+        reader.join()
+        total_docs_processed = processors[0].total_docs_processed
+        for p in processors:
+            p.join()
+        writer.join()
+
+        logger.debug("Total docs processed: {}", total_docs_processed.get())
+        logger.complete()

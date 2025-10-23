@@ -225,7 +225,7 @@ class Processor(_BaseProcess, VerboseMixin):
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
         finally:
-            pass
+            self._outqueue.put(QUEUE_EMPTY)
 
     @abstractmethod
     def _call_processor(
