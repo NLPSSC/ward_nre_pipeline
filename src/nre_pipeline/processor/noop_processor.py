@@ -1,6 +1,8 @@
 from multiprocessing import Lock
+from queue import Queue
 from typing import Any, Generator, List
 
+from nre_pipeline.common.base._consts import TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 from nre_pipeline.models._document import Document
@@ -11,17 +13,22 @@ from nre_pipeline.common.base._base_processor import Processor
 class NoOpProcessor(Processor):
     """A processor that performs no operations."""
 
-    index = 1
+    # def __init__(
+    #     self,
+    #     processor_id: int,
+    #     total_documents_processed,
+    #     inqueue: Queue[DocumentBatch | TQueueEmpty],
+    #     outqueue: Queue[NLPResultItem | TQueueEmpty],
+    #     **config
+    # ) -> None:
+    #     super().__init__(
+    #         processor_id, total_documents_processed, inqueue, outqueue, **config
+    #     )
 
     def _call_processor(
         self, document_batch: DocumentBatch
     ) -> Generator[NLPResultItem, Any, None]:
         """Return the input document unchanged."""
-
-        if not hasattr(self, "_lock"):
-            self._lock = Lock()
-        with self._lock:
-            self.index += 1
 
         doc: Document
         for doc in document_batch:
@@ -39,4 +46,3 @@ class NoOpProcessor(Processor):
                 ],
             )
             yield result
-            self.index += 1

@@ -1,140 +1,111 @@
-from multiprocessing import Manager
-from typing import List, cast
+import atexit
+from multiprocessing import Manager, freeze_support
+import os
+import queue
+import threading
+import time
+from typing import List
 from loguru import logger
+from tqdm import tqdm
 from nre_pipeline.common import setup_logging
+from nre_pipeline.common.base._consts import TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.models._document import Document
-
-from nre_pipeline.models._nlp_result_item import NLPResultFeature
-from nre_pipeline.common.base._base_processor import ProcessorQueue
-from nre_pipeline.processor._noop import NoOpProcessor
+from nre_pipeline.processor.noop_processor import NoOpProcessor
+from nre_pipeline.reader._filesystem_reader import FileSystemReader
 
 
-def doc_text(num_sentences: int):
-    from wonderwords import RandomSentence
+def get_test_data_path(test_data_path: str | None = None) -> str:
+    test_data_path = test_data_path or os.getenv("TEST_DATA_PATH")
+    if not test_data_path or os.path.exists(test_data_path) is False:
+        raise ValueError("TEST_DATA_PATH environment variable is not set")
+    return test_data_path
 
-    s = RandomSentence()
-    sentences = "  ".join([s.sentence() for _ in range(num_sentences)])
-    return sentences
 
-
-def generate_mock_document_batch(n):
-    """Generate a batch of n mock documents for testing."""
-    return DocumentBatch(
-        [
-            Document(
-                note_id=(i + 1),
-                text=doc_text(5),
-                metadata={"source": "mock", "index": i},
-            )
-            for i in range(n)
-        ]
+def get_total_count_txt_files(test_data_path):
+    total_count: int = sum(
+        1
+        for _, _, files in os.walk(test_data_path)
+        for f in files
+        if f.lower().endswith(".txt")
     )
-
-
-def create_nlp_result(index, docs):
-    doc = docs[index]
-    tokens = doc.text.split()
-    first_token = tokens[0]
-    last_token = tokens[-1]
-    token_count = len(tokens)
-    the_count = sum(1 for token in tokens if token.lower() == "the")
-    fraction_of_thes = the_count / len(tokens) if len(tokens) > 0 else 0
-    return NLPResultItem(
-        note_id=doc.note_id,
-        result_features=[
-            NLPResultFeature(key="first_word", value=first_token),
-            NLPResultFeature(key="last_word", value=last_token),
-            NLPResultFeature(key="token_count", value=token_count),
-            NLPResultFeature(key="the_count", value=the_count),
-            NLPResultFeature(key="fraction_of_thes", value=fraction_of_thes),
-        ],
-    )
+    logger.debug(f"Total .txt files found: {total_count}")
+    return total_count
 
 
 if __name__ == "__main__":
+    freeze_support()
     setup_logging(verbose=False)
-    import queue
+
+    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci/1839")
+
+    txt_file_count: int = get_total_count_txt_files(test_data_path)
 
     with Manager() as mgr:
 
-        document_batch_inqueue = mgr.Queue()
-        nlp_results_outqueue = mgr.Queue()
-        halt_event = mgr.Event()
-
-        processor = NoOpProcessor(
-            processor_id=1,
-            document_batch_inqueue=document_batch_inqueue,
-            nlp_results_outqueue=nlp_results_outqueue,
-            process_interrupt=halt_event,
+        reader: FileSystemReader = FileSystemReader.create(
+            manager=mgr,
+            input_paths=test_data_path,
+            allowed_extensions=[".txt"],
+            excluded_paths=[],
         )
+        reader.start()
 
-        test_doc_batch: DocumentBatch = generate_mock_document_batch(10)
+        total_queued: int = 0
+        total_processed: int = 0
 
-        ###############################################################################
-        # Manually load document batch into the input queue
-        ###############################################################################
-        assert (
-            document_batch_inqueue.qsize() == 0
-        ), "Input queue should be empty before processing."
+        pbar = tqdm(total=txt_file_count, unit="doc", desc="Processed", leave=True)
+        _stop_event = threading.Event()
 
-        document_batch_inqueue.put(test_doc_batch)
+        def _monitor():
+            last = 0
+            while not _stop_event.is_set():
+                current_processed: int = total_processed
+                diff = current_processed - last
+                if diff > 0:
+                    pbar.update(diff)
+                    last = current_processed
+                time.sleep(0.05)
 
-        assert (
-            document_batch_inqueue.qsize() == 1
-        ), "Input queue should have one item after adding batch."
-        logger.debug("Number of batches in queue: {}", document_batch_inqueue.qsize())
+        _monitor_thread = threading.Thread(target=_monitor, daemon=True)
+        _monitor_thread.start()
 
-        logger.debug("Manually adding QUEUE_EMPTY...")
-        document_batch_inqueue.put(QUEUE_EMPTY)
-        assert (
-            document_batch_inqueue.qsize() == 2
-        ), "Input queue should have two items after adding batch and empty marker."
+        def _cleanup():
+            _stop_event.set()
+            _monitor_thread.join(timeout=1)
+            try:
+                pbar.close()
+            except Exception:
+                pass
 
-        ###############################################################################
-        # Generate mock results to check
-        ###############################################################################
-        mock_documents: List[Document] = test_doc_batch._documents
-        expected_results: List[NLPResultItem] = [
-            create_nlp_result(i, mock_documents) for i in range(len(mock_documents))
-        ]
+        atexit.register(_cleanup)
 
-        assert (
-            nlp_results_outqueue.qsize() == 0
-        ), "Output queue should be empty before processing."
+        futures = []
 
-        # Initiates direct call to processor, which will halt when complete.
-        processor()
+        inqueue: queue.Queue[DocumentBatch | TQueueEmpty] = reader.inqueue
+        processors: List[NoOpProcessor]
+        outqueue: queue.Queue[NLPResultItem | TQueueEmpty]
+        processors, outqueue = NoOpProcessor.create(
+            mgr, **{"num_workers": 1, "inqueue": inqueue}
+        )
+        for p in processors:
+            p.start()
 
-        nlp_results: List[NLPResultItem] = []
-
-        try:
-            while True:
-                
-                try:
-                    outqueue_item = nlp_results_outqueue.get(block=True, timeout=5)
-                except queue.Empty:
-                    continue
-
-                if outqueue_item == QUEUE_EMPTY:
+        while True:
+            try:
+                item: NLPResultItem | TQueueEmpty = outqueue.get(timeout=1)
+                if item == "QUEUE_EMPTY":
                     break
-                elif isinstance(outqueue_item, NLPResultItem):
-                    nlp_result: NLPResultItem = cast(NLPResultItem, outqueue_item)
-                    nlp_results.append(nlp_result)
-                else:
-                    raise RuntimeError("Unexpected item type in writer queue")
+                total_processed += 1
+            except queue.Empty:
+                if not any(p.is_alive() for p in processors):
+                    break
+                continue
 
-            assert (
-                len(nlp_results) > 0
-            ), "No results were returned by processor_queue.next_result()."
+        reader.join()
+        total_docs_processed = processors[0].total_docs_processed
+        for p in processors:
+            p.join()
 
-            note_ids = {n.note_id for n in nlp_results}
-
-            assert len(mock_documents) == len(note_ids), "Mismatch in document count."
-
-        except Exception as e:
-            logger.error(f"Unexpected error during processor test: {e}")
-            raise
-        else:
-            logger.success("Test Complete")
+        logger.debug("Total docs processed: {}", total_docs_processed.get())
+        logger.complete()

@@ -9,8 +9,7 @@
 		},
 		{
 			"path": "../output"
-		}
-		,
+		},
 		{
 			"path": "../input_data"
 		}
@@ -35,18 +34,18 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] Writer",
+				"name": "[Test] Processor (NoOp)",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_writer.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/processor/test_processor.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] Processor (NoOp)",
+				"name": "[Test] Writer",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_processor.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/tests/test_writer.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},

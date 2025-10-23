@@ -51,7 +51,7 @@ if __name__ == "__main__":
     freeze_support()
     setup_logging(verbose=False)
 
-    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci")
+    test_data_path = get_test_data_path()
 
     txt_file_count: int = get_total_count_txt_files(test_data_path)
 

@@ -204,7 +204,9 @@ class FileSystemReader(CorpusReader):
                 batch_builder = DocumentBatchBuilder(batch_size)
 
         if batch_builder.has_docs():
-            yield batch_builder.build()
+            batch = batch_builder.build()
+            total_documents += len(batch)
+            yield batch
 
         logger.info("Total Documents Read: {}", total_documents)
 
