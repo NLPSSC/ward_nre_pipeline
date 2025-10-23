@@ -1,14 +1,15 @@
+from datetime import datetime
+import os
+from pathlib import Path
 import queue
-import threading
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, cast
 from loguru import logger
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.common.base._base_process import _BaseProcess
-from nre_pipeline.common.base._consts import QUEUE_EMPTY
+from nre_pipeline.common.base._consts import QUEUE_EMPTY, TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
-from nre_pipeline.writer.init_strategy import _InitStrategy
 
 
 class NLPResultWriter(_BaseProcess, VerboseMixin):
@@ -18,27 +19,69 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
 
     def __init__(
         self,
-        nlp_results_outqueue: queue.Queue,
-        processing_barrier,
+        outqueue: queue.Queue,
+        total_written,
+        output_path: str | None = None,
         **config,
     ):
-        self._nlp_results_outqueue = nlp_results_outqueue
-        self._num_processor_workers = config.get("num_processor_workers", 1)
-        self._processing_barrier = processing_barrier
-        # if init_strategy is not None:
-        #     init_strategy(self)
-        super().__init__(**config)
+        self._outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = outqueue
+        self._total_written = total_written
+        self._output_path: str = self._build_output_path(output_path)
+        super().__init__()
+
+    @property
+    def output_path(self) -> str:
+        return self._output_path
+
+    def _build_output_path(self, output_path) -> str:
+        return str(Path(self._get_output_path(output_path)) / self._build_output_file_name())
+
+    @abstractmethod
+    def _build_output_file_name(self) -> str:
+        raise NotImplementedError("Must implement _build_output_file_name")
+
+    @property
+    def total_written(self):
+        return self._total_written
+
+    def _get_output_path(self, db_path: str | None) -> str:
+        _path = db_path or os.getenv("RESULTS_PATH", None)
+        if _path is None or os.path.isdir(_path) is False:
+            raise ValueError(
+                "Output path must be provided either as an argument or via the RESULTS_PATH environment variable."
+            )
+        return cast(str, _path)
+
+    def update_total_written(self, current_total_written: int):
+        new_total = self._total_written.get() + current_total_written
+        self._total_written.set(new_total)
+
+    @classmethod
+    def create(cls, manager, **config):
+        _outqueue = config.get("outqueue")
+        if _outqueue is None:
+            raise ValueError("Outqueue must be provided.")
+        outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = cast(
+            queue.Queue[NLPResultItem | TQueueEmpty], _outqueue
+        )
+        total_written = manager.Value("i", 0)
+        config["outqueue"] = outqueue
+        config["total_written"] = total_written
+        return cls(**config)
+
+    def _get_results_id(self) -> str:
+        return datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
     def get_process_name(self) -> str:
         return f"{self.__class__.__name__}"
 
-    def _thread_worker(self):
+    def _runner(self):
         try:
             write_batch = []
             while True:
 
                 try:
-                    nlp_result = self._nlp_results_outqueue.get(timeout=1)
+                    nlp_result = self._outqueue.get(timeout=1)
                     # logger.debug("_thread_worker for {}", self.__class__.__name__)
                     if nlp_result == QUEUE_EMPTY:
                         logger.info("Received QUEUE_EMPTY sentinel")
@@ -62,7 +105,11 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
             logger.error(f"Error occurred while recording NLP results: {e}")
             pass
         finally:
-            pass
+            self._on_write_complete()
+
+    @abstractmethod
+    def _on_write_complete(self):
+        raise NotImplementedError("Subclasses must implement _on_write_complete.")
 
     def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
         """

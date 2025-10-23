@@ -10,6 +10,9 @@ class _BaseProcess(ABC, Process):
         threading.current_thread().name = self.get_process_name()
         super().__init__(name=self.get_process_name())
 
+    def _build_output_path(self, output_path) -> str:
+        raise NotImplementedError("Must implement the _build_output_path method")
+
     @classmethod
     @abstractmethod
     def create(cls, manager, **config):

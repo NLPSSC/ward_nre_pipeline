@@ -1,7 +1,7 @@
+from datetime import datetime
 import json
-from multiprocessing import Process
 import os
-from typing import Any, Callable, Dict, List, cast
+from typing import Any, Callable, Dict, List
 
 from loguru import logger
 
@@ -57,14 +57,11 @@ class SQLiteNLPWriter(DBNLPResultWriter):
 
     def __init__(
         self,
-        db_path: str | None = None,
         *args,
         **kwargs,
     ):
-        self._db_path = self._get_db_path(db_path)
         self._cached_insert_query: str | None = None
         super().__init__(*args, **kwargs)
-        self.start()
 
     ##################################################################
     # ManagementMixin
@@ -77,8 +74,8 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         return
 
     def _delete(self):
-        if os.path.exists(self._db_path):
-            os.remove(self._db_path)
+        if os.path.exists(self._output_path):
+            os.remove(self._output_path)
 
     def _create(self) -> None:
         """
@@ -86,6 +83,12 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         """
         # Currently the database runs a connection per request, so can just return
         return
+
+    def _on_write_complete(self):
+        pass
+
+    def _build_output_file_name(self) -> str:
+        return f"results_{self._get_results_id()}.db"
 
     def get_create_table_query(self, nlp_result: NLPResultItem) -> str:
         note_id: str | int = nlp_result.note_id
@@ -108,14 +111,6 @@ class SQLiteNLPWriter(DBNLPResultWriter):
                 {additional_columns}
             )
         """
-
-    def _get_db_path(self, db_path: str | None) -> str:
-        _path = db_path or os.getenv("RESULTS_PATH", None)
-        if _path is None:
-            raise ValueError(
-                "Database path must be provided either as an argument or via the RESULTS_PATH environment variable."
-            )
-        return cast(str, _path)
 
     def _record(self, nlp_result: Any) -> None:
         """
@@ -165,7 +160,7 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         return query
 
     def _get_database_context(self) -> DatabaseExecutionContext:
-        return SQLiteExecutionContext(self._db_path)
+        return SQLiteExecutionContext(self._output_path)
 
     def on_transaction_begin(self, context: DatabaseExecutionContext) -> None:
         # logger.debug("Transaction started.")
@@ -186,43 +181,43 @@ class SQLiteNLPWriter(DBNLPResultWriter):
         return lambda: SQLiteNLPWriter(db_path=db_path)
 
     def writer_details(self) -> Dict[str, Any]:
-        return {"database_path": self._db_path}
+        return {"database_path": self._output_path}
 
 
-def _get_sqlite_output_db() -> str:
-    results_path = os.getenv("RESULTS_PATH", None)
-    if results_path is None:
-        raise RuntimeError("RESULTS_PATH path not set")
-    return results_path
+# def _get_sqlite_output_db() -> str:
+#     results_path = os.getenv("RESULTS_PATH", None)
+#     if results_path is None:
+#         raise RuntimeError("RESULTS_PATH path not set")
+#     return results_path
 
 
-def build_sqlite_configuration(
-    nlp_results_outqueue,
-    halt_event,
-    use_strategy,
-    writer_is_verbose,
-    processing_barrier,
-):
-    return {
-        "db_path": _get_sqlite_output_db(),
-        "nlp_results_outqueue": nlp_results_outqueue,
-        "user_interrupt": halt_event,
-        "init_strategy": use_strategy,
-        "verbose": writer_is_verbose,
-        "processing_barrier": processing_barrier,
-    }
+# def build_sqlite_configuration(
+#     nlp_results_outqueue,
+#     halt_event,
+#     use_strategy,
+#     writer_is_verbose,
+#     processing_barrier,
+# ):
+#     return {
+#         "db_path": _get_sqlite_output_db(),
+#         "nlp_results_outqueue": nlp_results_outqueue,
+#         "user_interrupt": halt_event,
+#         "init_strategy": use_strategy,
+#         "verbose": writer_is_verbose,
+#         "processing_barrier": processing_barrier,
+#     }
 
 
-def initialize_writer_process(
-    writer_type,
-    config,
-) -> Process:
+# def initialize_writer_process(
+#     writer_type,
+#     config,
+# ) -> Process:
 
-    nlp_results_writer_process = Process(
-        target=writer_type,
-        kwargs=config,
-    )
+#     nlp_results_writer_process = Process(
+#         target=writer_type,
+#         kwargs=config,
+#     )
 
-    nlp_results_writer_process.start()
+#     nlp_results_writer_process.start()
 
-    return nlp_results_writer_process
+#     return nlp_results_writer_process
