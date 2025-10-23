@@ -1,7 +1,7 @@
 import os
 import queue
 from abc import abstractmethod
-from typing import Any, Iterator, Optional, Self
+from typing import Any, Iterator, List, Optional, Self
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from ._base_process import _BaseProcess
 from nre_pipeline.common.base._consts import QUEUE_EMPTY, TProcessingStatus, TQueueEmpty

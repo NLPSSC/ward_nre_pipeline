@@ -4,15 +4,14 @@ import os
 import queue
 import threading
 from abc import abstractmethod
-from typing import Any, Generator, List, cast
+from typing import Any, Generator, List, Self, Tuple, cast
 from loguru import logger
-from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
-from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
+from nre_pipeline.common.base._base_process import _BaseProcess
+from nre_pipeline.common.base._consts import QUEUE_EMPTY, TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 
-from nre_pipeline.processor.consts import TQueueItem
 import queue, threading
 
 
@@ -123,73 +122,110 @@ class Processor(_BaseProcess, VerboseMixin):
     def __init__(
         self,
         processor_id: int,
-        document_batch_inqueue: queue.Queue,
-        nlp_results_outqueue: queue.Queue,
-        process_interrupt: threading.Event,
-        processing_barrier,
-        **kwargs,
+        total_documents_processed,
+        inqueue: queue.Queue[DocumentBatch | TQueueEmpty],
+        outqueue: queue.Queue[NLPResultItem | TQueueEmpty],
+        **config,
     ) -> None:
-        super().__init__(user_interrupt=process_interrupt, **kwargs)
-        self._processor_index = processor_id
-        self._document_batch_inqueue = document_batch_inqueue
-        self._nlp_results_outqueue = nlp_results_outqueue
-        self._processing_barrier = processing_barrier
-        self._total_docs_processed = 0
+        self._process_name = f"{self.__class__.__name__}-{processor_id}"
+        super().__init__(**config)
+        self._processor_index: int = processor_id
+        self._inqueue: queue.Queue[DocumentBatch | TQueueEmpty] = inqueue
+        self._outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = outqueue
+        self._total_documents_processed = total_documents_processed
 
         # Name the current thread using the derived class name and processor index
         threading.current_thread().name = (
             f"{self.__class__.__name__}-{self._processor_index}"
         )
 
-    @property
-    def total_docs_processed(self) -> int:
-        return self._total_docs_processed
+    @classmethod
+    def create(
+        cls, manager, **config
+    ) -> Tuple[List[Self], queue.Queue[NLPResultItem | TQueueEmpty]]:
 
-    def _thread_worker(self):
-        self()
+        num_workers: int = int(config.pop("num_workers", -1))
+        if num_workers < 1:
+            raise ValueError("num_workers must be a positive integer")
+
+        inqueue = config.get("inqueue")
+        if inqueue is None:
+            raise RuntimeError("inqueue must be provided")
+
+        ###############################################################################
+        # One outqueue to rule them all...
+        ###############################################################################
+        outqueue_size = int(os.getenv("OUTQUEUE_MAX_DOCBATCH_COUNT", -1))
+        if outqueue_size < 1:
+            raise ValueError("OUTQUEUE_MAX_DOCBATCH_COUNT must be a positive integer")
+
+        outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = manager.Queue(
+            outqueue_size
+        )
+
+        total_documents_processed = manager.Value("i", 0)
+        processor_ids: List[int] = list(range(num_workers))
+
+        configs = []
+        for proc_id in processor_ids:
+            config["inqueue"] = inqueue
+            config["outqueue"] = outqueue
+            config["total_documents_processed"] = total_documents_processed
+            config["processor_id"] = proc_id
+            configs.append(config)
+
+        processors: List[Self] = [cls(**config) for config in configs]
+
+        return processors, outqueue
+
+    def get_process_name(self):
+        return self._process_name
+
+    @property
+    def total_docs_processed(self):
+        return self._total_documents_processed
+
+    def update_total_docs_processed(self, total_count: int):
+        new_total = self._total_documents_processed.get() + total_count
+        self._total_documents_processed.value = new_total
 
     def __repr__(self) -> str:
         return f"[{self.__class__.__name__}] [{self._processor_index}]"
 
-    def __call__(self):
+    def _runner(self):
         try:
             # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
 
-            total_output_count = 0
-            while not self.user_interrupted():
+            while True:
                 try:
-                    item = self._document_batch_inqueue.get(block=True, timeout=0.1)
+                    item = self._inqueue.get(block=True, timeout=0.1)
                 except queue.Empty:
                     continue
+
+                #############################################################################
+                # Check for sentinel value indicating no more items
+                #############################################################################
                 if item == QUEUE_EMPTY:
-                    if self._document_batch_inqueue.qsize() > 0:
+                    if self._inqueue.qsize() > 0:
                         raise RuntimeError(
                             "Queue is not empty after receiving QUEUE_EMPTY"
                         )
-                    self._processing_barrier.wait()
-                    logger.debug(
-                        "Processing sentinel released for processor {}",
-                        self._processor_index,
-                    )
-                    self._document_batch_inqueue.put(QUEUE_EMPTY)
-                    break
-                doc_batch: DocumentBatch = cast(DocumentBatch, item)
-                self._total_docs_processed += len(doc_batch)
 
-                processor_iter: Generator[NLPResultItem, Any, None] = (
-                    self._call_processor(doc_batch)
-                )
-                for result in processor_iter:
+                    # Re-add to signal other processors
+                    self._inqueue.put(QUEUE_EMPTY)
+                    break
+
+                doc_batch: DocumentBatch = cast(DocumentBatch, item)
+
+                total_output_count = self.total_docs_processed.get()
+                for result in self._call_processor(doc_batch):
                     total_output_count += 1
-                    # logger.debug(
-                    #     "Total passed to nlp_results_outqueue: {}", total_output_count
-                    # )
-                    self._nlp_results_outqueue.put(result)
+                    self._outqueue.put(result)
+                self.update_total_docs_processed(total_output_count)
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
         finally:
-            self.set_complete()
-            self.set_user_interrupt()
+            pass
 
     @abstractmethod
     def _call_processor(

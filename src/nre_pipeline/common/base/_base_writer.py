@@ -1,22 +1,17 @@
-from loguru import logger
-from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
-from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
-from nre_pipeline.app.verbose_mixin import VerboseMixin
-from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
-from nre_pipeline.writer.init_strategy import _InitStrategy
-from nre_pipeline.writer.mixins.management import ManagementMixin
-
-
 import queue
 import threading
 from abc import abstractmethod
 from typing import Any, Callable, Dict, List, Union
+from loguru import logger
+from nre_pipeline.app.verbose_mixin import VerboseMixin
+from nre_pipeline.common.base._base_process import _BaseProcess
+from nre_pipeline.common.base._consts import QUEUE_EMPTY
+from nre_pipeline.models._nlp_result import NLPResultItem
+from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
+from nre_pipeline.writer.init_strategy import _InitStrategy
 
 
-class NLPResultWriter(
-    _BaseProcess, VerboseMixin
-):
+class NLPResultWriter(_BaseProcess, VerboseMixin):
     """
     Abstract base class for corpus writers that write to files.
     """
@@ -24,24 +19,23 @@ class NLPResultWriter(
     def __init__(
         self,
         nlp_results_outqueue: queue.Queue,
-        user_interrupt: threading.Event,
         processing_barrier,
-        init_strategy: _InitStrategy | None = None,
         **config,
     ):
         self._nlp_results_outqueue = nlp_results_outqueue
         self._num_processor_workers = config.get("num_processor_workers", 1)
         self._processing_barrier = processing_barrier
-        if init_strategy is not None:
-            init_strategy(self)
+        # if init_strategy is not None:
+        #     init_strategy(self)
+        super().__init__(**config)
 
-        super().__init__(user_interrupt=user_interrupt)
-        threading.current_thread().name = f"{self.__class__.__name__}"
+    def get_process_name(self) -> str:
+        return f"{self.__class__.__name__}"
 
     def _thread_worker(self):
         try:
             write_batch = []
-            while not self.user_interrupted():
+            while True:
 
                 try:
                     nlp_result = self._nlp_results_outqueue.get(timeout=1)
@@ -66,9 +60,8 @@ class NLPResultWriter(
                 write_batch = []
         except Exception as e:
             logger.error(f"Error occurred while recording NLP results: {e}")
-            self.set_user_interrupt()
+            pass
         finally:
-            self.set_complete()
             pass
 
     def record(self, nlp_result: Union[NLPResultItem, List[NLPResultItem]]) -> None:
@@ -78,8 +71,6 @@ class NLPResultWriter(
         Args:
             nlp_result: The NLPResult to write
         """
-        if self.user_interrupted():
-            return
         self._record(nlp_result)
 
     @abstractmethod
@@ -93,3 +84,9 @@ class NLPResultWriter(
     @abstractmethod
     def writer_details(self) -> Dict[str, Any]:
         raise NotImplementedError("Subclasses must implement this method.")
+
+
+#################################################################################
+# Initialization strategy for persistance
+#################################################################################
+# init_strategy: _InitStrategy | None = None,
