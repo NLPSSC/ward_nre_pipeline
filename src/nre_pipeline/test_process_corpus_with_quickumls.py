@@ -5,12 +5,14 @@ Simple test for MedspacyUmlsProcessor to debug the matching issue.
 
 
 from multiprocessing import Manager, Process, freeze_support
+from multiprocessing.managers import ValueProxy
+import os
 import queue
+from threading import Event
 from typing import List, cast
 from nre_pipeline.common import setup_logging
 from nre_pipeline.common.base._base_processor import initialize_nlp_processes
 from nre_pipeline.models._batch import DocumentBatch
-from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 from nre_pipeline.processor.quickumls_processor._quickumls import (
     QuickUMLSProcessor,
     build_quickumls_processor_config,
@@ -60,21 +62,21 @@ def test_reader(document_batch_inqueue) -> int:
 
 def test_processor():
     """Test the MedspacyUmlsProcessor with sample data."""
-    permitted_extensions = [".txt"]
-    reader_is_verbose = True
+
+    os.environ["VERBOSE_READER"] = "True"
+
+    permitted_extensions: List[str] = [".txt"]
 
     with Manager() as manager:
 
-        document_batch_inqueue = _create_inqueue(manager)
-        nlp_results_outqueue = _create_outqueue(manager)
-        total_docs_processed = manager.Value("i", 0)
-        halt_event = manager.Event()
+        document_batch_inqueue: queue.Queue[DocumentBatch] = _create_inqueue(manager)
+        nlp_results_outqueue: queue.Queue[DocumentBatch] = _create_outqueue(manager)
+        halt_event: Event = manager.Event()
 
-        reader_process = initialize_reader(
+        reader_process: Process = initialize_reader(
             FileSystemReader,
             config=build_file_system_reader_config(
                 permitted_extensions,
-                reader_is_verbose,
                 document_batch_inqueue,
                 halt_event,
             ),
@@ -88,7 +90,7 @@ def test_processor():
         nlp_processes, processing_barrier = initialize_nlp_processes(
             processor_type=QuickUMLSProcessor,
             config=build_quickumls_processor_config(
-                document_batch_inqueue, nlp_results_outqueue, halt_event, total_docs_processed
+                document_batch_inqueue, nlp_results_outqueue, halt_event
             ),
             manager=manager,
         )

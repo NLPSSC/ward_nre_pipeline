@@ -2,7 +2,6 @@ from loguru import logger
 from nre_pipeline.app.interruptible_mixin import InterruptibleMixin
 from nre_pipeline.app.thread_loop_mixin import ThreadLoopMixin
 from nre_pipeline.app.verbose_mixin import VerboseMixin
-from nre_pipeline.common.base._base_processor import QUEUE_EMPTY
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
 from nre_pipeline.writer.init_strategy import _InitStrategy
@@ -16,7 +15,7 @@ from typing import Any, Callable, Dict, List, Union
 
 
 class NLPResultWriter(
-    ThreadLoopMixin, InterruptibleMixin, ManagementMixin, VerboseMixin
+    _BaseProcess, VerboseMixin
 ):
     """
     Abstract base class for corpus writers that write to files.

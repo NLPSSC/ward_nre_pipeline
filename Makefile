@@ -43,3 +43,6 @@ clean-all-docker:
 	docker image prune -f
 	docker builder prune -f
 	docker system prune -f
+
+start-docker:
+	@sudo service docker start

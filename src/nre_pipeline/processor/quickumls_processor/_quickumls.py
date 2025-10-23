@@ -279,13 +279,12 @@ class QuickUMLSProcessor(Processor):
 
 
 def build_quickumls_processor_config(
-    document_batch_inqueue, nlp_results_outqueue, halt_event, total_docs_processed
+    document_batch_inqueue, nlp_results_outqueue, halt_event
 ):
 
     return {
         "metric": "jaccard",
         "document_batch_inqueue": document_batch_inqueue,
         "nlp_results_outqueue": nlp_results_outqueue,
-        "process_interrupt": halt_event,
-        "total_docs_processed": total_docs_processed,
+        "process_interrupt": halt_event
     }
