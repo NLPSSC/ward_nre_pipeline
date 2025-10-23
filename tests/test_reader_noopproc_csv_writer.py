@@ -8,7 +8,7 @@ from tqdm import tqdm
 from nre_pipeline.common import setup_logging
 from nre_pipeline.processor.noop_processor import NoOpProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
-from nre_pipeline.writer.database._csv_writer import CSVWriter
+from nre_pipeline.writer.filesystem._csv_writer import CSVWriter
 
 
 def get_test_data_path(test_data_path: str | None = None) -> str:
@@ -49,34 +49,8 @@ if __name__ == "__main__":
         total_queued: int = 0
         total_processed: int = 0
 
-        pbar = tqdm(total=txt_file_count, unit="doc", desc="Processed", leave=True)
-        _stop_event = threading.Event()
-
-        def _monitor():
-            last = 0
-            while not _stop_event.is_set():
-                current_processed: int = total_processed
-                diff = current_processed - last
-                if diff > 0:
-                    pbar.update(diff)
-                    last = current_processed
-                time.sleep(0.05)
-
-        _monitor_thread = threading.Thread(target=_monitor, daemon=True)
-        _monitor_thread.start()
-
-        def _cleanup():
-            _stop_event.set()
-            _monitor_thread.join(timeout=1)
-            try:
-                pbar.close()
-            except Exception:
-                pass
-
-        atexit.register(_cleanup)
-
         processors, outqueue = NoOpProcessor.create(
-            mgr, **{"num_workers": 1, "inqueue": reader.inqueue}
+            mgr, **{"num_workers": 2, "inqueue": reader.inqueue}
         )
         writer: CSVWriter = CSVWriter.create(mgr, **{"outqueue": outqueue})
 
