@@ -53,7 +53,7 @@
 				"name": "[Test] Reader/Processor/Writer[CSV] (quickumls)",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/test_reader_quickumls_processor.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/tests/test_reader_quickumls_processor_csv_writer.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},

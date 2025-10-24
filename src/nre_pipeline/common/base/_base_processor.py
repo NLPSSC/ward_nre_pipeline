@@ -244,9 +244,10 @@ class Processor(_BaseProcess, VerboseMixin):
         except Exception as e:
             logger.error(f"Error in processor loop: {e}")
         finally:
-            self._outqueue.put(QUEUE_EMPTY)
-            if self._process_counter.get() > 0:
-                self._process_counter.set(self._process_counter.get() - 1)
+            with self._processor_lock:
+                self._outqueue.put(QUEUE_EMPTY)
+                if self._process_counter.get() > 0:
+                    self._process_counter.set(self._process_counter.get() - 1)
 
             logger.debug("{} processor exiting...", self.get_process_name())
 

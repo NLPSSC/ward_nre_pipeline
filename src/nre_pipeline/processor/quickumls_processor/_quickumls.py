@@ -79,6 +79,7 @@ class QuickUMLSProcessor(Processor):
             try:
                 # Extract UMLS concepts using QuickUMLS
                 # logger.debug(f"Processing document: {doc.note_id}")
+                doc_length = len(doc.text)
                 umls_matches = self._matcher.match(doc.text)
 
                 if len(umls_matches) > 0:
@@ -96,6 +97,7 @@ class QuickUMLSProcessor(Processor):
                             NLPResultFeature("semtypes", match["semtypes"]),
                             NLPResultFeature("pos_start", match["start"]),
                             NLPResultFeature("pos_end", match["end"]),
+                            NLPResultFeature("doc_length", doc_length),
                         ]
                         yield NLPResultItem(
                             note_id=doc.note_id, result_features=result_items

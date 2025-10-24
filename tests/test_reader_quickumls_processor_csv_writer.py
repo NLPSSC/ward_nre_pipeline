@@ -31,7 +31,7 @@ if __name__ == "__main__":
     freeze_support()
     setup_logging(verbose=True)
 
-    num_processors = 1  # multiprocessing.cpu_count()
+    num_processors = 4  # multiprocessing.cpu_count()
 
     smaller_subset = "/input_data/Am_J_Dent_Sci/1839"
     larger_subset = "/input_data/Am_J_Dent_Sci"
