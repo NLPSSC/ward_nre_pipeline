@@ -4,13 +4,10 @@ FileSystemReader class for recursively iterating over files in a directory.
 
 from __future__ import annotations
 
-from multiprocessing import Process
 import os
 from pathlib import Path
 import queue
-import queue
-import threading
-from typing import Any, Callable, Dict, Generator, List, Union
+from typing import Any, Generator, List, Union
 
 from loguru import logger
 
@@ -58,10 +55,8 @@ class FileSystemReader(CorpusReader):
 
         self._debug_log("FileSystemReader loaded")
 
-
-
     def get_process_name(self):
-        return f"FileSystemReader-{id(self)}"
+        return f"FileSystemReader"
 
     def make_doc(self, source: Path | str) -> Document:
         """Create a Document from a file path.

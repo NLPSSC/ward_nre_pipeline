@@ -7,8 +7,9 @@ from loguru import logger
 class _BaseProcess(ABC, Process):
 
     def __init__(self) -> None:
-        threading.current_thread().name = self.get_process_name()
-        super().__init__(name=self.get_process_name())
+        # threading.current_thread().name = self.get_process_name()
+        process_name = self.get_process_name()
+        super().__init__(name=process_name)
 
     def _build_output_path(self, output_path) -> str:
         raise NotImplementedError("Must implement the _build_output_path method")

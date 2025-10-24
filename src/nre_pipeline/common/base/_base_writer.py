@@ -6,7 +6,7 @@ from abc import abstractmethod
 from typing import Any, Callable, Dict, List, Union, cast
 from loguru import logger
 from nre_pipeline.app.verbose_mixin import VerboseMixin
-from nre_pipeline.common.base._base_process import _BaseProcess
+from nre_pipeline.common.base._component_base import _BaseProcess
 from nre_pipeline.common.base._consts import QUEUE_EMPTY, TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
@@ -21,12 +21,15 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
         self,
         outqueue: queue.Queue,
         total_written,
+        process_counter,
         output_path: str | None = None,
         **config,
     ):
         self._outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = outqueue
         self._total_written = total_written
+        self._process_counter = process_counter
         self._output_path: str = self._build_output_path(output_path)
+
         super().__init__()
 
     @property
@@ -34,7 +37,15 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
         return self._output_path
 
     def _build_output_path(self, output_path) -> str:
-        return str(Path(self._get_output_path(output_path)) / self._build_output_file_name())
+        output_folder: Path = (
+            Path(self._get_output_path(output_path)) / self._output_subfolder()
+        )
+        output_folder.mkdir(exist_ok=True)
+        return str(output_folder / self._build_output_file_name())
+
+    @abstractmethod
+    def _output_subfolder(self) -> str:
+        raise NotImplementedError("Must implement _output_subfolder")
 
     @abstractmethod
     def _build_output_file_name(self) -> str:
@@ -67,6 +78,10 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
         total_written = manager.Value("i", 0)
         config["outqueue"] = outqueue
         config["total_written"] = total_written
+        config["process_counter"] = config.get("process_counter")
+        config["all_processes_complete_barrier"] = config.get(
+            "all_processes_complete_barrier"
+        )
         return cls(**config)
 
     def _get_results_id(self) -> str:
@@ -76,6 +91,7 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
         return f"{self.__class__.__name__}"
 
     def _runner(self):
+        queue_empty_set = False
         try:
             write_batch = []
             while True:
@@ -83,11 +99,12 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
                 try:
                     nlp_result = self._outqueue.get(timeout=1)
                     # logger.debug("_thread_worker for {}", self.__class__.__name__)
-                    if nlp_result == QUEUE_EMPTY:
-                        logger.info("Received QUEUE_EMPTY sentinel")
-                        break
+                    queue_empty_set = nlp_result == QUEUE_EMPTY
 
                 except queue.Empty:
+                    if queue_empty_set and self._process_counter.get() == 0:
+                        logger.info("Received QUEUE_EMPTY sentinel")
+                        break
                     continue
 
                 if isinstance(nlp_result, NLPResultItem):
@@ -95,8 +112,6 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
                     if len(write_batch) >= DEFAULT_WRITE_BATCH_SIZE:
                         self.record(write_batch)
                         write_batch = []
-                else:
-                    raise RuntimeError("Unexpected item type in writer queue")
 
             if write_batch:
                 self.record(write_batch)

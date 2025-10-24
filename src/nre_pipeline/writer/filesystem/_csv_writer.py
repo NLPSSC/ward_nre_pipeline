@@ -45,10 +45,16 @@ class CSVWriter(NLPResultWriter):
     def writer_details(self) -> Dict[str, Any]:
         return {"csv_path": self.output_path}
 
+    def _output_subfolder(self) -> str:
+        return "csv"
+
     def _build_output_file_name(self) -> str:
         return f"results_{self._get_results_id()}.csv"
 
     def _on_write_complete(self) -> None:
+        """
+        Close the output file handle and write notes about the CSV file.
+        """
         self._output_fh.close()
         with open(f"{self.output_path}.notes.md", "w") as notes_fh:
             notes_fh.write("# Notes\n")

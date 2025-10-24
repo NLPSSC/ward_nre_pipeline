@@ -7,8 +7,12 @@ from abc import abstractmethod
 from typing import Any, Generator, List, Self, Tuple, cast
 from loguru import logger
 from nre_pipeline.app.verbose_mixin import VerboseMixin
-from nre_pipeline.common.base._base_process import _BaseProcess
-from nre_pipeline.common.base._consts import QUEUE_EMPTY, TQueueEmpty
+from nre_pipeline.common.base._component_base import _BaseProcess
+from nre_pipeline.common.base._consts import (
+    PROCESSING_COMPLETED,
+    QUEUE_EMPTY,
+    TQueueEmpty,
+)
 from nre_pipeline.models._nlp_result import NLPResultItem
 from nre_pipeline.models._batch import DocumentBatch
 
@@ -126,6 +130,8 @@ class Processor(_BaseProcess, VerboseMixin):
         inqueue: queue.Queue[DocumentBatch | TQueueEmpty],
         outqueue: queue.Queue[NLPResultItem | TQueueEmpty],
         process_counter,
+        processor_lock,
+        inqueue_empty_sentinel,
         **config,
     ) -> None:
         self._process_name = f"{self.__class__.__name__}-{processor_id}"
@@ -135,50 +141,18 @@ class Processor(_BaseProcess, VerboseMixin):
         self._inqueue: queue.Queue[DocumentBatch | TQueueEmpty] = inqueue
         self._outqueue: queue.Queue[NLPResultItem | TQueueEmpty] = outqueue
         self._total_documents_processed = total_documents_processed
+        self._processor_lock = processor_lock
+        self._inqueue_empty_sentinel = inqueue_empty_sentinel
 
         # Name the current thread using the derived class name and processor index
         threading.current_thread().name = (
             f"{self.__class__.__name__}-{self._processor_index}"
         )
 
-    def _runner(self):
-        try:
-            # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
-
-            while True:
-                try:
-                    item = self._inqueue.get(block=True, timeout=0.1)
-                    #############################################################################
-                    # Check for sentinel value indicating no more items
-                    #############################################################################
-                    if item == QUEUE_EMPTY:
-                        if self._inqueue.qsize() > 0:
-                            raise RuntimeError(
-                                "Queue is not empty after receiving QUEUE_EMPTY"
-                            )
-                        if self._process_counter.get() > 0:
-                            self._inqueue.put(QUEUE_EMPTY)
-                            self._process_counter.set(self._process_counter.get() - 1)
-                        break
-                except queue.Empty:
-                    continue
-
-                doc_batch: DocumentBatch = cast(DocumentBatch, item)
-
-                total_output_count = self.total_docs_processed.get()
-                for result in self._call_processor(doc_batch):
-                    total_output_count += 1
-                    self._outqueue.put(result)
-                self.update_total_docs_processed(total_output_count)
-        except Exception as e:
-            logger.error(f"Error in processor loop: {e}")
-        finally:
-            self._outqueue.put(QUEUE_EMPTY)
-
     @classmethod
     def create(
         cls, manager, **config
-    ) -> Tuple[List[Self], queue.Queue[NLPResultItem | TQueueEmpty]]:
+    ) -> Tuple[List[Self], queue.Queue[NLPResultItem | TQueueEmpty], Any]:
 
         num_workers: int = int(config.pop("num_workers", -1))
         if num_workers < 1:
@@ -188,7 +162,9 @@ class Processor(_BaseProcess, VerboseMixin):
         if inqueue is None:
             raise RuntimeError("inqueue must be provided")
 
-        process_counter = manager.Value("i", num_workers - 1)
+        process_counter = manager.Value("i", num_workers)
+        processor_lock = manager.Lock()
+        inqueue_empty_sentinel = manager.Event()
 
         ###############################################################################
         # One outqueue to rule them all...
@@ -206,16 +182,66 @@ class Processor(_BaseProcess, VerboseMixin):
 
         configs = []
         for proc_id in processor_ids:
-            config["inqueue"] = inqueue
-            config["outqueue"] = outqueue
-            config["total_documents_processed"] = total_documents_processed
-            config["processor_id"] = proc_id
-            config["process_counter"] = process_counter
-            configs.append(config)
+            new_config = {k: v for k, v in config.items()}
+            new_config["inqueue"] = inqueue
+            new_config["outqueue"] = outqueue
+            new_config["total_documents_processed"] = total_documents_processed
+            new_config["processor_id"] = proc_id
+            new_config["process_counter"] = process_counter
+            new_config["processor_lock"] = processor_lock
+            new_config["inqueue_empty_sentinel"] = inqueue_empty_sentinel
+            configs.append(new_config)
 
-        processors: List[Self] = [cls(**config) for config in configs]
+        processors = []
+        for config in configs:
+            processors.append(cls(**config))
 
-        return processors, outqueue
+        return processors, outqueue, process_counter
+
+    def _runner(self):
+        try:
+            # Only the first processor should propagate QUEUE_EMPTY to avoid infinite propagation
+
+            while not self._inqueue_empty_sentinel.is_set():
+                try:
+                    item = self._inqueue.get(block=True, timeout=5)
+                except queue.Empty:
+                    # logger.debug(
+                    #     "Processor {} queue empty, continuing...",
+                    #     self.get_process_name(),
+                    # )
+                    continue
+
+                if isinstance(item, DocumentBatch):
+                    doc_batch: DocumentBatch = cast(DocumentBatch, item)
+                    total_output_count = self.total_docs_processed.get()
+                    for result in self._call_processor(doc_batch):
+                        total_output_count += 1
+                        self._outqueue.put(result)
+                    self.update_total_docs_processed(total_output_count)
+                else:
+                    #############################################################################
+                    # Check for sentinel value indicating no more items
+                    # If exists, propagate it, update the process counter, then
+                    # exit this processor
+                    #############################################################################
+                    with self._processor_lock:
+                        if item == QUEUE_EMPTY or self._inqueue_empty_sentinel.is_set():
+                            logger.debug(
+                                "Processor count: {}", self._process_counter.get()
+                            )
+                            self._inqueue_empty_sentinel.set()
+
+                            break
+
+        except Exception as e:
+            logger.error(f"Error in processor loop: {e}")
+        finally:
+            self._outqueue.put(QUEUE_EMPTY)
+            if self._process_counter.get() > 0:
+                self._process_counter.set(self._process_counter.get() - 1)
+
+            logger.debug("{} processor exiting...", self.get_process_name())
 
     def get_process_name(self):
         return self._process_name
@@ -225,8 +251,9 @@ class Processor(_BaseProcess, VerboseMixin):
         return self._total_documents_processed
 
     def update_total_docs_processed(self, total_count: int):
-        new_total = self._total_documents_processed.get() + total_count
-        self._total_documents_processed.value = new_total
+        with self._processor_lock:
+            new_total = self._total_documents_processed.get() + total_count
+            self._total_documents_processed.set(new_total)
 
     def __repr__(self) -> str:
         return f"[{self.__class__.__name__}] [{self._processor_index}]"
