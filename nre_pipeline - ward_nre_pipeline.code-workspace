@@ -66,70 +66,12 @@
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			},
 			{
-				"name": "[Test] QuickUMLS (serial, one processor)",
+				"name": "[Test] Build csv to dict lookup",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/test_quickumls_processor.py",
+				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/converter/from_csv/to_dict_lookup.py",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] QuickUMLS (multiprocess)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/test_process_corpus_with_quickumls.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-				"cwd": "${workspaceFolder:ward_nre_pipeline}",
-			},
-			{
-				"name": "Debug NRE Pipeline (Verbose)",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "nre_pipeline",
-				"args": [
-					"--verbose"
-				],
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder:ward_nre_pipeline}",
-				"env": {},
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-				"python": "${workspaceFolder:ward_nre_pipeline}/envs/nre_pipeline/Scripts/python.exe",
-				"justMyCode": true,
-				"stopOnEntry": false,
-				"redirectOutput": true
-			},
-			{
-				"name": "Debug NRE Pipeline (Default)",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "nre_pipeline",
-				"args": [],
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder:ward_nre_pipeline}",
-				"env": {},
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-				"python": "${workspaceFolder:ward_nre_pipeline}/envs/nre_pipeline/Scripts/python.exe",
-				"justMyCode": true,
-				"stopOnEntry": false,
-				"redirectOutput": true
-			},
-			{
-				"name": "Debug NRE Pipeline (__main__.py)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/__main__.py",
-				"args": [
-					"--verbose"
-				],
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder:ward_nre_pipeline}",
-				"env": {},
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-				"python": "${workspaceFolder:ward_nre_pipeline}/envs/nre_pipeline/Scripts/python.exe",
-				"justMyCode": true,
-				"stopOnEntry": false,
-				"redirectOutput": true
 			}
 		],
 		"compounds": []
