@@ -4,7 +4,7 @@ import os
 import queue
 import threading
 from abc import abstractmethod
-from typing import Any, Generator, List, Self, Tuple, cast
+from typing import Any, Dict, Generator, List, Self, Tuple, cast
 from loguru import logger
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.common.base._component_base import _BaseProcess
@@ -135,6 +135,9 @@ class Processor(_BaseProcess, VerboseMixin):
         **config,
     ) -> None:
         self._process_name = f"{self.__class__.__name__}-{processor_id}"
+        self._processor_config = cast(
+            Dict[str, Any], config.pop("processor_config", {})
+        )
         super().__init__(**config)
         self._process_counter = process_counter
         self._processor_index: int = processor_id
@@ -148,6 +151,10 @@ class Processor(_BaseProcess, VerboseMixin):
         threading.current_thread().name = (
             f"{self.__class__.__name__}-{self._processor_index}"
         )
+
+    @property
+    def processor_config(self) -> Dict[str, Any]:
+        return self._processor_config
 
     @classmethod
     def create(
