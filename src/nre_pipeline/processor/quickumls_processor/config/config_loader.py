@@ -1,7 +1,8 @@
+import yaml
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
-import yaml
+from loguru import logger
 
 
 @dataclass
@@ -32,10 +33,7 @@ def load_config(config_path: Path) -> Dict[str, Any]:
     return config
 
 
-def get_quickumls_config(
-    config_param: Union[Literal["cosine", "jaccard", "levenshtein"], Path],
-    quick_umls_parameters: Optional[QuickUMLSConfig] = None,
-) -> Dict[str, Any]:
+def get_quickumls_config(quickumls_config) -> Dict[str, Any] | None:
     """Get the configuration for the QuickUMLS matcher.
 
     Returns:
@@ -66,27 +64,33 @@ def get_quickumls_config(
     # verbose: Optional[bool] = None,
     # accepted_semtypes: Optional[List[str]] = None,
 
-    if isinstance(config_param, Path):
-        config: Dict[str, Any] = load_config(config_param)
+    quickumls_config_path = quickumls_config.get("quickumls_config_path", None)
+    metric = quickumls_config.get("metric", None)
+    config: Dict[str, Any] | None = None
+    if quickumls_config_path is not None:
+        config = load_config(quickumls_config_path)
+    elif metric is not None:
+        config = load_default_config(metric)
     else:
-        config = load_default_config(config_param)
-        
-    if quick_umls_parameters is not None:
-        if quick_umls_parameters.threshold is not None:
-            config["threshold"] = float(quick_umls_parameters.threshold)
-        if quick_umls_parameters.similarity_name is not None:
-            config["similarity_name"] = quick_umls_parameters.similarity_name
-        if quick_umls_parameters.window is not None:
-            config["window"] = int(quick_umls_parameters.window)
-        if quick_umls_parameters.min_match_length is not None:
-            config["min_match_length"] = int(quick_umls_parameters.min_match_length)
-        if quick_umls_parameters.ignore_syntax is not None:
-            config["ignore_syntax"] = bool(quick_umls_parameters.ignore_syntax)
-        if quick_umls_parameters.best_match is not None:
-            config["best_match"] = bool(quick_umls_parameters.best_match)
-        if quick_umls_parameters.verbose is not None:
-            config["verbose"] = bool(quick_umls_parameters.verbose)
-        if quick_umls_parameters.accepted_semtypes is not None:
-            config["accepted_semtypes"] = set(quick_umls_parameters.accepted_semtypes)
+        logger.error("No valid QuickUMLS configuration path or metric provided.")
+        raise ValueError("No valid QuickUMLS configuration path or metric provided.")
+
+    # if quick_umls_parameters is not None:
+    #     if quick_umls_parameters.threshold is not None:
+    #         config["threshold"] = float(quick_umls_parameters.threshold)
+    #     if quick_umls_parameters.similarity_name is not None:
+    #         config["similarity_name"] = quick_umls_parameters.similarity_name
+    #     if quick_umls_parameters.window is not None:
+    #         config["window"] = int(quick_umls_parameters.window)
+    #     if quick_umls_parameters.min_match_length is not None:
+    #         config["min_match_length"] = int(quick_umls_parameters.min_match_length)
+    #     if quick_umls_parameters.ignore_syntax is not None:
+    #         config["ignore_syntax"] = bool(quick_umls_parameters.ignore_syntax)
+    #     if quick_umls_parameters.best_match is not None:
+    #         config["best_match"] = bool(quick_umls_parameters.best_match)
+    #     if quick_umls_parameters.verbose is not None:
+    #         config["verbose"] = bool(quick_umls_parameters.verbose)
+    #     if quick_umls_parameters.accepted_semtypes is not None:
+    #         config["accepted_semtypes"] = set(quick_umls_parameters.accepted_semtypes)
 
     return config

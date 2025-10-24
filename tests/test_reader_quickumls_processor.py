@@ -3,6 +3,7 @@ import multiprocessing
 from loguru import logger
 from multiprocessing import Manager, freeze_support
 from nre_pipeline.common import setup_logging
+from nre_pipeline.common.base._base_writer import NLPResultWriter
 from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
 from nre_pipeline.writer.filesystem._csv_writer import CSVWriter
@@ -55,6 +56,7 @@ if __name__ == "__main__":
             **{
                 "num_workers": num_processors,
                 "inqueue": reader.inqueue,
+                "processor_config": {"metric": "jaccard"},
             },
         )
         writer: CSVWriter = CSVWriter.create(

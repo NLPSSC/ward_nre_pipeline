@@ -32,25 +32,26 @@ class QuickUMLSProcessor(Processor):
 
     def __init__(
         self,
-        metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path],
         *args,
-        **kwargs,
+        **config,
     ) -> None:
-        super().__init__(*args, **kwargs)
-        self._metric = metric
-        self._matcher: QuickUMLS = self._create_matcher(metric)
-        self.start()
+        super().__init__(*args, **config)
+        self._matcher: QuickUMLS = self._create_matcher()
 
-    def _create_matcher(
-        self, metric: Union[Literal["cosine", "jaccard", "levenshtein"], Path]
-    ) -> QuickUMLS:
+    def _create_matcher(self) -> QuickUMLS:
         """
         Create and return a new QuickUMLS matcher for this processor instance.
         """
         try:
             quickumls_path: Path = self._init_quickumls_path()
             logger.info(f"Initializing QuickUMLS matcher at {quickumls_path}")
-            quickumls_config: Dict[str, Any] = get_quickumls_config(metric)
+
+            quickumls_config: Dict[str, Any] | None = get_quickumls_config(
+                self.processor_config
+            )
+            if quickumls_config is None:
+                raise ValueError("QuickUMLS configuration could not be loaded.")
+
             try:
                 matcher = QuickUMLS(quickumls_path, **quickumls_config)
             except TypeError as te:
@@ -58,7 +59,7 @@ class QuickUMLSProcessor(Processor):
                     "QuickUMLS constructor does not accept 'similarity_name'; using default similarity metric.",
                     te,
                 )
-                matcher = QuickUMLS(quickumls_path)
+                matcher: QuickUMLS = QuickUMLS(quickumls_path)
             logger.info("QuickUMLS matcher initialized successfully.")
         except Exception as e:
             logger.error(
@@ -134,16 +135,19 @@ class QuickUMLSProcessor(Processor):
         return quickumls_path_obj
 
 
-def build_quickumls_processor_config(
-    document_batch_inqueue, nlp_results_outqueue, halt_event
-):
+##################################################################################
+# I don't believe this is needed anymore
+##################################################################################
+# def build_quickumls_processor_config(
+#     document_batch_inqueue, nlp_results_outqueue, halt_event
+# ):
 
-    return {
-        "metric": "jaccard",
-        "document_batch_inqueue": document_batch_inqueue,
-        "nlp_results_outqueue": nlp_results_outqueue,
-        "process_interrupt": halt_event,
-    }
+#     return {
+#         "metric": "jaccard",
+#         "document_batch_inqueue": document_batch_inqueue,
+#         "nlp_results_outqueue": nlp_results_outqueue,
+#         "process_interrupt": halt_event,
+#     }
 
 
 ##################################################################################
