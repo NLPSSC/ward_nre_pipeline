@@ -584,14 +584,33 @@ def build_config(header, sample_row, config_output_path):
 
 
 def get_sample_row(rows, min_char_length=3):
-    return next(
-        row
-        for row in rows[1:]
-        if all(len(field.strip()) >= min_char_length for field in row)
-    )
+    traversed_rows = []
+    sample_row = None
+    # the first row is the header
+    header = next(rows)
+    # for remaining rows, look for a sample row where each field has at least min_char_length characters
+    for row in rows:
+        if all(len(field.strip()) >= min_char_length for field in row):
+            sample_row = row
+            break
+        else:
+            # if skipped, add to traversed rows to pick up later in the iterator
+            traversed_rows.append(row)
+
+    def row_iterator():
+        for row in traversed_rows:
+            yield row
+        for row in rows:
+            yield row
+
+    return sample_row, header, row_iterator()
 
 
 def pretty_print_nested_lookup(d, indent=0):
+
+    if indent == 0:
+        logger.info("\nNested dictionary lookup structure:")
+
     spacing = " " * indent
     if isinstance(d, dict):
         for k, v in d.items():
@@ -607,28 +626,34 @@ def pretty_print_nested_lookup(d, indent=0):
         print(f"{spacing}{repr(d)}")
 
 
-if __name__ == "__main__":
+def load_reader(reader_source, delimeter):
+    """Load the file into a CSV reader
 
-    project_name = "test_case_1"
-    config_output_path, lookup_output_path = initialize_paths(project_name)
+    Args:
+        reader_source (_type_): _description_
+        delimeter (_type_): _description_
 
-    # 1) Load the file into a CSV reader
-    delimeter = "|"
-    reader_source = example_csv_data
-    header = None
+    Returns:
+        _type_: _description_
+    """
     if Path(reader_source).exists():
         with open(reader_source, "r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=delimeter)
-            rows = list(reader)
-            header = rows[0]
     else:
         reader = csv.reader(io.StringIO(reader_source.strip()), delimiter=delimeter)
-        rows = list(reader)
-        header = rows[0]
-    # Find the first row where each field has at least three characters
-    sample_row = get_sample_row(rows)
+    return reader
 
-    data_rows = rows[1:]
+
+if __name__ == "__main__":
+
+    config_output_path, lookup_output_path = initialize_paths("test_case_1")
+
+    # 1) Load the file into a CSV reader
+    header = None
+    data_rows = load_reader(example_csv_data, delimeter="|")
+
+    # Find the first row where each field has at least three characters
+    sample_row, header, data_row_iter = get_sample_row(data_rows)
 
     # 2) Add the header fields in order to a list, `available_headers`
     selected_headers, unused_headers = build_config(
@@ -637,11 +662,9 @@ if __name__ == "__main__":
 
     # 5) Use the selected headers to efficiently create a nested dictionary lookup structure.
     nested_lookup = build_nested_lookup(
-        header, data_rows, selected_headers, unused_headers
+        header, data_row_iter, selected_headers, unused_headers
     )
 
     persist_lookup(lookup_output_path, nested_lookup)
-
-    logger.info("\nNested dictionary lookup structure:")
 
     pretty_print_nested_lookup(nested_lookup)
