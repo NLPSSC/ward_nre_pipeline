@@ -32,7 +32,9 @@ if __name__ == "__main__":
 
     num_processors = 1  # multiprocessing.cpu_count()
 
-    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci")
+    smaller_subset = "/input_data/Am_J_Dent_Sci/1839"
+    larger_subset = "/input_data/Am_J_Dent_Sci"
+    test_data_path = get_test_data_path(smaller_subset)
 
     txt_file_count: int = get_total_count_txt_files(test_data_path)
 
