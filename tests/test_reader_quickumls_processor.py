@@ -30,6 +30,8 @@ if __name__ == "__main__":
     freeze_support()
     setup_logging(verbose=True)
 
+    num_processors = 1  # multiprocessing.cpu_count()
+
     test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci")
 
     txt_file_count: int = get_total_count_txt_files(test_data_path)
@@ -46,21 +48,16 @@ if __name__ == "__main__":
         total_queued: int = 0
         total_processed: int = 0
 
-        processors, outqueue, process_counter = (
-            QuickUMLSProcessor.create(
-                mgr,
-                **{
-                    "num_workers": multiprocessing.cpu_count(),
-                    "inqueue": reader.inqueue,
-                },
-            )
+        processors, outqueue, process_counter = QuickUMLSProcessor.create(
+            mgr,
+            **{
+                "num_workers": num_processors,
+                "inqueue": reader.inqueue,
+            },
         )
         writer: CSVWriter = CSVWriter.create(
             mgr,
-            **{
-                "outqueue": outqueue,
-                "process_counter": process_counter
-            },
+            **{"outqueue": outqueue, "process_counter": process_counter},
         )
 
         reader.start()
