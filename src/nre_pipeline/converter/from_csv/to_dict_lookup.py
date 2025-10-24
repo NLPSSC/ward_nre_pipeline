@@ -1,10 +1,9 @@
 import io
 import csv
 import sys
-import pprint
 import json
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 from loguru import logger
 
 logger.remove()
@@ -454,7 +453,7 @@ PMC6094795|active|Factive|C1320102|0.8|{'T109', 'T195'}|1708|1714
 """
 
 # Print current selection with each header in a different color
-colors = [
+ASCII_COLORS: List[str] = [
     "\033[91m",  # Red
     "\033[92m",  # Green
     "\033[93m",  # Yellow
@@ -464,7 +463,22 @@ colors = [
     "\033[97m",  # White
 ]
 
-reset = "\033[0m"
+RESET_COLOR = "\033[0m"
+
+
+def build_nested_lookup(header, rows, selected_headers, unused_headers):
+    lookup = {}
+    for row in rows:
+        current = lookup
+        for i, key in enumerate(selected_headers):
+            value = row[header.index(key)]
+            if i == len(selected_headers) - 1:
+                # At the deepest level, create a dict of unused headers
+                unused_dict = {h: row[header.index(h)] for h in unused_headers}
+                current.setdefault(value, []).append(unused_dict)
+            else:
+                current = current.setdefault(value, {})
+    return lookup
 
 
 def initialize_paths(project_name: str) -> Tuple[Path, Path]:
@@ -509,19 +523,7 @@ def persist_lookup(lookup_output_path, nested_lookup):
     logger.info(f"\nSaved nested lookup to: {lookup_output_file}")
 
 
-if __name__ == "__main__":
-
-    # 1) Load the file into a CSV reader
-    reader = csv.reader(io.StringIO(example_csv_data.strip()), delimiter="|")
-    rows = list(reader)
-    header = rows[0]
-    data_rows = rows[1:]
-
-    project_name = "test_case_1"
-
-    config_output_path, lookup_output_path = initialize_paths(project_name)
-
-    # 2) Add the header fields in order to a list, `available_headers`
+def build_config(header, sample_row, config_output_path):
     available_headers = header.copy()
 
     # 3) set selected_headers=[]
@@ -531,27 +533,26 @@ if __name__ == "__main__":
     unused_headers = []
 
     while available_headers or selected_headers:
-        logger.info("\nAvailable headers:")
+        print("\nAvailable headers:")
         for idx, h in enumerate(available_headers):
             # Find the first non-empty example value for this header
             col_idx = header.index(h)
             example = ""
-            for row in data_rows:
-                if row[col_idx].strip():
-                    example = row[col_idx]
-                    break
-            logger.info(f"{idx + 1}. {h} (e.g. {example})")
+            if sample_row[col_idx].strip():
+                example = sample_row[col_idx]
+                break
+            print(f"{idx + 1}. {h} (e.g. {example})")
         if selected_headers:
             colored = [
-                f"{colors[i % len(colors)]}{h}{reset}"
+                f"{ASCII_COLORS[i % len(ASCII_COLORS)]}{h}{RESET_COLOR}"
                 for i, h in enumerate(selected_headers)
             ]
-            logger.info("Current selection:", " -> ".join(colored))
+            print("Current selection:", " -> ".join(colored))
         sel = input(
             f"Select header for level {len(selected_headers) + 1} (enter number, 'd' for done, or 'u' to undo): "
         )
         if sel.lower() == "d":
-            logger.info("Selection done.")
+            print("Selection done.")
             # Track unused headers
             unused_headers = available_headers.copy()
             break
@@ -559,57 +560,88 @@ if __name__ == "__main__":
             if selected_headers:
                 undone = selected_headers.pop()
                 available_headers.append(undone)
-                logger.info(f"Undid selection: {undone}")
+                print(f"Undid selection: {undone}")
             else:
-                logger.info("Nothing to undo.")
+                print("Nothing to undo.")
             continue
         try:
             sel_idx = int(sel) - 1
             if sel_idx < 0 or sel_idx >= len(available_headers):
-                logger.info("Invalid selection. Try again.")
+                print("Invalid selection. Try again.")
                 continue
         except ValueError:
-            logger.info("Invalid input. Try again.")
+            print("Invalid input. Try again.")
             continue
         selected = available_headers.pop(sel_idx)
         selected_headers.append(selected)
-        logger.info(f"Selected: {selected}")
+        print(f"Selected: {selected}")
 
     if unused_headers:
         logger.info("\nUnused headers:", ", ".join(unused_headers))
 
     persist_config(config_output_path, selected_headers, unused_headers)
+    return selected_headers, unused_headers
+
+
+def get_sample_row(rows, min_char_length=3):
+    return next(
+        row
+        for row in rows[1:]
+        if all(len(field.strip()) >= min_char_length for field in row)
+    )
+
+
+def pretty_print_nested_lookup(d, indent=0):
+    spacing = " " * indent
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if isinstance(v, (dict, list)):
+                print(f"{spacing}{repr(k)}:")
+                pretty_print_nested_lookup(v, indent + 4)
+            else:
+                print(f"{spacing}{repr(k)}:{repr(v)},")
+    elif isinstance(d, list):
+        for item in d:
+            pretty_print_nested_lookup(item, indent + 4)
+    else:
+        print(f"{spacing}{repr(d)}")
+
+
+if __name__ == "__main__":
+
+    project_name = "test_case_1"
+    config_output_path, lookup_output_path = initialize_paths(project_name)
+
+    # 1) Load the file into a CSV reader
+    delimeter = "|"
+    reader_source = example_csv_data
+    header = None
+    if Path(reader_source).exists():
+        with open(reader_source, "r", encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=delimeter)
+            rows = list(reader)
+            header = rows[0]
+    else:
+        reader = csv.reader(io.StringIO(reader_source.strip()), delimiter=delimeter)
+        rows = list(reader)
+        header = rows[0]
+    # Find the first row where each field has at least three characters
+    sample_row = get_sample_row(rows)
+
+    data_rows = rows[1:]
+
+    # 2) Add the header fields in order to a list, `available_headers`
+    selected_headers, unused_headers = build_config(
+        header, sample_row, config_output_path
+    )
 
     # 5) Use the selected headers to efficiently create a nested dictionary lookup structure.
-    def build_nested_lookup(rows, selected_headers, unused_headers):
-        lookup = {}
-        for row in rows:
-            current = lookup
-            for i, key in enumerate(selected_headers):
-                value = row[header.index(key)]
-                if i == len(selected_headers) - 1:
-                    # At the deepest level, create a dict of unused headers
-                    unused_dict = {h: row[header.index(h)] for h in unused_headers}
-                    current.setdefault(value, []).append(unused_dict)
-                else:
-                    current = current.setdefault(value, {})
-        return lookup
-
-    nested_lookup = build_nested_lookup(data_rows, selected_headers, unused_headers)
+    nested_lookup = build_nested_lookup(
+        header, data_rows, selected_headers, unused_headers
+    )
 
     persist_lookup(lookup_output_path, nested_lookup)
 
     logger.info("\nNested dictionary lookup structure:")
-    def pretty_print_nested_lookup(d, indent=0):
-        spacing = " " * indent
-        if isinstance(d, dict):
-            for k, v in d.items():
-                logger.info(f"{spacing}{repr(k)}:")
-                pretty_print_nested_lookup(v, indent + 4)
-        elif isinstance(d, list):
-            for item in d:
-                pretty_print_nested_lookup(item, indent + 4)
-        else:
-            logger.info(f"{spacing}{repr(d)}")
 
     pretty_print_nested_lookup(nested_lookup)
