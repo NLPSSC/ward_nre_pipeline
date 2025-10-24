@@ -1,3 +1,4 @@
+import os
 import sys
 from loguru import logger
 
@@ -9,7 +10,11 @@ def setup_logging(*, verbose: bool = False):
         logger.remove()
 
         # Add console handler with appropriate level
+        log_level = os.getenv('LOG_LEVEL')
+        if log_level == "DEBUG":
+            verbose = True
         level = "DEBUG" if verbose else "INFO"
+
         logger.add(
             sink=sys.stderr,
             level=level,

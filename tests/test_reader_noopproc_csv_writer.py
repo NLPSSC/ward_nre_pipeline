@@ -1,5 +1,6 @@
 import atexit
 from multiprocessing import Manager, freeze_support
+import multiprocessing
 import os
 import threading
 import time
@@ -31,9 +32,9 @@ def get_total_count_txt_files(test_data_path):
 
 if __name__ == "__main__":
     freeze_support()
-    setup_logging(verbose=False)
+    setup_logging(verbose=True)
 
-    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci/1839")
+    test_data_path = get_test_data_path("/input_data/Am_J_Dent_Sci")
 
     txt_file_count: int = get_total_count_txt_files(test_data_path)
 
@@ -49,10 +50,22 @@ if __name__ == "__main__":
         total_queued: int = 0
         total_processed: int = 0
 
-        processors, outqueue = NoOpProcessor.create(
-            mgr, **{"num_workers": 2, "inqueue": reader.inqueue}
+        processors, outqueue, process_counter = (
+            NoOpProcessor.create(
+                mgr,
+                **{
+                    "num_workers": multiprocessing.cpu_count(),
+                    "inqueue": reader.inqueue,
+                },
+            )
         )
-        writer: CSVWriter = CSVWriter.create(mgr, **{"outqueue": outqueue})
+        writer: CSVWriter = CSVWriter.create(
+            mgr,
+            **{
+                "outqueue": outqueue,
+                "process_counter": process_counter
+            },
+        )
 
         reader.start()
         for p in processors:
@@ -60,9 +73,10 @@ if __name__ == "__main__":
         writer.start()
 
         reader.join()
-        total_docs_processed = processors[0].total_docs_processed
         for p in processors:
+            logger.debug("Joining processor {}", p.get_process_name())
             p.join()
+        total_docs_processed = processors[0].total_docs_processed
         writer.join()
 
         logger.debug("Total docs processed: {}", total_docs_processed.get())

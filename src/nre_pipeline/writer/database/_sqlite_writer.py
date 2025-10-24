@@ -183,6 +183,9 @@ class SQLiteNLPWriter(DBNLPResultWriter):
     def writer_details(self) -> Dict[str, Any]:
         return {"database_path": self._output_path}
 
+    def _output_subfolder(self) -> str:
+        return "sqlite"
+
 
 # def _get_sqlite_output_db() -> str:
 #     results_path = os.getenv("RESULTS_PATH", None)

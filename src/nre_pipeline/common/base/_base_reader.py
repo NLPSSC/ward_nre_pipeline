@@ -3,7 +3,7 @@ import queue
 from abc import abstractmethod
 from typing import Any, Iterator, List, Optional, Self
 from nre_pipeline.app.verbose_mixin import VerboseMixin
-from ._base_process import _BaseProcess
+from ._component_base import _BaseProcess
 from nre_pipeline.common.base._consts import QUEUE_EMPTY, TProcessingStatus, TQueueEmpty
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch
