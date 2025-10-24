@@ -3,8 +3,13 @@ import csv
 import sys
 import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Literal, Tuple, TypeAlias, cast
 from loguru import logger
+import os
+
+HeaderLabel: TypeAlias = Literal[
+    "note_id", "ngram", "term", "cui", "similarity", "pos_start", "pos_end"
+]
 
 logger.remove()
 logger.add(
@@ -466,7 +471,26 @@ ASCII_COLORS: List[str] = [
 RESET_COLOR = "\033[0m"
 
 
+def load_quickumls_results(src, ngram_to_lower_case: bool):
+    data_rows = load_reader(src, delimeter="|")  # 1) Load the file into a CSV reader
+    sample_row, header, data_row_iter = get_sample_header_and_data_iter(
+        data_rows, ngram_to_lower_case
+    )  # Find the first row where each field has at least three characters
+    return sample_row, header, data_row_iter
+
+
 def build_nested_lookup(header, rows, selected_headers, unused_headers):
+    """Use the selected headers to efficiently create a nested dictionary lookup structure.
+
+    Args:
+        header (_type_): _description_
+        rows (_type_): _description_
+        selected_headers (_type_): _description_
+        unused_headers (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     lookup = {}
     for row in rows:
         current = lookup
@@ -510,20 +534,38 @@ def persist_config(config_output_path, selected_headers, unused_headers):
         "unused_headers": unused_headers,
     }
 
-    config_output_file = config_output_path / "header_config.json"
+    config_output_file = make_header_config_path(config_output_path)
     with open(config_output_file, "w", encoding="utf-8") as f:
         json.dump(config_dict, f, indent=2)
     logger.info(f"\nSaved header config to: {config_output_file}")
 
 
+def make_header_config_path(config_output_path):
+    return config_output_path / "header_config.json"
+
+
+def make_nested_lookup_path(lookup_output_path):
+    return lookup_output_path / "nested_lookup.json"
+
+
 def persist_lookup(lookup_output_path, nested_lookup):
-    lookup_output_file = lookup_output_path / "nested_lookup.json"
+    lookup_output_file = make_nested_lookup_path(lookup_output_path)
     with open(lookup_output_file, "w", encoding="utf-8") as f:
         json.dump(nested_lookup, f, indent=2)
     logger.info(f"\nSaved nested lookup to: {lookup_output_file}")
 
 
 def build_config(header, sample_row, config_output_path):
+    """Add the header fields in order to a list, `available_headers`
+
+    Args:
+        header (_type_): _description_
+        sample_row (_type_): _description_
+        config_output_path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     available_headers = header.copy()
 
     # 3) set selected_headers=[]
@@ -532,15 +574,31 @@ def build_config(header, sample_row, config_output_path):
     # 4) Menu-driven selection task:
     unused_headers = []
 
+    config_file = make_header_config_path(config_output_path)
+    # ask user if they want to use the existing configuration
+    if config_file.exists() and config_file.is_file():
+        use_existing = (
+            input(
+                f"\n\nConfig file {config_file} exists.\n\nUse existing configuration? (y/n): "
+            )
+            .strip()
+            .lower()
+        )
+        if use_existing == "y":
+            with open(config_file, "r", encoding="utf-8") as f:
+                config = json.load(f)
+            selected_headers = config.get("selected_headers", [])
+            unused_headers = config.get("unused_headers", [])
+            return selected_headers, unused_headers
+
+    # build a new configuration
     while available_headers or selected_headers:
         print("\nAvailable headers:")
         for idx, h in enumerate(available_headers):
             # Find the first non-empty example value for this header
             col_idx = header.index(h)
             example = ""
-            if sample_row[col_idx].strip():
-                example = sample_row[col_idx]
-                break
+            example = sample_row[col_idx].strip()
             print(f"{idx + 1}. {h} (e.g. {example})")
         if selected_headers:
             colored = [
@@ -583,7 +641,7 @@ def build_config(header, sample_row, config_output_path):
     return selected_headers, unused_headers
 
 
-def get_sample_row(rows, min_char_length=3):
+def get_sample_header_and_data_iter(rows, ngram_to_lower_case: bool, min_char_length=3):
     traversed_rows = []
     sample_row = None
     # the first row is the header
@@ -597,11 +655,22 @@ def get_sample_row(rows, min_char_length=3):
             # if skipped, add to traversed rows to pick up later in the iterator
             traversed_rows.append(row)
 
+    ngram_index = header.index("ngram")
+
     def row_iterator():
-        for row in traversed_rows:
-            yield row
-        for row in rows:
-            yield row
+
+        def _row_iter():
+            for row in traversed_rows:
+                yield row
+            yield sample_row
+            for row in rows:
+                yield row
+
+        for r in _row_iter():
+            assert r is not None
+            if ngram_to_lower_case:
+                r[ngram_index] = r[ngram_index].lower()
+            yield r
 
     return sample_row, header, row_iterator()
 
@@ -636,7 +705,12 @@ def load_reader(reader_source, delimeter):
     Returns:
         _type_: _description_
     """
-    if Path(reader_source).exists():
+    try:
+        file_exists = Path(reader_source).exists()
+    except OSError as e:
+        file_exists = False
+
+    if file_exists:
         with open(reader_source, "r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=delimeter)
     else:
@@ -644,27 +718,66 @@ def load_reader(reader_source, delimeter):
     return reader
 
 
+def calculate_metrics(lookup_output_path, header_index_map: Dict[HeaderLabel, int]):
+    lookup_file = make_nested_lookup_path(lookup_output_path)
+
+    if not lookup_file.exists():
+        logger.error(f"Lookup file not found: {lookup_file}")
+        return
+
+    with open(lookup_file, "r", encoding="utf-8") as f:
+        nested_lookup = json.load(f)
+
+    logger.info(f"Loaded nested lookup from: {lookup_file}")
+
+    cui_index: int = header_index_map["cui"]
+    term_index: int = header_index_map["term"]
+    similarity_index: int = header_index_map["similarity"]
+    ngram_index: int = header_index_map["ngram"]
+    pos_start_index: int = header_index_map["pos_start"]
+    pos_end_index: int = header_index_map["pos_end"]
+
+
+def create_header_index_map(quickumls_header_values, header) -> Dict[HeaderLabel, int]:
+    header_index_map: Dict[HeaderLabel, int] = {
+        cast(HeaderLabel, val): int(header.index(val))
+        for i, val in enumerate(quickumls_header_values)
+    }
+    logger.info(f"Header index map: {header_index_map}")
+    return header_index_map
+
+
 if __name__ == "__main__":
 
+    quickumls_header_values: List[HeaderLabel] = [
+        "note_id",
+        "ngram",
+        "term",
+        "cui",
+        "similarity",
+    ]
+
     config_output_path, lookup_output_path = initialize_paths("test_case_1")
+    ngram_to_lower_case = True
 
-    # 1) Load the file into a CSV reader
-    header = None
-    data_rows = load_reader(example_csv_data, delimeter="|")
+    sample_row, header, data_row_iter = load_quickumls_results(
+        example_csv_data, ngram_to_lower_case=ngram_to_lower_case
+    )
 
-    # Find the first row where each field has at least three characters
-    sample_row, header, data_row_iter = get_sample_row(data_rows)
-
-    # 2) Add the header fields in order to a list, `available_headers`
     selected_headers, unused_headers = build_config(
         header, sample_row, config_output_path
     )
 
-    # 5) Use the selected headers to efficiently create a nested dictionary lookup structure.
     nested_lookup = build_nested_lookup(
         header, data_row_iter, selected_headers, unused_headers
     )
 
+    header_index_map: Dict[HeaderLabel, int] = create_header_index_map(
+        quickumls_header_values, header
+    )
+
     persist_lookup(lookup_output_path, nested_lookup)
+
+    calculate_metrics(lookup_output_path, header_index_map)
 
     pretty_print_nested_lookup(nested_lookup)
