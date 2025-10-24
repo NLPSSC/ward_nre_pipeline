@@ -1,9 +1,9 @@
-from multiprocessing import Manager, freeze_support
-import multiprocessing
 import os
+import multiprocessing
 from loguru import logger
+from multiprocessing import Manager, freeze_support
 from nre_pipeline.common import setup_logging
-from nre_pipeline.processor.noop_processor import NoOpProcessor
+from nre_pipeline.processor.quickumls_processor._quickumls import QuickUMLSProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
 from nre_pipeline.writer.filesystem._csv_writer import CSVWriter
 
@@ -46,16 +46,21 @@ if __name__ == "__main__":
         total_queued: int = 0
         total_processed: int = 0
 
-        processors, outqueue, process_counter = NoOpProcessor.create(
-            mgr,
-            **{
-                "num_workers": multiprocessing.cpu_count(),
-                "inqueue": reader.inqueue,
-            },
+        processors, outqueue, process_counter = (
+            QuickUMLSProcessor.create(
+                mgr,
+                **{
+                    "num_workers": multiprocessing.cpu_count(),
+                    "inqueue": reader.inqueue,
+                },
+            )
         )
         writer: CSVWriter = CSVWriter.create(
             mgr,
-            **{"outqueue": outqueue, "process_counter": process_counter},
+            **{
+                "outqueue": outqueue,
+                "process_counter": process_counter
+            },
         )
 
         reader.start()
