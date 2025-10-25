@@ -1,7 +1,7 @@
 import os
 import pytest
 from pathlib import Path
-from nre_pipeline.common.env_vars._env_values_manager import EnvValues
+from nre_pipeline.common.env_vars import EnvValues
 
 
 # Helper to set and unset env vars
