@@ -45,7 +45,7 @@ def calculate_metrics(
     similarity_counter: QuickUmlsCounter = counter.similarity_counter
     num_similarities = similarity_counter.count("unique_entries")
 
-    lookup_file = make_nested_lookup_path(lookup_output_path)
+    lookup_file = make_nested_lookup_path()
 
     if not lookup_file.exists():
         logger.error(f"Lookup file not found: {lookup_file}")
