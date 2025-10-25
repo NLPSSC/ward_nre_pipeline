@@ -2,8 +2,11 @@ import io
 import json
 import csv
 from pathlib import Path
-from typing import Any, Counter, Dict, List, Literal, Tuple, TypeAlias, Union, cast
+from typing import Any, Dict, List, Tuple, cast
 from loguru import logger
+
+from ..models.consts import HeaderLabel
+from ..models.quickumls_counters import QuickUMLSCounters
 
 ASCII_COLORS: List[str] = [
     "\033[91m",  # Red
@@ -16,18 +19,6 @@ ASCII_COLORS: List[str] = [
 ]
 
 RESET_COLOR = "\033[0m"
-
-HeaderLabel: TypeAlias = Literal[
-    "note_id",
-    "ngram",
-    "term",
-    "cui",
-    "similarity",
-    "semtypes",
-    "pos_start",
-    "pos_end",
-    "doc_length",
-]
 
 
 def load_quickumls_results(src, ngram_to_lower_case: bool):
@@ -48,7 +39,7 @@ def build_nested_lookup(
     selected_headers,
     unused_headers,
     header_index_map: Dict[HeaderLabel, int],
-) -> Tuple[Dict[Any, Any], Dict[str, Counter[Any]]]:
+) -> Tuple[Dict[Any, Any], QuickUMLSCounters]:
     """Use the selected headers to efficiently create a nested dictionary lookup structure.
 
     Args:
@@ -61,33 +52,16 @@ def build_nested_lookup(
         _type_: _description_
     """
     lookup = {}
-
-    cui_index: int = header_index_map["cui"]
-    term_index: int = header_index_map["term"]
-    similarity_index: int = header_index_map["similarity"]
-    ngram_index: int = header_index_map["ngram"]
-    pos_start_index: int = header_index_map["pos_start"]
-    pos_end_index: int = header_index_map["pos_end"]
-    doc_length_index: int = header_index_map["doc_length"]
-    semantic_type_index: int = header_index_map["semtypes"]
-    note_id_index: int = header_index_map["note_id"]
-    counters: Dict[int, Dict[str, str | Counter[Any]]] = {
-        cui_index: {"name": "cui_counter", "counter": Counter()},
-        term_index: {"name": "term_counter", "counter": Counter()},
-        similarity_index: {"name": "similarity_counter", "counter": Counter()},
-        ngram_index: {"name": "ngram_counter", "counter": Counter()},
-        semantic_type_index: {"name": "semantic_type_counter", "counter": Counter()},
-        note_id_index: {"name": "note_id_counter", "counter": Counter()},
-    }
+    counters: QuickUMLSCounters = QuickUMLSCounters()
 
     header_index_list: List[int] = [header.index(h) for h in header]
     for row in rows:
         current = lookup
         for entry_index in header_index_list:
-            if entry_index in counters:
-                value = row[entry_index]
-                _counter = counters[entry_index]["counter"]
-                _counter[value] = _counter[value] + 1  # type: ignore
+            header_field = header[entry_index]
+            value = row[entry_index]
+
+            counters.increment(header_field, value)
 
         for i, key in enumerate(selected_headers):
             value = row[header.index(key)]
@@ -97,32 +71,7 @@ def build_nested_lookup(
                 current.setdefault(value, []).append(unused_dict)
             else:
                 current = current.setdefault(value, {})
-    return lookup, cast(
-        Dict[str, Counter[Any]], {v["name"]: v["counter"] for k, v in counters.items()}
-    )
-
-
-def initialize_paths(project_name: str) -> Tuple[Path, Path]:
-
-    def initialize_csv_to_lookup_root():
-        csv_to_lookup_root = Path("/output/csv_to_dict_lookup")
-        csv_to_lookup_root.mkdir(parents=True, exist_ok=True)
-        return csv_to_lookup_root
-
-    def initialize_config_output_path(csv_to_lookup_root):
-        config_output_path: Path = csv_to_lookup_root / "config" / project_name
-        config_output_path.mkdir(parents=True, exist_ok=True)
-        return config_output_path
-
-    def initialize_lookup_output_path(csv_to_lookup_root):
-        lookup_output_path: Path = csv_to_lookup_root / "lookup" / project_name
-        lookup_output_path.mkdir(parents=True, exist_ok=True)
-        return lookup_output_path
-
-    csv_to_lookup_root: Path = initialize_csv_to_lookup_root()
-    config_output_path: Path = initialize_config_output_path(csv_to_lookup_root)
-    lookup_output_path: Path = initialize_lookup_output_path(csv_to_lookup_root)
-    return config_output_path, lookup_output_path
+    return lookup, counters
 
 
 def persist_config(config_output_path, selected_headers, unused_headers):
@@ -315,57 +264,6 @@ def load_reader(reader_source, delimeter):
     else:
         reader = csv.reader(io.StringIO(reader_source.strip()), delimiter=delimeter)
     return reader
-
-
-def calculate_metrics(
-    lookup_output_path,
-    header_index_map: Dict[HeaderLabel, int],
-    counter: Dict[str, Counter[Any]],
-):
-    
-    # counters: Dict[int, Dict[str, str | Counter[Any]]] = {
-    #     cui_index: {"name": "cui_counter", "counter": Counter()},
-    #     term_index: {"name": "term_counter", "counter": Counter()},
-    #     similarity_index: {"name": "similarity_counter", "counter": Counter()},
-    #     ngram_index: {"name": "ngram_counter", "counter": Counter()},
-    #     semantic_type_index: {"name": "semantic_type_counter", "counter": Counter()},
-    #     note_id_index: {"name": "note_id_counter", "counter": Counter()},
-    # }
-    
-    # notes
-    note_counter = counter['note_id_counter']
-    num_notes = len(set(note_counter.keys()))
-
-    # cuis
-    cui_counter = counter['cui_counter']
-    num_cuis = len(set(cui_counter.keys()))
-
-    # terms
-    term_counter = counter['term_counter']
-    num_terms = len(set(term_counter.keys()))
-
-    # ngrames
-    ngram_counter = counter['ngram_counter']
-    num_ngrams = len(set(ngram_counter.keys()))
-
-    # semantic types
-    semantic_type_counter = counter['semantic_type_counter']
-    num_semantic_types = len(set(semantic_type_counter.keys()))
-
-    # similarities
-    similarity_counter = counter['similarity_counter']
-    num_similarities = len(set(similarity_counter.keys()))
-
-    lookup_file = make_nested_lookup_path(lookup_output_path)
-
-    if not lookup_file.exists():
-        logger.error(f"Lookup file not found: {lookup_file}")
-        return
-
-    with open(lookup_file, "r", encoding="utf-8") as f:
-        nested_lookup = json.load(f)
-
-    logger.info(f"Loaded nested lookup from: {lookup_file}")
 
 
 def create_header_index_map(

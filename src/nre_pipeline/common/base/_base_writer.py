@@ -9,7 +9,7 @@ from nre_pipeline.app.verbose_mixin import VerboseMixin
 from nre_pipeline.common.base._component_base import _BaseProcess
 from nre_pipeline.common.base._consts import QUEUE_EMPTY, TQueueEmpty
 from nre_pipeline.models._nlp_result import NLPResultItem
-from nre_pipeline.writer import DEFAULT_WRITE_BATCH_SIZE
+from nre_pipeline.writer import NUMBER_DOCS_TO_WRITE_BEFORE_YIELD
 
 
 class NLPResultWriter(_BaseProcess, VerboseMixin):
@@ -109,7 +109,7 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
 
                 if isinstance(nlp_result, NLPResultItem):
                     write_batch.append(nlp_result)
-                    if len(write_batch) >= DEFAULT_WRITE_BATCH_SIZE:
+                    if len(write_batch) >= NUMBER_DOCS_TO_WRITE_BEFORE_YIELD:
                         self.record(write_batch)
                         write_batch = []
 

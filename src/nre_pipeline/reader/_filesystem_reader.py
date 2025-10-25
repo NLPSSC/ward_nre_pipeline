@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import queue
 from typing import Any, Generator, List, Union
 
 from loguru import logger
@@ -303,7 +302,7 @@ class FileSystemReader(CorpusReader):
 #     document_batch_inqueue: queue.Queue,
 #     halt_event: threading.Event,
 # ) -> Dict[str, Any]:
-#     # "doc_batch_size": _get_reader_max_doc_per_batch(),
+#     # "doc_batch_size": _get_NUMBER_DOCS_TO_READ_BEFORE_YIELD(),
 #     # "debug_config": _initialize_read_debug_config(),
 #     return {
 #         "path": _get_input_data(),

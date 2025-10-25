@@ -1,19 +1,14 @@
-import io
-import csv
 import sys
-import json
-from pathlib import Path
-from typing import Dict, List, Literal, Tuple, TypeAlias, cast
+from typing import Dict, List
 from loguru import logger
-import os
 
+from nre_pipeline.converter.data.initialize_paths import get_project_paths
+from nre_pipeline.converter.metrics.calculate_metrics import calculate_metrics
 from nre_pipeline.converter.from_csv.to_dict_lookup_methods import (
     HeaderLabel,
     build_config,
     build_nested_lookup,
-    calculate_metrics,
     create_header_index_map,
-    initialize_paths,
     load_quickumls_results,
     persist_lookup,
     pretty_print_nested_lookup,
@@ -482,7 +477,7 @@ if __name__ == "__main__":
     ]
 
     use_current_config = True
-    config_output_path, lookup_output_path = initialize_paths("test_case_1")
+    config_output_path, lookup_output_path = get_project_paths("test_case_1")
     ngram_to_lower_case = True
 
     header: List[HeaderLabel]
