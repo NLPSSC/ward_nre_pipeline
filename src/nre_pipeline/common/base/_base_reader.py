@@ -1,7 +1,7 @@
 import os
 import queue
 from abc import abstractmethod
-from typing import Any, Iterator, List, Optional, Self
+from typing import Any, Iterator, Optional, Self
 from nre_pipeline.app.verbose_mixin import VerboseMixin
 from ._component_base import _BaseProcess
 from nre_pipeline.common.base._consts import QUEUE_EMPTY, TProcessingStatus, TQueueEmpty
@@ -200,10 +200,10 @@ class CorpusReader(_BaseProcess, VerboseMixin):
 #     return debug_config
 
 
-# def _get_reader_max_doc_per_batch():
-#     reader_max_doc_per_batch = int(os.getenv("READER_MAX_DOC_PER_BATCH", 10))
-#     logger.debug("READER_MAX_DOC_PER_BATCH: {}", reader_max_doc_per_batch)
-#     return reader_max_doc_per_batch
+# def _get_NUMBER_DOCS_TO_READ_BEFORE_YIELD():
+#     NUMBER_DOCS_TO_READ_BEFORE_YIELD = int(os.getenv("NUMBER_DOCS_TO_READ_BEFORE_YIELD", 10))
+#     logger.debug("NUMBER_DOCS_TO_READ_BEFORE_YIELD: {}", NUMBER_DOCS_TO_READ_BEFORE_YIELD)
+#     return NUMBER_DOCS_TO_READ_BEFORE_YIELD
 
 #############################################################
 # If there were ever more than one reader process

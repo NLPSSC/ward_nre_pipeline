@@ -1,12 +1,14 @@
 import os
 
 
-DEFAULT_WRITE_BATCH_SIZE = 100
-default_write_batch_size = os.getenv("DEFAULT_WRITE_BATCH_SIZE", None)
-if default_write_batch_size is None:
-    raise RuntimeError("DEFAULT_WRITE_BATCH_SIZE environment variable is not set")
+NUMBER_DOCS_TO_WRITE_BEFORE_YIELD = 100
+NUMBER_DOCS_TO_WRITE_BEFORE_YIELD = os.getenv("NUMBER_DOCS_TO_WRITE_BEFORE_YIELD", None)
+if NUMBER_DOCS_TO_WRITE_BEFORE_YIELD is None:
+    raise RuntimeError(
+        "NUMBER_DOCS_TO_WRITE_BEFORE_YIELD environment variable is not set"
+    )
 else:
-    DEFAULT_WRITE_BATCH_SIZE = int(default_write_batch_size)
+    NUMBER_DOCS_TO_WRITE_BEFORE_YIELD = int(NUMBER_DOCS_TO_WRITE_BEFORE_YIELD)
 
 
-__all__ = ["DEFAULT_WRITE_BATCH_SIZE"]
+__all__ = ["NUMBER_DOCS_TO_WRITE_BEFORE_YIELD"]
