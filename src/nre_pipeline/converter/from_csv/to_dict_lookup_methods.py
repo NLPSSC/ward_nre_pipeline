@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, cast
 from loguru import logger
 
+from nre_pipeline.converter.data.initialize_paths import get_project_lookup_output_path
+
 from ..models.consts import HeaderLabel
 from ..models.quickumls_counters import QuickUMLSCounters
 
@@ -90,12 +92,12 @@ def make_header_config_path(config_output_path):
     return config_output_path / "header_config.json"
 
 
-def make_nested_lookup_path(lookup_output_path):
-    return lookup_output_path / "nested_lookup.json"
+def make_nested_lookup_path():
+    return get_project_lookup_output_path() / "nested_lookup.json"
 
 
-def persist_lookup(lookup_output_path, nested_lookup):
-    lookup_output_file = make_nested_lookup_path(lookup_output_path)
+def persist_lookup(nested_lookup: Dict[str, Any]):
+    lookup_output_file = make_nested_lookup_path()
     with open(lookup_output_file, "w", encoding="utf-8") as f:
         json.dump(nested_lookup, f, indent=2)
     logger.info(f"\nSaved nested lookup to: {lookup_output_file}")
