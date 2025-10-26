@@ -302,7 +302,7 @@ class FileSystemReader(CorpusReader):
 #     document_batch_inqueue: queue.Queue,
 #     halt_event: threading.Event,
 # ) -> Dict[str, Any]:
-#     # "doc_batch_size": _get_NUMBER_DOCS_TO_READ_BEFORE_YIELD(),
+#     # "doc_batch_size": _get_number_docs_to_read_before_yield(),
 #     # "debug_config": _initialize_read_debug_config(),
 #     return {
 #         "path": _get_input_data(),
@@ -321,12 +321,12 @@ class FileSystemReader(CorpusReader):
 
 
 # def _get_input_data():
-#     input_data = os.getenv("INPUT_DATA_PATH")
+#     input_data = os.getenv("INPUT_ROOT_PATH")
 #     if not input_data:
-#         raise ValueError("INPUT_DATA_PATH environment variable is not set")
-#     input_data_path = Path(input_data)
-#     logger.debug("Input data path: {}", input_data_path)
-#     return input_data_path
+#         raise ValueError("INPUT_ROOT_PATH environment variable is not set")
+#     INPUT_ROOT_PATH = Path(input_data)
+#     logger.debug("Input data path: {}", INPUT_ROOT_PATH)
+#     return INPUT_ROOT_PATH
 
 ########################################################
 # Only needed if not derived from Process

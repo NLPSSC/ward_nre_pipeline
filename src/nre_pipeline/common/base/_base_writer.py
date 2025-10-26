@@ -56,10 +56,10 @@ class NLPResultWriter(_BaseProcess, VerboseMixin):
         return self._total_written
 
     def _get_output_path(self, db_path: str | None) -> str:
-        _path = db_path or os.getenv("RESULTS_PATH", None)
+        _path = db_path or os.getenv("OUTPUT_ROOT_PATH", None)
         if _path is None or os.path.isdir(_path) is False:
             raise ValueError(
-                "Output path must be provided either as an argument or via the RESULTS_PATH environment variable."
+                "Output path must be provided either as an argument or via the OUTPUT_ROOT_PATH environment variable."
             )
         return cast(str, _path)
 
