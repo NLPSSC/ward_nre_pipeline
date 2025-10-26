@@ -119,17 +119,17 @@ def invalid_pos_int(request):
 
 
 @pytest.fixture(params=["exists", default_str_is_valid, None])
-def str_validation_methods(request):
+def str_validation_method(request):
     yield request.param
 
 
 @pytest.fixture(params=["exists", default_positive_int_is_valid, None])
-def int_validation_methods(request):
+def int_validation_method(request):
     yield request.param
 
 
 @pytest.fixture(params=["exists", default_bool_is_valid, None])
-def bool_validation_methods(request):
+def bool_validation_method(request):
     yield request.param
 
 
@@ -152,6 +152,35 @@ def generate_values_to_eval(_values_for_eval):
     valid_values = [(v, True) for v in _values_for_eval["valid_values"]]
     invalid_values = [(v, False) for v in _values_for_eval["invalid_values"]]
     return valid_values + invalid_values
+
+
+def validate_method__key_exists(
+    _env_key,
+    _method_to_eval,
+    _validation_method: ValidValidationType,
+    _expected,
+    _expect_to_succeed,
+    _failed_validation_with_method_exception,
+):
+    try:
+        os.environ[_env_key] = str(_expected)
+        _actual = "<_method_to_eval not yet called>"
+        _actual = _method_to_eval(_env_key, required=_validation_method)
+        assert _actual == _expected and _expect_to_succeed is True
+    except ValueMissingEnvironmentError as _vee:
+        assert _validation_method == "exists" and _expect_to_succeed is False
+        assert (
+            str(_vee) == f"Value for environment variable '{_env_key}' does not exist."
+        )
+    except MethodValidationEnvirontmentError as _mee:
+        assert _expect_to_succeed is False
+        assert isinstance(_mee, _failed_validation_with_method_exception)
+        assert str(_mee).startswith(
+            f"Method validation for key='{_env_key}' and value="
+        )
+    finally:
+        del os.environ[_env_key]
+        validate_method__key_missing(_method_to_eval, _env_key)
 
 
 ###############################################################################
@@ -183,7 +212,11 @@ def test_default_str_is_valid(valid_str_value, invalid_str_value):
 
 def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
     valid_test = valid_bool_values
-    if isinstance(valid_test, tuple) and len(valid_test) == 2 and isinstance(valid_test[1], bool):
+    if (
+        isinstance(valid_test, tuple)
+        and len(valid_test) == 2
+        and isinstance(valid_test[1], bool)
+    ):
         valid_test = valid_test[0]
     assert default_bool_is_valid(valid_test)
 
@@ -191,13 +224,11 @@ def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
     if isinstance(valid_test, tuple) and len(valid_test) == 2 and valid_test[1] is None:
         valid_test = valid_test[0]
     assert not default_bool_is_valid(valid_test)
-        
 
 
 def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
     assert default_positive_int_is_valid(valid_pos_int)
     assert not default_positive_int_is_valid(invalid_pos_int)
-        
 
 
 ###############################################################################
@@ -205,76 +236,76 @@ def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
 ###############################################################################
 
 
-@pytest.fixture(
-    params={
-        "str": {
+def test_all_permutations(
+    key_name_builder,
+    valid_str_value,
+    invalid_str_value,
+    valid_pos_int,
+    invalid_pos_int,
+    valid_bool_values,
+    invalid_bool_values,
+    str_validation_method,
+    int_validation_method,
+    bool_validation_method,
+):
+    test_cases = [
+        {
+            "type": "str",
             "test_method": get_env,
             "test_cases": {
                 "valid_values": valid_str_value,
                 "invalid_values": invalid_str_value,
             },
-            "validation_approach": str_validation_methods,
+            "validation_approach": str_validation_method,
             "failed_validation_with_method_exception": StrValidationEnvironmentError,
         },
-        "positive_int": {
+        {
+            "type": "positive_int",
             "test_method": get_env_as_int,
             "test_cases": {
                 "valid_values": valid_pos_int,
                 "invalid_values": invalid_pos_int,
             },
-            "validation_approach": int_validation_methods,
+            "validation_approach": int_validation_method,
             "failed_validation_with_method_exception": PositiveIntEnvironmentError,
         },
-        "boolean": {
+        {
+            "type": "boolean",
             "test_method": get_env_as_bool,
             "test_cases": {
                 "valid_values": valid_bool_values,
                 "invalid_values": invalid_bool_values,
             },
-            "validation_approach": bool_validation_methods,
+            "validation_approach": bool_validation_method,
             "failed_validation_with_method_exception": BooleanEnvironmentError,
         },
-    }
-)
-def test_permutations(request, key_name_builder):
+    ]
 
-    for test_case, test_params in request.param.items():
+    for test_params in test_cases:
+        validation_approach = test_params["validation_approach"]
+        valid_test_value = test_params["test_cases"]["valid_values"]
+        invalid_test_value = test_params["test_cases"]["invalid_values"]
 
-        env_key = key_name_builder(test_case)
-        method_to_eval = test_params["test_method"]  # e.g., get_env
-        validation_methods = test_params[
-            "validation_approach"
-        ]  # e.g., exists, default_str_is_valid, None
+        env_key = key_name_builder(test_params["type"])
+        method_to_eval = test_params["test_method"]
+        failed_validation_with_method_exception = test_params[
+            "failed_validation_with_method_exception"
+        ]
 
-        def validate_method__key_exists(
-            _validation_method: ValidValidationType, _expected, _expect_to_succeed
-        ):
-            try:
-                os.environ[env_key] = _expected
-                _actual = method_to_eval(env_key, required=_validation_method)
-                assert _actual == _expected and _expect_to_succeed is True
-            except ValueMissingEnvironmentError as _vee:
-                assert _validation_method == "exists" and _expect_to_succeed is False
-                assert (
-                    str(_vee)
-                    == f"Value for environment variable '{env_key}' does not exist."
-                )
-            except MethodValidationEnvirontmentError as _mee:
-                assert callable(_validation_method) and _expect_to_succeed is False
-                assert isinstance(
-                    _mee, test_params["failed_validation_with_method_exception"]
-                )  # noqa
-                assert str(_mee).startswith(
-                    f"Method validation for key='{env_key}' and value='{_actual}' failed: "
-                )
-            finally:
-                del os.environ[env_key]
-                validate_method__key_missing(method_to_eval, env_key)
+        validate_method__key_exists(
+            env_key,
+            method_to_eval,
+            validation_approach,
+            valid_test_value,
+            True,
+            failed_validation_with_method_exception,
+        )
 
-        for val_to_eval, expect_to_succeed in generate_values_to_eval(
-            test_params["test_cases"]
-        ):
-            for validation_method in validation_methods:
-                validate_method__key_exists(
-                    validation_method, val_to_eval, expect_to_succeed
-                )
+        validate_method__key_exists(
+            env_key,
+            method_to_eval,
+            validation_approach,
+            invalid_test_value,
+            False,
+            failed_validation_with_method_exception,
+        )

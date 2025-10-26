@@ -29,7 +29,8 @@
                 "mhutchie.git-graph",
                 "tamasfe.even-better-toml",
                 "ms-azuretools.vscode-docker",
-                "njpwerner.autodocstring"
+                "njpwerner.autodocstring",
+                "Cameron.vscode-pytest"
             ]
         }
     },

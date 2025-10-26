@@ -5,7 +5,9 @@ FROM nlpssc/medspacy-quickumls-processor:latest AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
-# RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends make && \
+    true
 
 # Add alias to root's .bashrc
 RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
