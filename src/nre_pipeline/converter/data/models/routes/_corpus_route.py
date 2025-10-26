@@ -1,17 +1,41 @@
 from abc import ABC, abstractmethod
-from nre_pipeline.converter.data.models.root_folders._test_data_folders import TestData
+from typing import Optional
+
 from nre_pipeline.converter.data.models.mixins._route_mixin import RouteMixin
+from nre_pipeline.converter.data.models.routes._nonexitent_route_exception import (
+    NonExistentRouteSegmentException,
+)
 
 
-class CorpusRoute(TestData, RouteMixin):
-    def __init__(self, corpus_route: str, *args, **kwargs) -> None:
+class CorpusRoute(RouteMixin):
+
+    _corpus_route_names = set()
+
+    def __init__(self, name: str, corpus_route: Optional[str], *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.corpus_route = corpus_route
+        if len(name) < 1:
+            raise ValueError(
+                f'Corpus route name must be at least one character long (invalid name "{name}")'
+            )
+        if name in CorpusRoute._corpus_route_names:
+            raise ValueError(
+                f'Corpus route name must be unique (duplicate name "{name}")'
+            )
+        # Add corpus name
+        self._name: str = name
+        CorpusRoute._corpus_route_names.add(name)
+
+        # Add corpus route
+        self._corpus_route: Optional[str] = corpus_route
+
+        # Validate corpus route
         self._validate_route()
 
     @property
     def _route_segment(self) -> str:
-        return self.corpus_route
+        if self._corpus_route is None:
+            raise NonExistentRouteSegmentException(self._name)
+        return self._corpus_route
 
     def _validate_route(self):
         if self.root_path is None:
