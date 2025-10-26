@@ -9,14 +9,13 @@ from nre_pipeline.common.env_vars.exceptions import (
     StrValidationEnvironmentError,
 )
 
-TRequired: TypeAlias = Literal["exists"]
 TValidator: TypeAlias = Callable[[Optional[str]], bool]
 
 ACCEPTED_TRUE_VALUES = ["true", True, "1", "yes"]
 ACCEPTED_FALSE_VALUES = ["false", False, "0", "no"]
 ALL_ACCEPTED_BOOL_VALUES = ACCEPTED_TRUE_VALUES + ACCEPTED_FALSE_VALUES
 
-ValidValidationType: TypeAlias = TRequired | TValidator | None
+
 
 
 def default_str_is_valid(x) -> bool:
@@ -38,7 +37,7 @@ def default_positive_int_is_valid(x: Any) -> bool:
 
 # Overload for required = "exists"
 @overload
-def get_env(key: str, required: TRequired | TValidator = "exists") -> str: ...
+def get_env(key: str, required: TValidator = None) -> str: ...
 
 
 # Overload for required = None
