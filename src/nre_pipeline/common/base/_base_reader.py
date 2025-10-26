@@ -200,7 +200,7 @@ class CorpusReader(_BaseProcess, VerboseMixin):
 #     return debug_config
 
 
-# def _get_NUMBER_DOCS_TO_READ_BEFORE_YIELD():
+# def _get_number_docs_to_read_before_yield():
 #     NUMBER_DOCS_TO_READ_BEFORE_YIELD = int(os.getenv("NUMBER_DOCS_TO_READ_BEFORE_YIELD", 10))
 #     logger.debug("NUMBER_DOCS_TO_READ_BEFORE_YIELD: {}", NUMBER_DOCS_TO_READ_BEFORE_YIELD)
 #     return NUMBER_DOCS_TO_READ_BEFORE_YIELD

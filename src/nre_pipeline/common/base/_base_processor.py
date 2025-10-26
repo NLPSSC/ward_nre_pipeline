@@ -273,7 +273,7 @@ class Processor(_BaseProcess, VerboseMixin):
         raise NotImplementedError("Subclasses must implement this method.")
 
 
-def _get_NUMBER_STARTING_PROCESSORS():
+def _get_number_starting_processors():
     NUMBER_STARTING_PROCESSORS = os.getenv("NUMBER_STARTING_PROCESSORS", None)
     if NUMBER_STARTING_PROCESSORS is None or len(NUMBER_STARTING_PROCESSORS) == 0:
         NUMBER_STARTING_PROCESSORS = multiprocessing.cpu_count()
@@ -287,7 +287,7 @@ def initialize_nlp_processes(processor_type, config, manager):
 
     configs = []
 
-    num_processes_to_create = _get_NUMBER_STARTING_PROCESSORS()
+    num_processes_to_create = _get_number_starting_processors()
     processing_barrier = manager.Barrier(num_processes_to_create)
     for idx in range(num_processes_to_create):
         new_config = {k: v for k, v in config.items()}

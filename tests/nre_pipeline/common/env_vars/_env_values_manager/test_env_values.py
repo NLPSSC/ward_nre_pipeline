@@ -18,8 +18,8 @@ def unset_env(key):
     "method,key,value,expected,type_",
     [
         (
-            EnvValues.get_input_data_path,
-            "INPUT_DATA_PATH",
+            EnvValues.get_INPUT_ROOT_PATH,
+            "INPUT_ROOT_PATH",
             "/tmp/input",
             Path("/tmp/input"),
             Path,
@@ -76,14 +76,14 @@ def unset_env(key):
             int,
         ),
         (
-            EnvValues.get_NUMBER_STARTING_PROCESSORS,
+            EnvValues.get_number_starting_processors,
             "NUMBER_STARTING_PROCESSORS",
             "3",
             3,
             int,
         ),
         (
-            EnvValues.get_NUMBER_DOCS_TO_READ_BEFORE_YIELD,
+            EnvValues.get_number_docs_to_read_before_yield,
             "NUMBER_DOCS_TO_READ_BEFORE_YIELD",
             "7",
             7,
@@ -93,7 +93,7 @@ def unset_env(key):
         (EnvValues.get_log_level, "LOG_LEVEL", "DEBUG", "DEBUG", str),
         (
             EnvValues.get_output_root,
-            "RESULTS_PATH",
+            "OUTPUT_ROOT_PATH",
             "/tmp/results",
             Path("/tmp/results"),
             Path,
@@ -111,7 +111,7 @@ def test_env_value_success(method, key, value, expected, type_):
 @pytest.mark.parametrize(
     "method,key",
     [
-        (EnvValues.get_input_data_path, "INPUT_DATA_PATH"),
+        (EnvValues.get_INPUT_ROOT_PATH, "INPUT_ROOT_PATH"),
         (EnvValues.get_quickumls_path, "QUICKUMLS_PATH"),
         (EnvValues.get_project_name, "PROJECT_NAME"),
         (EnvValues.get_test_data_path, "TEST_DATA_PATH"),
@@ -124,14 +124,14 @@ def test_env_value_success(method, key, value, expected, type_):
             EnvValues.get_NUMBER_DOCS_TO_WRITE_BEFORE_YIELD,
             "NUMBER_DOCS_TO_WRITE_BEFORE_YIELD",
         ),
-        (EnvValues.get_NUMBER_STARTING_PROCESSORS, "NUMBER_STARTING_PROCESSORS"),
+        (EnvValues.get_number_starting_processors, "NUMBER_STARTING_PROCESSORS"),
         (
-            EnvValues.get_NUMBER_DOCS_TO_READ_BEFORE_YIELD,
+            EnvValues.get_number_docs_to_read_before_yield,
             "NUMBER_DOCS_TO_READ_BEFORE_YIELD",
         ),
         (EnvValues.get_verbose_reader, "VERBOSE_READER"),
         (EnvValues.get_log_level, "LOG_LEVEL"),
-        (EnvValues.get_output_root, "RESULTS_PATH"),
+        (EnvValues.get_output_root, "OUTPUT_ROOT_PATH"),
     ],
 )
 def test_env_value_missing(method, key):

@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import os
 from typing import Any, Callable, Dict, List
@@ -188,10 +187,10 @@ class SQLiteNLPWriter(DBNLPResultWriter):
 
 
 # def _get_sqlite_output_db() -> str:
-#     results_path = os.getenv("RESULTS_PATH", None)
-#     if results_path is None:
-#         raise RuntimeError("RESULTS_PATH path not set")
-#     return results_path
+#     OUTPUT_ROOT_PATH = os.getenv("OUTPUT_ROOT_PATH", None)
+#     if OUTPUT_ROOT_PATH is None:
+#         raise RuntimeError("OUTPUT_ROOT_PATH path not set")
+#     return OUTPUT_ROOT_PATH
 
 
 # def build_sqlite_configuration(

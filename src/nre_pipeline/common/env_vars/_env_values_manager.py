@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from nre_pipeline.converter.data.models.routes._corpus_route import CorpusRoute
+
 
 class EnvValues:
 
@@ -10,10 +12,17 @@ class EnvValues:
         return os.getenv(key, None)
 
     @staticmethod
-    def get_input_data_path() -> Path:
-        val = EnvValues.lookup("INPUT_DATA_PATH")
+    def get_project_name() -> str:
+        val = EnvValues.lookup("PROJECT_NAME")
         if val is None:
-            raise EnvironmentError("Environment variable 'INPUT_DATA_PATH' is not set")
+            raise EnvironmentError("Environment variable 'PROJECT_NAME' is not set")
+        return val
+
+    @staticmethod
+    def get_input_root_path() -> Path:
+        val = EnvValues.lookup("INPUT_ROOT_PATH")
+        if val is None:
+            raise EnvironmentError("Environment variable 'INPUT_ROOT_PATH' is not set")
         return Path(val)
 
     @staticmethod
@@ -24,18 +33,39 @@ class EnvValues:
         return Path(val)
 
     @staticmethod
-    def get_project_name() -> str:
-        val = EnvValues.lookup("PROJECT_NAME")
-        if val is None:
-            raise EnvironmentError("Environment variable 'PROJECT_NAME' is not set")
-        return val
-
-    @staticmethod
     def get_test_data_path() -> Path:
         val = EnvValues.lookup("TEST_DATA_PATH")
         if val is None:
             raise EnvironmentError("Environment variable 'TEST_DATA_PATH' is not set")
         return Path(val)
+
+    @staticmethod
+    def get_small_corpus_route() -> CorpusRoute:
+        val = EnvValues.lookup("SMALL_CORPUS_PATH")
+        if val is None:
+            raise EnvironmentError(
+                "Environment variable 'SMALL_CORPUS_PATH' is not set"
+            )
+        assert val is not None
+        return CorpusRoute(val)
+
+    @staticmethod
+    def get_medium_corpus_route() -> CorpusRoute:
+        val = EnvValues.lookup("MEDIUM_CORPUS_PATH")
+        if val is None:
+            raise EnvironmentError(
+                "Environment variable 'MEDIUM_CORPUS_PATH' is not set"
+            )
+        return val
+
+    @staticmethod
+    def get_large_corpus_route() -> CorpusRoute:
+        val = EnvValues.lookup("LARGE_CORPUS_PATH")
+        if val is None:
+            raise EnvironmentError(
+                "Environment variable 'LARGE_CORPUS_PATH' is not set"
+            )
+        return val
 
     @staticmethod
     def get_dev_umls_key_path() -> Path:
@@ -83,7 +113,7 @@ class EnvValues:
         return int(val)
 
     @staticmethod
-    def get_NUMBER_DOCS_TO_WRITE_BEFORE_YIELD() -> int:
+    def get_number_docs_to_write_before_yield() -> int:
         val = EnvValues.lookup("NUMBER_DOCS_TO_WRITE_BEFORE_YIELD")
         if val is None:
             raise EnvironmentError(
@@ -92,7 +122,7 @@ class EnvValues:
         return int(val)
 
     @staticmethod
-    def get_NUMBER_STARTING_PROCESSORS() -> int:
+    def get_number_starting_processors() -> int:
         val = EnvValues.lookup("NUMBER_STARTING_PROCESSORS")
         if val is None:
             raise EnvironmentError(
@@ -101,7 +131,7 @@ class EnvValues:
         return int(val)
 
     @staticmethod
-    def get_NUMBER_DOCS_TO_READ_BEFORE_YIELD() -> int:
+    def get_number_docs_to_read_before_yield() -> int:
         val = EnvValues.lookup("NUMBER_DOCS_TO_READ_BEFORE_YIELD")
         if val is None:
             raise EnvironmentError(
@@ -125,7 +155,7 @@ class EnvValues:
 
     @staticmethod
     def get_output_root() -> Path:
-        output_root: Optional[str] = EnvValues.lookup("RESULTS_PATH")
+        output_root: Optional[str] = EnvValues.lookup("OUTPUT_ROOT_PATH")
         if output_root is None:
-            raise EnvironmentError("Environment variable 'RESULTS_PATH' is not set")
+            raise EnvironmentError("Environment variable 'OUTPUT_ROOT_PATH' is not set")
         return Path(output_root)
