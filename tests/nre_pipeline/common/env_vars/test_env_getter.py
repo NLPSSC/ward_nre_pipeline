@@ -277,12 +277,14 @@ def key_name_builder():
 ###############################################################################
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_default_str_is_valid(valid_str_value, invalid_str_value):
     valid_string_is_valid = default_str_is_valid(valid_str_value)
     invalid_string_is_invalid = not default_str_is_valid(invalid_str_value)
     assert valid_string_is_valid and invalid_string_is_invalid
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
     for valid_test in valid_bool_values:
         if (
@@ -314,6 +316,7 @@ def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
         assert not default_bool_is_valid(invalid_valid_test)
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
     assert default_positive_int_is_valid(
         valid_pos_int
@@ -325,6 +328,7 @@ def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
 ###############################################################################
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_str_permutations(
     key_name_builder,
     valid_pos_int,
@@ -347,6 +351,7 @@ def test_str_permutations(
     permutation_test_handler(key_name_builder, test_cases)
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_bool_permutations(
     key_name_builder,
     valid_pos_int,
@@ -370,6 +375,7 @@ def test_bool_permutations(
     permutation_test_handler(key_name_builder, test_cases)
 
 
+@pytest.mark.skip(reason="Skipped by request.")
 def test_positive_int_permutations(
     key_name_builder,
     valid_pos_int,

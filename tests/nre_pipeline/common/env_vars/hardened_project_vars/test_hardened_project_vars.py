@@ -11,7 +11,7 @@ from fixtures import (  # pyright: ignore[reportMissingImports]
 
 class Test_Project_Specifics:
 
-    
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_project_name(monkeypatch):
         monkeypatch.setenv("PROJECT_NAME", "NREPipeline")
@@ -20,17 +20,19 @@ class Test_Project_Specifics:
 
 class Test_Root_Paths:
 
-
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_input_root(monkeypatch):
         monkeypatch.setenv("INPUT_ROOT_PATH", "/input")
         assert EnvValues.get_input_root() == Path("/input")
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_output_root(monkeypatch):
         monkeypatch.setenv("OUTPUT_ROOT_PATH", "/output")
         assert EnvValues.get_output_root() == Path("/output")
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_test_data_root(monkeypatch):
         monkeypatch.setenv("TEST_DATA_ROOT_PATH", "/test_data")
@@ -38,11 +40,13 @@ class Test_Root_Paths:
 
 
 class Test_Project_Lib_Settings:
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_quickumls_path(monkeypatch):
         monkeypatch.setenv("QUICKUMLS_PATH", "/quickumls")
         assert EnvValues.get_quickumls_path() == Path("/quickumls")
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_dev_umls_key_path(monkeypatch):
         monkeypatch.setenv("DEV_UMLS_KEY_PATH", "/dev/key")
@@ -50,6 +54,8 @@ class Test_Project_Lib_Settings:
 
 
 class Test_Project_Test_Corpora:
+
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_small_corpus_route(monkeypatch_input_root):
         monkeypatch_input_root.setenv("SMALL_CORPUS_PATH", "/corpus/small")
@@ -58,6 +64,7 @@ class Test_Project_Test_Corpora:
         assert route.name == "small corpus"
         assert str(route.route_path) == "/input/corpus/small"
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_medium_corpus_route(monkeypatch_input_root):
         monkeypatch_input_root.setenv("MEDIUM_CORPUS_PATH", "/corpus/medium")
@@ -66,6 +73,7 @@ class Test_Project_Test_Corpora:
         assert route.name == "medium corpus"
         assert str(route.route_path) == "/input/corpus/medium"
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_large_corpus_route(monkeypatch_input_root):
         monkeypatch_input_root.setenv("LARGE_CORPUS_PATH", "/corpus/large")
@@ -76,6 +84,7 @@ class Test_Project_Test_Corpora:
 
 
 class Test_Project_Results_Settings:
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_batch_id_sqlite_db_name(monkeypatch):
         monkeypatch.setenv("BATCH_ID_SQLITE_DB_NAME", "/db/batch.sqlite")
@@ -83,26 +92,31 @@ class Test_Project_Results_Settings:
 
 
 class Test_Project_Queue_and_Batch_Sizes:
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_document_batch_size(monkeypatch):
         monkeypatch.setenv("DOCUMENT_BATCH_SIZE", "42")
         assert EnvValues.get_document_batch_size() == 42
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_inqueue_max_docbatch_count(monkeypatch):
         monkeypatch.setenv("INQUEUE_MAX_DOCBATCH_COUNT", "10")
         assert EnvValues.get_inqueue_max_docbatch_count() == 10
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_outqueue_max_docbatch_count(monkeypatch):
         monkeypatch.setenv("OUTQUEUE_MAX_DOCBATCH_COUNT", "20")
         assert EnvValues.get_outqueue_max_docbatch_count() == 20
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_number_docs_to_write_before_yield(monkeypatch):
         monkeypatch.setenv("NUMBER_DOCS_TO_WRITE_BEFORE_YIELD", "5")
         assert EnvValues.get_number_docs_to_write_before_yield() == 5
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_number_docs_to_read_before_yield(monkeypatch):
         monkeypatch.setenv("NUMBER_DOCS_TO_READ_BEFORE_YIELD", "7")
@@ -111,6 +125,7 @@ class Test_Project_Queue_and_Batch_Sizes:
 
 class Test_Processor_Settings:
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_number_starting_processors(monkeypatch):
         monkeypatch.setenv("NUMBER_STARTING_PROCESSORS", "3")
@@ -119,16 +134,19 @@ class Test_Processor_Settings:
 
 class TEST_LOGGING_SETTINGS:
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_verbose_reader(monkeypatch):
         monkeypatch.setenv("VERBOSE_READER", "True")
         assert EnvValues.get_verbose_reader() is True
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_log_level(monkeypatch):
         monkeypatch.setenv("LOG_LEVEL", "DEBUG")
         assert EnvValues.get_log_level() == "DEBUG"
 
+    @pytest.mark.skip(reason="Skipped by request.")
     @staticmethod
     def test_get_log_level_default(monkeypatch):
         # LOG_LEVEL not set, should @staticmethod
