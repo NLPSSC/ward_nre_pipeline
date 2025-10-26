@@ -44,8 +44,13 @@ clean-all-docker:
 	docker builder prune -f
 	docker system prune -f
 
+	
 test-collect-only:
 	pytest --collect-only -c /workspace/pytest.ini
 
 test-to-first-error:
 	pytest -x -c /workspace/pytest.ini
+
+help: help-base-images help-genalog_api help-nre_pipeline
+	@echo "test-collect-only    Run pytest in collect-only mode"
+	@echo "test-to-first-error  Run pytest and stop at first error"
