@@ -30,9 +30,9 @@ def mock_processor(batch: DocumentBatch) -> int:
 
 
 def get_test_data_path(test_data_path: str | None = None) -> str:
-    test_data_path = test_data_path or os.getenv("TEST_DATA_PATH")
+    test_data_path = test_data_path or os.getenv("TEST_DATA_ROOT_PATH")
     if not test_data_path or os.path.exists(test_data_path) is False:
-        raise ValueError("TEST_DATA_PATH environment variable is not set")
+        raise ValueError("TEST_DATA_ROOT_PATH environment variable is not set")
     return test_data_path
 
 
