@@ -9,6 +9,10 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends make && \
     true
 
+# Add /etc/pip.conf, such that any in-container changes during development
+# don't raise a warning, since this is use the root python and not a venv
+RUN echo -e "[global]\nroot-user-action = ignore" > /etc/pip.conf
+
 # Add alias to root's .bashrc
 RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
 

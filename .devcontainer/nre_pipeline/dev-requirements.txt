@@ -1,5 +1,6 @@
 ipywidgets
 jupyterlab
 pytest
+pytest-order
 flake8
 wonderwords

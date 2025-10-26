@@ -5,7 +5,7 @@ import random
 import string
 
 load_dotenv("/workspace/.nre_pipeline.env")
-from nre_pipeline.common.env_vars.env_getter import (
+from nre_pipeline.common.env_vars.env_getter import (  # type: ignore
     default_str_is_valid,
     default_bool_is_valid,
     _is_bool_equivalent,
@@ -19,7 +19,7 @@ from nre_pipeline.common.env_vars.env_getter import (
 )  # type: ignore
 
 
-from nre_pipeline.common.env_vars.exceptions import (
+from nre_pipeline.common.env_vars.exceptions import (  # type: ignore
     KeyMissingEnvironmentError,
     MethodValidationEnvirontmentError,
     StrValidationEnvironmentError,
@@ -55,35 +55,42 @@ def invalid_str_value():
 
 
 def _bool_variant_generator(val):
+    vals_to_yield = []
     if isinstance(val, str):
         if val.isdigit():
             # if this is a digit, yield a number and string form
-            yield from (val, int(val))
+            vals_to_yield.append(val)
+            vals_to_yield.append(int(val))
         else:
             # not a number, yield different case variants
-            yield from (val.upper(), val.lower(), val.title())
+            vals_to_yield.append(val.upper())
+            vals_to_yield.append(val.lower())
+            vals_to_yield.append(val.title())
     else:
         # if not a string, just yield the value
-        yield val
+        vals_to_yield.append(val)
+
+    return vals_to_yield
 
 
 @pytest.fixture(params=ACCEPTED_TRUE_VALUES)
 def TRUE_value(request):
-    yield from _bool_variant_generator(request.param)
+    return _bool_variant_generator(request.param)
 
 
 @pytest.fixture(params=ACCEPTED_FALSE_VALUES)
 def FALSE_value(request):
-    yield from _bool_variant_generator(request.param)
+    return _bool_variant_generator(request.param)
 
 
 @pytest.fixture(params=["-1", "2", "never", "always"])
 def invalid_bool_values(request):
-    yield from ((x, None) for x in _bool_variant_generator(request.param))
+    for x in _bool_variant_generator(request.param):
+        yield x
 
 
-@pytest.fixture()
-def valid_bool_values(TRUE_value, FALSE_value):
+@pytest.fixture(params=[(TRUE_value, True), (FALSE_value, False)])
+def valid_bool_values(request):
     """Valid values within environment variables for bools
 
     Args:
@@ -92,8 +99,8 @@ def valid_bool_values(TRUE_value, FALSE_value):
     Yields:
         Tuple[Any, Any]: parameter, represented boolean
     """
-    yield TRUE_value, True
-    yield FALSE_value, False
+
+    yield request.param
 
 
 def _convert_bool_tuple_to_test_bool_val(x):
@@ -219,111 +226,11 @@ def validate_method__key_exists(
         validate_method__key_missing(_method_to_eval, _env_key)
 
 
-###############################################################################
-# Environment Variable Key Fixture
-###############################################################################
-
-
-@pytest.fixture()
-def key_name_builder():
-    def build_key_name_from_type(type_name: str) -> str:
-        key = f"TEST_ENV_{type_name.upper()}"
-        assert (
-            key not in os.environ
-        ), f"Generated key already exists in environment variables ({key})"
-        return key
-
-    return build_key_name_from_type
-
-
-###############################################################################
-# Test default validators
-###############################################################################
-
-
-def test_default_str_is_valid(valid_str_value, invalid_str_value):
-    assert default_str_is_valid(valid_str_value) and not default_str_is_valid(
-        invalid_str_value
-    )
-
-
-def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
-    valid_test = valid_bool_values
-    if (
-        isinstance(valid_test, tuple)
-        and len(valid_test) == 2
-        and isinstance(valid_test[1], bool)
-    ):
-        valid_test = valid_test[0]
-    assert default_bool_is_valid(valid_test)
-
-    valid_test = invalid_bool_values
-    if isinstance(valid_test, tuple) and len(valid_test) == 2 and valid_test[1] is None:
-        valid_test = valid_test[0]
-    assert not default_bool_is_valid(valid_test)
-
-
-def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
-    assert default_positive_int_is_valid(
-        valid_pos_int
-    ) and not default_positive_int_is_valid(invalid_pos_int)
-
-
-###############################################################################
-# Testing get_env
-###############################################################################
-
-
-def test_all_permutations(
-    key_name_builder,
-    valid_str_value,
-    invalid_str_value,
-    valid_pos_int,
-    invalid_pos_int,
-    valid_bool_values,
-    invalid_bool_values,
-    str_validation_method,
-    int_validation_method,
-    bool_validation_method,
-):
-    test_cases = [
-        # {
-        #     "type": "str",
-        #     "test_method": get_env,
-        #     "test_cases": {
-        #         "valid_values": valid_str_value,
-        #         "invalid_values": invalid_str_value,
-        #     },
-        #     "validation_approach": str_validation_method,
-        #     "failed_validation_with_method_exception": StrValidationEnvironmentError,
-        # },
-        {
-            "type": "positive_int",
-            "test_method": get_env_as_positive_integer,
-            "test_cases": {
-                "valid_values": valid_pos_int,
-                "invalid_values": invalid_pos_int,
-            },
-            "validation_approach": int_validation_method,
-            "failed_validation_with_method_exception": PositiveIntEnvironmentError,
-        }
-        # ,
-        # {
-        #     "type": "boolean",
-        #     "test_method": get_env_as_bool,
-        #     "test_cases": {
-        #         "valid_values": valid_bool_values,
-        #         "invalid_values": invalid_bool_values,
-        #     },
-        #     "validation_approach": bool_validation_method,
-        #     "failed_validation_with_method_exception": BooleanEnvironmentError,
-        # },
-    ]
-
+def permutation_test_handler(key_name_builder, test_cases):
     for test_params in test_cases:
         validation_approach = test_params["validation_approach"]
-        valid_test_value = test_params["test_cases"]["valid_values"] # type: ignore
-        invalid_test_value = test_params["test_cases"]["invalid_values"] # type: ignore
+        valid_test_value = test_params["test_cases"]["valid_values"]  # type: ignore
+        invalid_test_value = test_params["test_cases"]["invalid_values"]  # type: ignore
 
         env_key = key_name_builder(test_params["type"])
         method_to_eval = test_params["test_method"]
@@ -350,3 +257,129 @@ def test_all_permutations(
             False,
             failed_validation_with_method_exception,
         )
+
+
+###############################################################################
+# Environment Variable Key Fixture
+###############################################################################
+
+
+@pytest.fixture()
+def key_name_builder():
+    def build_key_name_from_type(type_name: str) -> str:
+        key = f"TEST_ENV_{type_name.upper()}"
+        assert (
+            key not in os.environ
+        ), f"Generated key already exists in environment variables ({key})"
+        return key
+
+    return build_key_name_from_type
+
+
+###############################################################################
+# Test default validators
+###############################################################################
+
+
+def test_default_str_is_valid(valid_str_value, invalid_str_value):
+    valid_string_is_valid = default_str_is_valid(valid_str_value)
+    invalid_string_is_invalid = not default_str_is_valid(invalid_str_value)
+    assert valid_string_is_valid and invalid_string_is_invalid
+
+
+def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
+    for valid_test in valid_bool_values:
+        if (
+            isinstance(valid_test, tuple)
+            and len(valid_test) == 2
+            and isinstance(valid_test[1], bool)
+        ):
+            valid_test = valid_test[0]
+        assert default_bool_is_valid(valid_test)
+
+    for invalid_valid_test in invalid_bool_values:
+        if (
+            isinstance(invalid_valid_test, tuple)
+            and len(invalid_valid_test) == 2
+            and invalid_valid_test[1] is None
+        ):
+            invalid_valid_test = invalid_valid_test[0]
+        assert not default_bool_is_valid(invalid_valid_test)
+
+
+def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
+    assert default_positive_int_is_valid(
+        valid_pos_int
+    ) and not default_positive_int_is_valid(invalid_pos_int)
+
+
+###############################################################################
+# Testing get_env
+###############################################################################
+
+
+def test_str_permutations(
+    key_name_builder,
+    valid_pos_int,
+    invalid_pos_int,
+    int_validation_method,
+):
+    test_cases = [
+        {
+            "type": "str",
+            "test_method": get_env,
+            "test_cases": {
+                "valid_values": valid_str_value,
+                "invalid_values": invalid_str_value,
+            },
+            "validation_approach": str_validation_method,
+            "failed_validation_with_method_exception": StrValidationEnvironmentError,
+        }
+    ]
+
+    permutation_test_handler(key_name_builder, test_cases)
+
+
+def test_bool_permutations(
+    key_name_builder,
+    valid_pos_int,
+    invalid_pos_int,
+    int_validation_method,
+):
+
+    test_cases = [
+        {
+            "type": "boolean",
+            "test_method": get_env_as_bool,
+            "test_cases": {
+                "valid_values": valid_bool_values,
+                "invalid_values": invalid_bool_values,
+            },
+            "validation_approach": bool_validation_method,
+            "failed_validation_with_method_exception": BooleanEnvironmentError,
+        }
+    ]
+
+    permutation_test_handler(key_name_builder, test_cases)
+
+
+def test_positive_int_permutations(
+    key_name_builder,
+    valid_pos_int,
+    invalid_pos_int,
+    int_validation_method,
+):
+    test_cases = [
+        {
+            "type": "positive_int",
+            "test_method": get_env_as_positive_integer,
+            "test_cases": {
+                "valid_values": valid_pos_int,
+                "invalid_values": invalid_pos_int,
+            },
+            "validation_approach": int_validation_method,
+            "failed_validation_with_method_exception": PositiveIntEnvironmentError,
+        }
+    ]
+
+    permutation_test_handler(key_name_builder, test_cases)

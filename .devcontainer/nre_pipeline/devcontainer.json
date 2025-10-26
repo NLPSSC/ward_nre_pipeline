@@ -30,7 +30,8 @@
                 "tamasfe.even-better-toml",
                 "ms-azuretools.vscode-docker",
                 "njpwerner.autodocstring",
-                "Cameron.vscode-pytest"
+                "Cameron.vscode-pytest",
+                "mgesbert.python-path"
             ]
         }
     },
