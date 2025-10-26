@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Callable, Literal, TypeAlias, overload
+from typing import Any, Optional, Callable, Literal, TypeAlias, overload
 
 from nre_pipeline.common.env_vars.exceptions import (
     BooleanEnvironmentError,
@@ -24,11 +24,16 @@ def default_str_is_valid(x) -> bool:
 
 
 def default_bool_is_valid(x) -> bool:
-    return x is not None and x.lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
+    is_not_none = x is not None
+    within_accepted_values = x in ALL_ACCEPTED_BOOL_VALUES or x.lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
+    return is_not_none and within_accepted_values
 
 
-def default_positive_int_is_valid(x) -> bool:
-    return (x is not None and x.isdigit() and int(x) > 0) is True
+def default_positive_int_is_valid(x: Any) -> bool:
+    is_not_none = x is not None
+    is_number = isinstance(x, int) or (isinstance(x, str) and x.isdigit())
+    is_gt_zero = int(x) > 0 if is_number else False
+    return (is_not_none and is_number and is_gt_zero) is True
 
 
 # Overload for required = "exists"
