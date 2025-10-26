@@ -1,5 +1,5 @@
 import os
-from typing import Any, Optional, Callable, Literal, TypeAlias, overload
+from typing import Any, Optional, Callable, TypeAlias
 
 from nre_pipeline.common.env_vars.exceptions import (
     BooleanEnvironmentError,
@@ -9,13 +9,11 @@ from nre_pipeline.common.env_vars.exceptions import (
     StrValidationEnvironmentError,
 )
 
-TValidator: TypeAlias = Callable[[Optional[str]], bool]
+TValidator: TypeAlias = Optional[Callable[[Optional[str]], bool]]
 
 ACCEPTED_TRUE_VALUES = ["true", True, "1", "yes"]
 ACCEPTED_FALSE_VALUES = ["false", False, "0", "no"]
 ALL_ACCEPTED_BOOL_VALUES = ACCEPTED_TRUE_VALUES + ACCEPTED_FALSE_VALUES
-
-
 
 
 def default_str_is_valid(x) -> bool:
@@ -24,7 +22,10 @@ def default_str_is_valid(x) -> bool:
 
 def default_bool_is_valid(x) -> bool:
     is_not_none = x is not None
-    within_accepted_values = x in ALL_ACCEPTED_BOOL_VALUES or x.lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
+    within_accepted_values = (
+        x in ALL_ACCEPTED_BOOL_VALUES
+        or x.lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
+    )
     return is_not_none and within_accepted_values
 
 
@@ -35,19 +36,9 @@ def default_positive_int_is_valid(x: Any) -> bool:
     return (is_not_none and is_number and is_gt_zero) is True
 
 
-# Overload for required = "exists"
-@overload
-def get_env(key: str, required: TValidator = None) -> str: ...
-
-
-# Overload for required = None
-@overload
-def get_env(key: str, required: None = None) -> Optional[str]: ...
-
-
 def get_env(
     key: str,
-    required: TRequired | TValidator | None = None,
+    required: TValidator = default_str_is_valid,
 ) -> Optional[str]:
     """
     Retrieve the value for a specified environment variable.
@@ -58,7 +49,7 @@ def get_env(
     if key not in os.environ:
         raise KeyMissingEnvironmentError(key)
     value = os.getenv(key, None)
-    value = None if value == 'None' else value
+    value = None if value == "None" else value
     # required = "exists"
     if required == "exists":
         if value is None:
@@ -73,8 +64,8 @@ def get_env(
     return value
 
 
-def get_env_as_int(
-    key, required: TRequired | TValidator | None = "exists"
+def get_env_as_positive_integer(
+    key, required: TValidator = default_positive_int_is_valid
 ) -> Optional[int]:
     val: Optional[str] = get_env(key, required=required)
 
@@ -92,7 +83,7 @@ def get_env_as_int(
 
 
 def get_env_as_bool(
-    key, required: TRequired | TValidator | None = "exists"
+    key, required: TValidator = default_bool_is_valid
 ) -> Optional[bool]:
     val: Optional[str] = get_env(key, required=required)
     bool_val = None

@@ -1,16 +1,11 @@
-import os
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional, TypeAlias, TypeVar, Union, cast
+from typing import Literal, Optional, TypeAlias, cast
 
-from numpy import require
-from overrides import override
 from loguru import logger
 from nre_pipeline.common.env_vars.env_getter import (
-    TRequired,
-    TValidator,
     get_env,
     get_env_as_bool,
-    get_env_as_int,
+    get_env_as_positive_integer,
 )
 from nre_pipeline.converter.data.models.routes._corpus_route import CorpusRoute
 
@@ -99,41 +94,53 @@ class EnvValues:
 
     @staticmethod
     def get_document_batch_size() -> int:
-        return cast(int, get_env_as_int("DOCUMENT_BATCH_SIZE", required="exists"))
+        return cast(
+            int, get_env_as_positive_integer("DOCUMENT_BATCH_SIZE", required="exists")
+        )
 
     @staticmethod
     def get_inqueue_max_docbatch_count() -> int:
         return cast(
             int,
-            get_env_as_int("INQUEUE_MAX_DOCBATCH_COUNT", required="exists"),
+            get_env_as_positive_integer(
+                "INQUEUE_MAX_DOCBATCH_COUNT", required="exists"
+            ),
         )
 
     @staticmethod
     def get_outqueue_max_docbatch_count() -> int:
         return cast(
             int,
-            get_env_as_int("OUTQUEUE_MAX_DOCBATCH_COUNT", required="exists"),
+            get_env_as_positive_integer(
+                "OUTQUEUE_MAX_DOCBATCH_COUNT", required="exists"
+            ),
         )
 
     @staticmethod
     def get_number_docs_to_write_before_yield() -> int:
         return cast(
             int,
-            get_env_as_int("NUMBER_DOCS_TO_WRITE_BEFORE_YIELD", required="exists"),
+            get_env_as_positive_integer(
+                "NUMBER_DOCS_TO_WRITE_BEFORE_YIELD", required="exists"
+            ),
         )
 
     @staticmethod
     def get_number_starting_processors() -> int:
         return cast(
             int,
-            get_env_as_int("NUMBER_STARTING_PROCESSORS", required="exists"),
+            get_env_as_positive_integer(
+                "NUMBER_STARTING_PROCESSORS", required="exists"
+            ),
         )
 
     @staticmethod
     def get_number_docs_to_read_before_yield() -> int:
         return cast(
             int,
-            get_env_as_int("NUMBER_DOCS_TO_READ_BEFORE_YIELD", required="exists"),
+            get_env_as_positive_integer(
+                "NUMBER_DOCS_TO_READ_BEFORE_YIELD", required="exists"
+            ),
         )
 
     @staticmethod

@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 import pytest
 from dotenv import load_dotenv
 import random
@@ -11,11 +10,10 @@ from nre_pipeline.common.env_vars.env_getter import (
     default_bool_is_valid,
     default_positive_int_is_valid,
     get_env,
-    get_env_as_int,
+    get_env_as_positive_integer,
     get_env_as_bool,
     ACCEPTED_TRUE_VALUES,
     ACCEPTED_FALSE_VALUES,
-    ALL_ACCEPTED_BOOL_VALUES,
     ValidValidationType,
 )  # type: ignore
 
@@ -261,7 +259,7 @@ def test_all_permutations(
         },
         {
             "type": "positive_int",
-            "test_method": get_env_as_int,
+            "test_method": get_env_as_positive_integer,
             "test_cases": {
                 "valid_values": valid_pos_int,
                 "invalid_values": invalid_pos_int,
