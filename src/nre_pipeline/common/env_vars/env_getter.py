@@ -59,6 +59,7 @@ def get_env(
     if key not in os.environ:
         raise KeyMissingEnvironmentError(key)
     value = os.getenv(key, None)
+    value = None if value == 'None' else value
     # required = "exists"
     if required == "exists":
         if value is None:

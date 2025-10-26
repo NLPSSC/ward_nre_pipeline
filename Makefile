@@ -44,5 +44,5 @@ clean-all-docker:
 	docker builder prune -f
 	docker system prune -f
 
-start-docker:
-	@sudo service docker start
+test-collect-only:
+	pytest --collect-only -c /workspace/pytest.ini
