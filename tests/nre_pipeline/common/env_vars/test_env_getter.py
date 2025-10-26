@@ -104,12 +104,12 @@ def valid_bool_values(TRUE_value, FALSE_value):
 
 
 @pytest.fixture(params=[1, 10, 100, 1000, 10000])
-def valid_pos_ints(request):
+def valid_pos_int(request):
     yield request.param
 
 
 @pytest.fixture(params=[-1, 0, "a", "-"])
-def invalid_pos_ints(request):
+def invalid_pos_int(request):
     yield request.param
 
 
@@ -182,17 +182,22 @@ def test_default_str_is_valid(valid_str_value, invalid_str_value):
 
 
 def test_default_bool_is_valid(valid_bool_values, invalid_bool_values):
-    for valid_bool_val in valid_bool_values:
-        assert default_bool_is_valid(valid_bool_val)
-    for invalid_bool_val in invalid_bool_values:
-        assert not default_bool_is_valid(invalid_bool_val)
+    valid_test = valid_bool_values
+    if isinstance(valid_test, tuple) and len(valid_test) == 2 and isinstance(valid_test[1], bool):
+        valid_test = valid_test[0]
+    assert default_bool_is_valid(valid_test)
+
+    valid_test = invalid_bool_values
+    if isinstance(valid_test, tuple) and len(valid_test) == 2 and valid_test[1] is None:
+        valid_test = valid_test[0]
+    assert not default_bool_is_valid(valid_test)
+        
 
 
-def test_default_positive_int_is_valid(valid_pos_ints, invalid_pos_ints):
-    for valid_pos_int in valid_pos_ints:
-        assert default_positive_int_is_valid(valid_pos_int)
-    for invalid_pos_int in invalid_pos_ints:
-        assert not default_positive_int_is_valid(invalid_pos_int)
+def test_default_positive_int_is_valid(valid_pos_int, invalid_pos_int):
+    assert default_positive_int_is_valid(valid_pos_int)
+    assert not default_positive_int_is_valid(invalid_pos_int)
+        
 
 
 ###############################################################################
@@ -214,8 +219,8 @@ def test_default_positive_int_is_valid(valid_pos_ints, invalid_pos_ints):
         "positive_int": {
             "test_method": get_env_as_int,
             "test_cases": {
-                "valid_values": valid_pos_ints,
-                "invalid_values": invalid_pos_ints,
+                "valid_values": valid_pos_int,
+                "invalid_values": invalid_pos_int,
             },
             "validation_approach": int_validation_methods,
             "failed_validation_with_method_exception": PositiveIntEnvironmentError,
