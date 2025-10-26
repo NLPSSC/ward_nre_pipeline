@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import os
+from pathlib import Path
 from typing import Optional
 
 from nre_pipeline.converter.data.models.mixins._route_mixin import RouteMixin
@@ -32,7 +34,14 @@ class CorpusRoute(InputBase, RouteMixin):
         CorpusRoute._corpus_route_names.add(name)
 
         # Add corpus route
-        self._corpus_route: Optional[str] = corpus_route
+        if corpus_route is not None:
+            self._corpus_route: Optional[str] = corpus_route
+            if os.path.exists(corpus_route):
+                # if this exists on its own, this means that the self._root_path
+                # for this instance is not valid.  Set the root_path to the
+                # the corpus_route and self._corpus_route to empty
+                self._root_path = Path(corpus_route)
+                self._corpus_route = None
 
     @property
     def _route_segment(self) -> str:
