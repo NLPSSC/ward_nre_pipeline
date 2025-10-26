@@ -19,6 +19,12 @@ def clear_env(monkeypatch):
         monkeypatch.delenv(key, raising=False)
     yield
 
+@pytest.fixture
+def monkeypatch_input_root(monkeypatch):
+    monkeypatch.setenv("INPUT_ROOT_PATH", "/input")
+    return monkeypatch
+
+
 def test_get_project_name(monkeypatch):
     monkeypatch.setenv("PROJECT_NAME", "NREPipeline")
     assert EnvValues.get_project_name() == "NREPipeline"
@@ -39,26 +45,27 @@ def test_get_quickumls_path(monkeypatch):
     monkeypatch.setenv("QUICKUMLS_PATH", "/quickumls")
     assert EnvValues.get_quickumls_path() == Path("/quickumls")
 
-def test_get_small_corpus_route(monkeypatch):
-    monkeypatch.setenv("SMALL_CORPUS_PATH", "/corpus/small")
+
+def test_get_small_corpus_route(monkeypatch_input_root):
+    monkeypatch_input_root.setenv("SMALL_CORPUS_PATH", "/corpus/small")
     route = EnvValues.get_small_corpus_route()
     assert isinstance(route, CorpusRoute)
     assert route.name == "small corpus"
-    assert route.path == "/corpus/small"
+    assert str(route.route_path) == "/input/corpus/small"
 
-def test_get_medium_corpus_route(monkeypatch):
-    monkeypatch.setenv("MEDIUM_CORPUS_PATH", "/corpus/medium")
+def test_get_medium_corpus_route(monkeypatch_input_root):
+    monkeypatch_input_root.setenv("MEDIUM_CORPUS_PATH", "/corpus/medium")
     route = EnvValues.get_medium_corpus_route()
     assert isinstance(route, CorpusRoute)
     assert route.name == "medium corpus"
-    assert route.path == "/corpus/medium"
+    assert str(route.route_path) == "/input/corpus/medium"
 
-def test_get_large_corpus_route(monkeypatch):
-    monkeypatch.setenv("LARGE_CORPUS_PATH", "/corpus/large")
+def test_get_large_corpus_route(monkeypatch_input_root):
+    monkeypatch_input_root.setenv("LARGE_CORPUS_PATH", "/corpus/large")
     route = EnvValues.get_large_corpus_route()
     assert isinstance(route, CorpusRoute)
     assert route.name == "large corpus"
-    assert route.path == "/corpus/large"
+    assert str(route.route_path) == "/input/corpus/large"
 
 def test_get_dev_umls_key_path(monkeypatch):
     monkeypatch.setenv("DEV_UMLS_KEY_PATH", "/dev/key")

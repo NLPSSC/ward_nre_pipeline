@@ -6,18 +6,28 @@ class KeyMissingEnvironmentError(EnvironmentError):
         super().__init__(f"Environment variable '{key}' does not exist.")
 
 
-class ValueMissingEnvironmentError(EnvironmentError):
-    def __init__(self, key: str) -> None:
-        super().__init__(f"Value for environment variable '{key}' does not exist.")
-
-
 class MethodValidationEnvirontmentError(EnvironmentError):
     def __init__(
         self, key: str, value: Any, validation_description: Optional[str] = None
     ) -> None:
+        self._key = key
+        self._value = value
+        self._validation_description = validation_description
         super().__init__(
             f"Method validation for key='{key}' and value='{value}' failed: {validation_description}."
         )
+
+    @property
+    def key(self) -> str:
+        return self._key
+
+    @property
+    def value(self) -> Any:
+        return self._value
+
+    @property
+    def validation_description(self) -> Optional[str]:
+        return self._validation_description
 
 
 class StrValidationEnvironmentError(MethodValidationEnvirontmentError):

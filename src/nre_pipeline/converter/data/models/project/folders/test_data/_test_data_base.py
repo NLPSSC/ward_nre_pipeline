@@ -5,6 +5,8 @@ from nre_pipeline.converter.data.models.root_folders._folders_base import DataFo
 
 class TestDataBase(DataFolderRoot):
 
-    @property
-    def root_folder(self) -> Path:
-        return EnvValues.get_test_data_root()
+    def __init__(self, root: Path, *args, **kwargs) -> None:
+        from nre_pipeline.common.env_vars._env_values_manager import EnvValues
+        super().__init__(root_path=EnvValues.get_test_data_root(), *args, **kwargs)
+
+    

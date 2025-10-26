@@ -46,3 +46,6 @@ clean-all-docker:
 
 test-collect-only:
 	pytest --collect-only -c /workspace/pytest.ini
+
+test-to-first-error:
+	pytest -x -c /workspace/pytest.ini
