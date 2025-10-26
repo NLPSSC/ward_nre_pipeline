@@ -4,6 +4,9 @@ from pathlib import Path
 
 class ProjectFolderMixin:
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     @property
     @abstractmethod
     def project_name(self) -> str:

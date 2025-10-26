@@ -6,11 +6,15 @@ from ._root_path_mixin import RootPathMixin
 
 
 class RouteMixin(ABC, RootPathMixin):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     @property
-    def route(self) -> Path:
-        return self.root_path / self.route_segment
+    def root_path(self) -> Path:
+        return super().root_path / self._route_segment
 
     @property
     @abstractmethod
-    def route_segment(self) -> str:
-        raise NotImplementedError("Must implement route_segment method")
+    def _route_segment(self) -> str:
+        raise NotImplementedError("Must implement _route_segment method")

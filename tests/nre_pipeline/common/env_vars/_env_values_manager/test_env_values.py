@@ -34,7 +34,7 @@ def unset_env(key):
         (EnvValues.get_project_name, "PROJECT_NAME", "myproject", "myproject", str),
         (
             EnvValues.get_test_data_path,
-            "TEST_DATA_PATH",
+            "TEST_DATA_ROOT_PATH",
             "/tmp/testdata",
             Path("/tmp/testdata"),
             Path,
@@ -114,7 +114,7 @@ def test_env_value_success(method, key, value, expected, type_):
         (EnvValues.get_INPUT_ROOT_PATH, "INPUT_ROOT_PATH"),
         (EnvValues.get_quickumls_path, "QUICKUMLS_PATH"),
         (EnvValues.get_project_name, "PROJECT_NAME"),
-        (EnvValues.get_test_data_path, "TEST_DATA_PATH"),
+        (EnvValues.get_test_data_path, "TEST_DATA_ROOT_PATH"),
         (EnvValues.get_dev_umls_key_path, "DEV_UMLS_KEY_PATH"),
         (EnvValues.get_batch_id_sqlite_db_name, "BATCH_ID_SQLITE_DB_NAME"),
         (EnvValues.get_document_batch_size, "DOCUMENT_BATCH_SIZE"),

@@ -9,13 +9,12 @@ from nre_pipeline.common import setup_logging
 from nre_pipeline.processor.noop_processor import NoOpProcessor
 from nre_pipeline.reader._filesystem_reader import FileSystemReader
 from nre_pipeline.writer.database._sqlite_writer import SQLiteNLPWriter
-from nre_pipeline.writer.filesystem._csv_writer import CSVWriter
 
 
 def get_test_data_path(test_data_path: str | None = None) -> str:
-    test_data_path = test_data_path or os.getenv("TEST_DATA_PATH")
+    test_data_path = test_data_path or os.getenv("TEST_DATA_ROOT_PATH")
     if not test_data_path or os.path.exists(test_data_path) is False:
-        raise ValueError("TEST_DATA_PATH environment variable is not set")
+        raise ValueError("TEST_DATA_ROOT_PATH environment variable is not set")
     return test_data_path
 
 
