@@ -1,15 +1,15 @@
 import os
-from typing import Any, Optional, Callable, TypeAlias
+from typing import Any, Literal, Optional, Callable, TypeAlias, cast
 
 from nre_pipeline.common.env_vars.exceptions import (
     BooleanEnvironmentError,
     KeyMissingEnvironmentError,
     PositiveIntEnvironmentError,
-    ValueMissingEnvironmentError,
     StrValidationEnvironmentError,
 )
 
 TValidator: TypeAlias = Optional[Callable[[Optional[str]], bool]]
+TEnvRetVal: TypeAlias = str | Literal["undefined"]
 
 ACCEPTED_TRUE_VALUES = ["true", True, "1", "yes"]
 ACCEPTED_FALSE_VALUES = ["false", False, "0", "no"]
@@ -22,11 +22,18 @@ def default_str_is_valid(x) -> bool:
 
 def default_bool_is_valid(x) -> bool:
     is_not_none = x is not None
-    within_accepted_values = (
-        x in ALL_ACCEPTED_BOOL_VALUES
-        or x.lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
-    )
+    within_accepted_values = _is_bool_equivalent(x)
     return is_not_none and within_accepted_values
+
+
+def _is_bool_equivalent(x):
+    _x = x
+    if isinstance(x, tuple) and len(x) > 1:
+        _x = x[0]
+    return (
+        _x in ALL_ACCEPTED_BOOL_VALUES
+        or str(_x).lower().strip("'").strip('"') in ALL_ACCEPTED_BOOL_VALUES
+    )
 
 
 def default_positive_int_is_valid(x: Any) -> bool:
@@ -36,67 +43,76 @@ def default_positive_int_is_valid(x: Any) -> bool:
     return (is_not_none and is_number and is_gt_zero) is True
 
 
+def _convert_none_to_undefined(value: Optional[str]) -> TEnvRetVal:
+    return "undefined" if (value == "None" or value is None) else value
+
+
+def _convert_undefined_to_none(value: TEnvRetVal) -> Optional[str]:
+    return None if value == "undefined" else value
+
+
 def get_env(
     key: str,
-    required: TValidator = default_str_is_valid,
-) -> Optional[str]:
+    validator: TValidator = None,
+) -> TEnvRetVal:
     """
     Retrieve the value for a specified environment variable.
-    - If required is "exists": raises EnvironmentError if not set, returns str otherwise.
-    - If required is a callable: raises EnvironmentError if callable returns False, returns str otherwise.
-    - If required is None: returns Optional[str].
+    - If validator is a callable: raises EnvironmentError if callable returns False, returns str otherwise.
+    - If validator is None: returns Optional[str].
     """
+
+    if validator is None:
+        validator = default_str_is_valid
+
     if key not in os.environ:
         raise KeyMissingEnvironmentError(key)
-    value = os.getenv(key, None)
-    value = None if value == "None" else value
-    # required = "exists"
-    if required == "exists":
-        if value is None:
-            raise ValueMissingEnvironmentError(key)
-        return value
-    # required is a callable
-    if callable(required):
-        if not required(value):
+    value: TEnvRetVal = _convert_none_to_undefined(os.getenv(key, None))
+
+    # validator is a callable
+    if callable(validator):
+        if not validator(value):
             raise StrValidationEnvironmentError(key, value)
         return value
-    # required is None
+    # validator is None
+    
     return value
 
 
-def get_env_as_positive_integer(
-    key, required: TValidator = default_positive_int_is_valid
-) -> Optional[int]:
-    val: Optional[str] = get_env(key, required=required)
+def get_env_as_positive_integer(key, validator: TValidator = None) -> Optional[int]:
 
-    if required is None and val is None:
+    if validator is None:
+        validator = default_positive_int_is_valid
+
+    try:
+        val: Optional[str] = get_env(key, validator=validator)
+    except StrValidationEnvironmentError as sve:
+        raise PositiveIntEnvironmentError(sve.key, sve.value)
+
+    if validator is None and val is None:
         return None
 
-    if required == "exists":
-        required = default_positive_int_is_valid
-
-    assert required is not None
-    if not required(val):
+    if validator and not validator(val):
         raise PositiveIntEnvironmentError(key, val)
     assert val is not None
     return int(val)
 
 
-def get_env_as_bool(
-    key, required: TValidator = default_bool_is_valid
-) -> Optional[bool]:
-    val: Optional[str] = get_env(key, required=required)
+def get_env_as_bool(key, validator: TValidator = None) -> Optional[bool]:
+
+    if validator is None:
+        validator = default_bool_is_valid
+
+    try:
+        val: Optional[str] = get_env(key, validator=validator)
+    except StrValidationEnvironmentError as sve:
+        raise BooleanEnvironmentError(sve.key, sve.value)
     bool_val = None
 
-    if required is None and val is None:
+    if validator is None and val is None:
         return None
 
-    if required == "exists":
-        required = default_bool_is_valid
-
-    assert required is not None
-    if not required(val):
+    if validator and not validator(val):
         raise BooleanEnvironmentError(key, val)
-    bool_val = val in ("true", "1")
+    bool_val = any(True for v in ACCEPTED_TRUE_VALUES if str(val).lower() == str(v).lower())
 
     return bool_val
