@@ -31,7 +31,8 @@
                 "ms-azuretools.vscode-docker",
                 "njpwerner.autodocstring",
                 "Cameron.vscode-pytest",
-                "mgesbert.python-path"
+                "mgesbert.python-path",
+                "hbenl.vscode-test-explorer"
             ]
         }
     },
