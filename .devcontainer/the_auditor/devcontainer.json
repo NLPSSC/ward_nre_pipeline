@@ -1,7 +1,7 @@
 {
     "name": "the_auditor Development Container",
     "service": "the_auditor",
-    "dockerComposeFile": "docker-copmpose.yml",
+    "dockerComposeFile": "docker-compose.yml",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -47,9 +47,6 @@
         8000,
         9092
     ],
-    "mounts": [
-        "source=/home/westerd/_/project_data/the_auditor,target=/the_auditor,type=bind"
-    ],
     "workspaceFolder": "/workspace",
-    "postCreateCommand": ".devcontainer/nre_pipeline/postCreateCommand.sh"
+    "postCreateCommand": ".devcontainer/the_auditor/postCreateCommand.sh"
 }

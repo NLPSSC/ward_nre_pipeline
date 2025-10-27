@@ -3,18 +3,6 @@
 		{
 			"path": ".",
 			"name": "ward_nre_pipeline"
-		},
-		{
-			"path": "../test_data"
-		},
-		{
-			"path": "../output"
-		},
-		{
-			"path": "../input_data"
-		},
-		{
-			"path": "../quickumls_data"
 		}
 	],
 	"launch": {
@@ -27,54 +15,6 @@
 				"program": "${file}",
 				"console": "integratedTerminal",
 				"envFile": "${workspaceFolder}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Reader",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/manual/test_reader.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Reader/Processor (NoOp)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/manual/test_processor.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Reader/Processor/Writer[CSV] (NoOp)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/manual/test_reader_noopproc_csv_writer.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Reader/Processor/Writer[CSV] (quickumls)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/manual/test_reader_quickumls_processor_csv_writer.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Reader/Processor/Writer[Sqlite] (NoOp)",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/tests/manual/test_sqlite_writer.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
-			},
-			{
-				"name": "[Test] Build csv to dict lookup",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:ward_nre_pipeline}/src/nre_pipeline/converter/from_csv/to_dict_lookup.py",
-				"console": "integratedTerminal",
-				"envFile": "${workspaceFolder:ward_nre_pipeline}/.nre_pipeline.env",
 			}
 		],
 		"compounds": []
@@ -155,10 +95,13 @@
 			"envs/": true,
 			"genalog_api - ward_nre_pipeline.code-workspace": true,
 			"src/genalog_api": true,
+			"src/nre_pipeline": true,
 			".genalog_api.env": true,
 			"tests/genalog_api": true,
 			"**/ward_nre_pipeline.code-workspace": true,
 			"copilot-chat-instructions.md": true,
+			"nre_pipeline - ward_nre_pipeline.code-workspace": true,
+			".devcontainer/nre_pipeline": true,
 			".prodcontainer": true
 		},
 		"explorerExclude.backup": {},

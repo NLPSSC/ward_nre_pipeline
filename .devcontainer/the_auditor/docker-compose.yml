@@ -4,7 +4,7 @@ volumes:
     driver_opts:
       o: bind
       type: none
-      device: /home/westerd/_/project_data/the_auditor/output
+      device: /home/westerd/_/project_data/the_auditor
 
 services:
   zookeeper:
@@ -25,14 +25,20 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  auditor_api:
-    build: ../auditor_api
+  the_auditor:
+    build: 
+      context: ../..
+      dockerfile: .devcontainer/the_auditor/Dockerfile
     depends_on:
       - kafka
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DEBIAN_FRONTEND=noninteractive
+      - ENVIRONMENT=development
     ports:
       - "8000:8000"
-
     volumes:
-      - output:/output
+      - ../..:/workspace:cached
+      - output:/output:rw
+    # command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["sleep", "infinity"]

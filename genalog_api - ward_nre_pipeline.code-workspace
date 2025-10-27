@@ -30,7 +30,8 @@
 			"src/nre_pipeline": true,
 			"**/Makefile.nre_pipeline.mk": true,
 			".data/nre_pipeline": true,
-			".makefiles/Makefile.nre_pipeline.mk": true
+			".makefiles/Makefile.nre_pipeline.mk": true,
+			".prodcontainer": true
 		},
 		"explorerExclude.backup": {},
 		"python.useEnvironmentsExtension": true,

@@ -6,9 +6,14 @@ include .makefiles/Makefile.genalog_api.mk
 include .makefiles/Makefile.nre_pipeline.mk
 include .makefiles/Makefile.the_auditor.mk
 
+.PHONY: help start-docker stop-docker build-dev-containers clean-all-docker \
+    test-collect-only test-to-first-error
+
 .DEFAULT_GOAL := help
 
-help: help-base-images help-genalog_api help-nre_pipeline help-the_auditor
+help: help-base-images \
+	help-genalog_api help-nre_pipeline help-the_auditor 
+
 start-docker:
 	sudo service docker start
 
@@ -16,12 +21,13 @@ stop-docker:
 	sudo service docker stop
 
 build-dev-containers:
-	@make python311_base-build && \
+	@make python38_base-build && \
 		make python38_base-build && \
+		make python311_base-build && \
 		make medspacy_quickumls_processor-build && \
-		make dev-nre_pipeline-build && make dev-genalog_api-build && \
+		make dev-nre_pipeline-build && \
+		make dev-the_auditor-build && \
 		make dev-genalog_api-build
-
 
 clean-all-docker:
 	@if [ -z "$$(docker ps -aq)" ]; then \
