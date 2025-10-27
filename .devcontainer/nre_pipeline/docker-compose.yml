@@ -1,29 +1,30 @@
-version: "3.8"
-
 volumes:
   output:
     driver: local
     driver_opts:
       type: none
-      o: bind
+      o: bind,rw
       device: /home/westerd/_/project_data/ward_nre_pipeline/output
+
   test_data:
     driver: local
     driver_opts:
       type: none
-      o: bind
+      o: bind,ro
       device: /home/westerd/_/project_data/ward_nre_pipeline/test_data
+
   input_data:
     driver: local
     driver_opts:
       type: none
-      o: bind
+      o: bind,ro
       device: /mnt/z/_/data/corpora/ocred_docs_from_pubmed
+
   quickumls_data:
     driver: local
     driver_opts:
       type: none
-      o: bind
+      o: bind,ro
       device: /home/westerd/_/project_data/ward_nre_pipeline/quickumls
 
 services:
@@ -35,10 +36,10 @@ services:
       dockerfile: .devcontainer/nre_pipeline/Dockerfile
     volumes:
       - ../..:/workspace:cached
-      - output:/output
-      - test_data:/test_data
-      - input_data:/input_data
-      - quickumls_data:/quickumls_data
+      - output:/output:rw
+      - test_data:/test_data:ro
+      - input_data:/input_data:ro
+      - quickumls_data:/quickumls_data:ro
     environment:
       - DEBIAN_FRONTEND=noninteractive
       - ENVIRONMENT=development
