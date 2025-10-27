@@ -30,6 +30,9 @@ validate-%:
 
 # Pattern rule for building only allowed base images
 %-build: 
+	@if [ "$*" = "medspacy_quickumls_processor" ]; then \
+		$(MAKE) --no-print-directory python311_base-build; \
+	fi
 	@$(MAKE) --no-print-directory validate-$* && \
 		[ ! -f $(call get_label_dockerfile,$*) ] && \
 			echo "Dockerfile not found" || \

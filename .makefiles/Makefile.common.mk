@@ -44,6 +44,9 @@ endef
 endif	
 
 dev-%-build:
+	@if [ "$*" = "nre_pipeline" ]; then \
+		$(MAKE) medspacy_quickumls_processor-build; \
+	fi
 	@docker compose -f .devcontainer/$*/docker-compose.yml build $*
 
 dev-%-rebuild:
@@ -55,7 +58,7 @@ dev-%-up:
 
 # Remove (stop and delete) the genalog_api container
 dev-%-down:
-	@docker compose -f .devcontainer/$*/docker-compose.yml down
+	@docker compose -f .devcontainer/$*/docker-compose.yml down -v
 
 # Open a bash shell in the genalog_api container
 dev-%-shell: dev-%-up
