@@ -224,3 +224,5 @@ resources/umls/
 data/batch_ids.db
 
 /quickumls_data
+
+UMLS_API_KEY.secret
