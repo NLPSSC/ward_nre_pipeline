@@ -2,10 +2,14 @@
 FileSystemReader class for recursively iterating over files in a directory.
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Any, Generator, List, Union
+
 from loguru import logger
+
 from nre_pipeline.models import Document
 from nre_pipeline.models._batch import DocumentBatch, DocumentBatchBuilder
 from nre_pipeline.common.base._base_reader import CorpusReader
@@ -48,7 +52,7 @@ class FileSystemReader(CorpusReader):
         ################################################################
         self._exclude: List[Path] = self._normalize_excluded_paths(excluded_paths)
 
-        self._debug_log(f"FileSystemReader loaded")
+        self._debug_log("FileSystemReader loaded")
 
     def get_process_name(self):
         return f"FileSystemReader"
