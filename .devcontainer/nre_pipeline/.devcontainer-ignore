@@ -6,3 +6,4 @@
 # test_data/
 /workspace/.docker_imgs/
 /workspace/.genalog_api.env
+/workspace/.devcontainer/genalog_api

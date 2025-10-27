@@ -144,38 +144,43 @@
 	},
 	"settings": {
 		"files.exclude": {
-			"**/.git": true,
-			"**/.svn": true,
-			"**/.hg": true,
-			"**/.DS_Store": true,
-			"**/Thumbs.db": true,
+			".devcontainer/genalog_api": true,
+			".docker_imgs": true,
+			".makefiles/Makefile.genalog_api.mk": true,
 			"**/__pycache__": true,
+			"**/__pycache__/**": true,
 			"**/.cache": true,
 			"**/.conda": true,
 			"**/.coverage": true,
 			"**/.coverage.*": true,
+			"**/.DS_Store": true,
+			"**/.git": true,
+			"**/.hg": true,
 			"**/.hypothesis": true,
 			"**/.mypy_cache": true,
 			"**/.nox": true,
 			"**/.pytest_cache": true,
 			"**/.ruff_cache": true,
+			"**/.svn": true,
 			"**/.tox": true,
 			"**/.venv": true,
+			"**/Thumbs.db": true,
 			"**/tmp/**": true,
 			"**/venv/**": true,
+			"**/.devcontainer/genalog_api": true,
 			"envs/": true,
-			"**/__pycache__/**": true,
-			".devcontainer/genalog_api": true,
+			"genalog_api - ward_nre_pipeline.code-workspace": true,
 			"src/genalog_api": true,
+			".genalog_api.env": true,
 			"tests/genalog_api": true,
-			".makefiles/Makefile.genalog_api.mk": true,
-			".docker_imgs": true,
-			"genalog_api - ward_nre_pipeline.code-workspace": true
+			"**/ward_nre_pipeline.code-workspace": true,
+			"copilot-chat-instructions.md": true
 		},
 		"explorerExclude.backup": {},
 		"python.useEnvironmentsExtension": true,
 		"python.venvFolders": [
 			"envs"
-		]
+		],
+		"sqlite.sqlite3": "/usr/bin/sqlite3"
 	}
 }

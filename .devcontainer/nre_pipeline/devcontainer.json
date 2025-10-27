@@ -33,7 +33,13 @@
                 "Cameron.vscode-pytest",
                 "mgesbert.python-path",
                 "hbenl.vscode-test-explorer",
-                "littlefoxteam.vscode-python-test-adapter"
+                "littlefoxteam.vscode-python-test-adapter",
+                "mtxr.sqltools-driver-sqlite",
+                "mtxr.sqltools",
+                "alexcvzz.vscode-sqlite",
+                "adpyke.vscode-sql-formatter",
+                "ms-mssql.sql-database-projects-vscode",
+                "ms-mssql.sql-bindings-vscode"
             ]
         }
     },

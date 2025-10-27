@@ -4,6 +4,10 @@ FROM nlpssc/medspacy-quickumls-processor:latest AS base
 # Avoid interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Get the UMLS API key file path from the host call
+ARG umls_key_file=
+ENV DEV_UMLS_KEY_PATH=${umls_key_file}
+
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends make sqlite3 jq && \
@@ -17,6 +21,8 @@ RUN cat <<EOF >> /etc/pip.conf
 root-user-action = ignore
 
 EOF
+
+# /home/westerd/_/project_data/ward_nre_pipeline/UMLS_API_KEY.secret
 
 # Add alias to root's .bashrc
 RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100

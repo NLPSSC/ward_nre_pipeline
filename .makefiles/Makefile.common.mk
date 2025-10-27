@@ -47,6 +47,7 @@ dev-%-build:
 	@if [ "$*" = "nre_pipeline" ]; then \
 		$(MAKE) medspacy_quickumls_processor-build; \
 	fi
+	# How can I implement a rags architecture with an LLM using the MIMIC-III database
 	@docker compose -f .devcontainer/$*/docker-compose.yml build $*
 
 dev-%-rebuild:

@@ -34,6 +34,8 @@ services:
     build:
       context: ../..
       dockerfile: .devcontainer/nre_pipeline/Dockerfile
+      args:
+        umls_key_file: "/home/westerd/_/project_data/ward_nre_pipeline/UMLS_API_KEY.secret"
     volumes:
       - ../..:/workspace:cached
       - output:/output:rw
