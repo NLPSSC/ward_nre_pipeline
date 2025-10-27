@@ -5,11 +5,10 @@
     "exclude": [
         "**/node_modules",
         "**/__pycache__",
-        "quickumls/",
         "resources/",
         "examples/",
         "envs/",
         "scripts/",
-        "**/__archive/**",
-    ],
+        "**/__archive/**"
+    ]
 }
