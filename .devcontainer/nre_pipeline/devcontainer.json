@@ -32,7 +32,8 @@
                 "njpwerner.autodocstring",
                 "Cameron.vscode-pytest",
                 "mgesbert.python-path",
-                "hbenl.vscode-test-explorer"
+                "hbenl.vscode-test-explorer",
+                "littlefoxteam.vscode-python-test-adapter"
             ]
         }
     },
