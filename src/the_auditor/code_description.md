@@ -162,9 +162,3 @@ All code, configuration, and setup must be generated from scratch in `/workspace
 
 ---
 
-**Prompt Example:**  
-"Read `/workspace/src/the_auditor/code_description.md` and generate all code, configuration, and setup needed to build and run the described Kafka-based auditing API project in Docker, with no external dependencies or assumptions."
-
----
-
-With these instructions, a GPT-4.1 Agent will have all the context needed to fully recreate the project after a reboot.
