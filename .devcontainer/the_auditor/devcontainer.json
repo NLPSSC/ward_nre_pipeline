@@ -1,6 +1,6 @@
 {
-    "name": "nre_pipeline Development Container",
-    "service": "nre_pipeline",
+    "name": "the_auditor Development Container",
+    "service": "the_auditor",
     "dockerComposeFile": "docker-compose.yml",
     "customizations": {
         "vscode": {
@@ -43,6 +43,10 @@
             ]
         }
     },
+    "forwardPorts": [
+        8000,
+        9092
+    ],
     "workspaceFolder": "/workspace",
-    "postCreateCommand": ".devcontainer/nre_pipeline/postCreateCommand.sh"
+    "postCreateCommand": ".devcontainer/the_auditor/postCreateCommand.sh"
 }

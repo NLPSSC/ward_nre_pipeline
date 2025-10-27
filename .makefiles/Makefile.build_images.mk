@@ -3,13 +3,13 @@ include .makefiles/Makefile.common.mk
 ifndef BUILD_IMAGES_INCLUDED
 BUILD_IMAGES_INCLUDED := 1
 
-.PHONY: help-base-images
+.PHONY: help-base-images python38_base python39_base python311_base python312_base medspacy_quickumls_processor
 
 get_label_text = $(shell .makefiles/get_config_value.sh $(1) 'text')
 get_label_image_name = $(shell .makefiles/get_config_value.sh $(1) 'image_name')
 get_label_dockerfile = $(shell .makefiles/get_config_value.sh $(1) 'dockerfile')
 
-defined_base_images := python38_base python311_base python312_base medspacy_quickumls_processor
+defined_base_images := python38_base python39_base python311_base python312_base medspacy_quickumls_processor
 
 define show_error
     printf "\033[1;31m%s\033[0m" $(1)
