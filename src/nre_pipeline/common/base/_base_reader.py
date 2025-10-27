@@ -50,10 +50,8 @@ class CorpusReader(_BaseProcess, VerboseMixin):
         try:
             for document_batch in self._iter():
                 self._reader_status = "processing"
-
                 self._debug_log("Starting reader loop")
                 # Iterate through all batches
-
                 self._place_document_batch_in_queue(document_batch)
 
             self._mark_all_documents_read()
@@ -113,7 +111,7 @@ class CorpusReader(_BaseProcess, VerboseMixin):
         """Mark all documents as read by placing a QUEUE_EMPTY signal in the queue."""
         self._inqueue.put(QUEUE_EMPTY)
 
-    def _place_document_batch_in_queue(self, document_batch) -> None:
+    def _place_document_batch_in_queue(self, document_batch: DocumentBatch) -> None:
         """Place a document batch in the input queue.
 
         Args:
