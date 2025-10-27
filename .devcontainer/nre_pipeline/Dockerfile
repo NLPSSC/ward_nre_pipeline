@@ -11,7 +11,12 @@ RUN apt-get update && \
 
 # Add /etc/pip.conf, such that any in-container changes during development
 # don't raise a warning, since this is use the root python and not a venv
-RUN echo -e "[global]\nroot-user-action = ignore" > /etc/pip.conf
+RUN cat <<EOF >> /etc/pip.conf
+
+[global]
+root-user-action = ignore
+
+EOF
 
 # Add alias to root's .bashrc
 RUN echo "alias ll='ls -la'" >> /root/.bashrc || exit 100
@@ -26,8 +31,8 @@ COPY .devcontainer/nre_pipeline/*requirements.txt ./requirements
 RUN if [ -f /requirements/requirements.txt ]; then \
         python -m pip install -r /requirements/requirements.txt; \
     fi
-RUN if [ -f /requirements/dev-requirements.txt ]; then \
-        python -m pip install -r /requirements/dev-requirements.txt; \
+RUN if [ -f /requirements/requirements-dev.txt ]; then \
+        python -m pip install -r /requirements/requirements-dev.txt; \
     fi
 
 CMD ["bash"]

@@ -12,6 +12,9 @@
 		},
 		{
 			"path": "../input_data"
+		},
+		{
+			"path": "../quickumls_data"
 		}
 	],
 	"launch": {
