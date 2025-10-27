@@ -4,6 +4,11 @@
         "image_name": "nlpssc/python38-base:latest",
         "dockerfile": ".docker_imgs/python38_base/Dockerfile.python38_base"
     },
+    "python39_base": {
+        "text": "Python 3.9",
+        "image_name": "nlpssc/python39-base:latest",
+        "dockerfile": ".docker_imgs/python39_base/Dockerfile.python39_base"
+    },
     "python311_base": {
         "text": "Python 3.11",
         "image_name": "nlpssc/python311-base:latest",

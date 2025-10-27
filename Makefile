@@ -4,11 +4,11 @@ include .makefiles/Makefile.common.mk
 include .makefiles/Makefile.build_images.mk
 include .makefiles/Makefile.genalog_api.mk
 include .makefiles/Makefile.nre_pipeline.mk
+include .makefiles/Makefile.the_auditor.mk
 
 .DEFAULT_GOAL := help
 
-help: help-base-images help-genalog_api help-nre_pipeline
-
+help: help-base-images help-genalog_api help-nre_pipeline help-the_auditor
 start-docker:
 	sudo service docker start
 

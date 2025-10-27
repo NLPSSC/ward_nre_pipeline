@@ -1,7 +1,7 @@
 {
-    "name": "nre_pipeline Development Container",
-    "service": "nre_pipeline",
-    "dockerComposeFile": "docker-compose.yml",
+    "name": "the_auditor Development Container",
+    "service": "the_auditor",
+    "dockerComposeFile": "docker-copmpose.yml",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -43,6 +43,13 @@
             ]
         }
     },
+    "forwardPorts": [
+        8000,
+        9092
+    ],
+    "mounts": [
+        "source=/home/westerd/_/project_data/the_auditor,target=/the_auditor,type=bind"
+    ],
     "workspaceFolder": "/workspace",
     "postCreateCommand": ".devcontainer/nre_pipeline/postCreateCommand.sh"
 }
