@@ -7,7 +7,6 @@ from nre_pipeline.models._nlp_result import NLPResultItem
 DEFAULT_DELIMITER = "|"
 
 
-# /results{id}.db
 class CSVWriter(NLPResultWriter):
 
     def __init__(
