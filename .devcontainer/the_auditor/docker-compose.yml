@@ -26,7 +26,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   the_auditor:
-    build: 
+    build:
       context: ../..
       dockerfile: .devcontainer/the_auditor/Dockerfile
     depends_on:
@@ -40,5 +40,7 @@ services:
     volumes:
       - ../..:/workspace:cached
       - output:/output:rw
-    # command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-    command: ["sleep", "infinity"]
+    command: ["sh", "-c", "cd /workspace/src && uvicorn the_auditor.main:app --host 0.0.0.0 --port 8000"]
+      # ["uvicorn", "the_auditor.main:app", "--host", "0.0.0.0", "--port", "8000"]
+      # ["sleep", "infinity"]
+      

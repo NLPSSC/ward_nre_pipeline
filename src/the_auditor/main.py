@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 
-from the_auditor.auditor_api.file_handle_cache import FileHandleCache
+from the_auditor.file_handle_cache import FileHandleCache
 
 app = FastAPI()
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
@@ -18,24 +18,20 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode("utf-8"),
 )
 
-_file_handle_cache = FileHandleCache(Path("/the_auditor"))
+_file_handle_cache: FileHandleCache = FileHandleCache(Path("/the_auditor"))
 
 
 @app.post("/tick")
-def tick(
+async def tick(
     service_name: str,
     process_name: str,
     process_activity: str,
     count: int = Query(1, ge=1),
 ):
     time_tick = int(time.time())
-    _file_handle_cache.get_file_handle(service_name, process_name)
-    log_path = Path("/the_auditor") / service_name / process_name
-    log_path.mkdir(parents=True, exist_ok=True)
-    csv_file = log_path / f"{process_activity}.csv"
-
-    with open(csv_file, "a") as fh:
-        
+    await _file_handle_cache.log_tick(
+        service_name, process_name, process_activity, count, time_tick
+    )
 
     event = {
         "service_name": service_name,

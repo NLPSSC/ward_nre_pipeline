@@ -34,4 +34,4 @@ RUN if [ -f /requirements/requirements-dev.txt ]; then \
     fi
 
 # CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD ["bash"]
+# CMD ["bash"]
