@@ -217,12 +217,10 @@ __marimo__/
 # custom
 envs/ 
 *.bundle
-.data/nre_pipeline/quickumls
-.data/nre_pipeline/umls
-.data/bundles
-.data/temp
 
 resources/umls/ 
-quickumls/
+
 .data/temp
 data/batch_ids.db
+
+/quickumls_data
