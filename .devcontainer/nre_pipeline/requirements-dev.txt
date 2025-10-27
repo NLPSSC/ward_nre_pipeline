@@ -1,0 +1,7 @@
+ipywidgets
+jupyterlab
+jupyter
+pytest
+pytest-order
+flake8
+wonderwords
