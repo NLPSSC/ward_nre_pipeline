@@ -1,0 +1,8 @@
+# List files and folders for devcontainer to ignore
+# Add one entry per line. Example:
+# node_modules/
+# .env
+# output/
+# test_data/
+/workspace/.docker_imgs/
+/workspace/.genalog_api.env
