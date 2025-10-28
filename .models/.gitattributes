@@ -215,3 +215,4 @@ quickumls_data/umls-simstring.db/umls-terms.simstring.171.cdb filter=lfs diff=lf
 quickumls_data/umls-simstring.db/umls-terms.simstring.176.cdb filter=lfs diff=lfs merge=lfs -text
 quickumls_data/umls-simstring.db/umls-terms.simstring.45.cdb filter=lfs diff=lfs merge=lfs -text
 quickumls_data/umls-simstring.db/umls-terms.simstring.198.cdb filter=lfs diff=lfs merge=lfs -text
+quickumls_data/umls-simstring.db/umls-terms.simstring.232.cdb filter=lfs diff=lfs merge=lfs -text
