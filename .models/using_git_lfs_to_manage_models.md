@@ -4,6 +4,9 @@
 for f in "$(find ./.models -type f -size +50M -print)"; do
     echo "Tracking ${f} with Git LFS..." && \
         git lfs track "${f}" && \
+        git add .gitattributes "${f}" && \
+        git commit -m "Tracking ${f}" && \
+        git add -f "${f}" && \
         git commit -m "Tracking ${f}" && \
         git push
     # check the error code of the last command
