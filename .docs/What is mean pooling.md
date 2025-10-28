@@ -27,4 +27,4 @@ Another common way to get a sentence embedding is to use the final hidden state 
 
 Implementing mean pooling
 
-For practical implementation, libraries like sentence-transformers automatically handle the mean pooling process, providing a simple way to encode sentences. For more granular control using the transformers library, you would follow the manual steps of masking and averaging the token embeddings, as shown in the previous answer. 
+For practical implementation, libraries like sentence-transformers automatically handle the mean pooling process, providing a simple way to encode sentences. For more granular control using the transformers library, you would follow the manual steps of masking and averaging the token embeddings.
