@@ -1,0 +1,15 @@
+dev:
+  - ipywidgets
+  - jupyterlab
+  - jupyter
+  - pytest
+  - pytest-order
+  - flake8
+  - wonderwords
+  - huggingface-hub
+prod:
+  - python-dotenv
+  - psutil
+  - loguru
+  - GitPython
+  - transformers
