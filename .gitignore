@@ -218,9 +218,15 @@ __marimo__/
 
 ## Folders
 envs/ 
-.models
+
 resources/umls/ 
 
 ## Files
 *.bundle
 UMLS_API_KEY.secret
+
+#--------------------------------------------------------------------------------------------
+# This should be added via the instructions in
+# /workspace/.models/using_git_lfs_to_manage_models.md
+#--------------------------------------------------------------------------------------------
+*.safetensors
