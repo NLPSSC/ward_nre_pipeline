@@ -1,3 +1,4 @@
 quickumls_data/cui-semtypes.db/cui.unqlite filter=lfs diff=lfs merge=lfs -text
 quickumls_data/cui-semtypes.db/semtypes.unqlite filter=lfs diff=lfs merge=lfs -text
 quickumls_data/umls-simstring.db/umls-terms.simstring filter=lfs diff=lfs merge=lfs -text
+quickumls_data/umls-simstring.db/umls-terms.simstring.181.cdb filter=lfs diff=lfs merge=lfs -text
