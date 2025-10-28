@@ -1,1 +1,2 @@
 quickumls_data/cui-semtypes.db/cui.unqlite filter=lfs diff=lfs merge=lfs -text
+quickumls_data/cui-semtypes.db/semtypes.unqlite filter=lfs diff=lfs merge=lfs -text
