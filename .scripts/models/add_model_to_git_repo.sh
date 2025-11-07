@@ -68,13 +68,12 @@ for f in "${FILES_FOR_GIT_LFS[@]}"; do
         continue
     fi
 
-    echo "Tracking ${f} with Git LFS..." && \
-        git lfs track "${f}" && \
-        git add .gitattributes && \
-        git commit -m "Tracking ${f}" && \
-        git add -f "${f}" && \
-        git commit -m "Tracking ${f}" && \
-        git push
+    git lfs track "${f}" >/dev/null 2>&1 && \
+    git add .gitattributes >/dev/null 2>&1 && \
+    git commit -m "Tracking ${f}" >/dev/null 2>&1 && \
+    git add -f "${f}" >/dev/null 2>&1 && \
+    git commit -m "Tracking ${f}" >/dev/null 2>&1 && \
+    git push >/dev/null 2>&1
     # check the error code of the last command
     if [ $? -ne 0 ]; then
         echo "Error tracking ${f} with Git LFS"

@@ -61,12 +61,17 @@ class EnvValues:
         return Path(val)
 
     ###############################################################################
-    #
+    # Models and Resources
     ###############################################################################
 
     @staticmethod
     def get_quickumls_path() -> Path:
         val: str = get_env("QUICKUMLS_PATH")
+        return Path(val)
+    
+    @staticmethod
+    def get_sentence_transformer_model_path() -> Path:
+        val: str = get_env("SENTENCE_TRANSFORMER_MODEL_PATH")
         return Path(val)
 
     @staticmethod
